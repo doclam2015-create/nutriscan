@@ -321,6 +321,12 @@ tr:last-child td{border-bottom:none}
     <h2>Atajos de iOS · configuración única</h2>
     <p class="mut">Los Atajos usan el OCR nativo de Apple: rápido, preciso en español y <b>sin conexión</b>. Se configuran una vez y después la app lee cada etiqueta con un solo toque.</p>
     <div class="sep"></div>
+    <h3>Nombre de tus atajos</h3>
+    <p class="mut">Escríbelos tal cual aparecen en la app Atajos, con mayúsculas y tildes idénticas. Si usas un solo atajo, pon el mismo nombre en ambos campos.</p>
+    <label class="f"><span>Atajo de cámara</span><input type="text" id="a_cam" autocapitalize="words" autocorrect="off"></label>
+    <label class="f"><span>Atajo de galería</span><input type="text" id="a_gal" autocapitalize="words" autocorrect="off"></label>
+    <button class="btn sec sm" id="btnSaveAtajos">💾 Guardar nombres</button>
+    <div class="sep"></div>
     <h3>Paso 1 · Copia la dirección de esta app</h3>
     <div style="background:var(--bg2);border:1px solid var(--line);border-radius:11px;padding:11px;
       font-size:11.5px;word-break:break-all;color:var(--tx2);margin:8px 0" id="appUrl"></div>
@@ -1111,17 +1117,30 @@ function renderShot(){
     ? `<div class="shot"><img src="${foto}"><button class="del" id="delShot">✕</button></div>` : '';
   const d=$('delShot'); if(d) d.addEventListener('click',()=>{foto=null;renderShot();});
 }
-/* Atajos de iOS: la app los invoca y ellos devuelven el texto por la URL */
+/* Atajos de iOS: la app los invoca y ellos devuelven el texto por la URL.
+   El nombre lo pone el usuario, porque iOS exige coincidencia exacta. */
+const ATA = ls.g('ns_atajos', {cam:'NutriScan Cámara', gal:'NutriScan Galería'});
 function runAtajo(nombre){
-  const t=setTimeout(()=>toast('No se encontró el atajo «'+nombre+'». Tócalo en «Configurar los Atajos».',true),2200);
+  const t=setTimeout(()=>{
+    toast('iOS no encontró el atajo «'+nombre+'». Abre «Configurar los Atajos» y escribe su nombre exacto.',true);
+    $('btnSetup').click();
+  },2500);
   window.addEventListener('pagehide',()=>clearTimeout(t),{once:true});
   location.href='shortcuts://run-shortcut?name='+encodeURIComponent(nombre);
 }
-$('btnCam').addEventListener('click',()=>runAtajo('NutriScan Cámara'));
-$('btnLib').addEventListener('click',()=>runAtajo('NutriScan Galería'));
+$('btnCam').addEventListener('click',()=>runAtajo(ATA.cam));
+$('btnLib').addEventListener('click',()=>runAtajo(ATA.gal));
 $('btnNoAtajo').addEventListener('click',()=>$('fileLib').click());
 $('btnSetup').addEventListener('click',()=>{
-  $('appUrl').textContent=appURL(); $('setupOvl').className='ovl'; window.scrollTo(0,0);
+  $('appUrl').textContent=appURL();
+  $('a_cam').value=ATA.cam; $('a_gal').value=ATA.gal;
+  $('setupOvl').className='ovl'; window.scrollTo(0,0);
+});
+$('btnSaveAtajos').addEventListener('click',()=>{
+  const c=$('a_cam').value.trim(), g=$('a_gal').value.trim();
+  if(!c||!g) return toast('Ambos nombres son obligatorios',true);
+  ATA.cam=c; ATA.gal=g; ls.s('ns_atajos',ATA);
+  toast('Nombres guardados ✓');
 });
 $('setupClose').addEventListener('click',()=>$('setupOvl').className='ovl hide');
 const appURL = () => (location.href.split('#')[0]).split('?')[0];
