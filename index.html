@@ -1,0 +1,1626 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="NutriScan">
+<meta name="theme-color" content="#0d1117">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icon-180.png">
+<link rel="icon" href="./icon-180.png">
+<title>NutriScan · Análisis de etiquetas</title>
+<style>
+:root{
+  --bg:#0d1117; --bg2:#161b22; --card:#1b2129; --card2:#222a35; --line:#2b333f;
+  --tx:#e9eef5; --tx2:#9aa7b8; --tx3:#66748a;
+  --ac:#3b82f6; --ok:#22c55e; --warn:#f59e0b; --bad:#ef4444;
+  --st:env(safe-area-inset-top); --sb:env(safe-area-inset-bottom);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--tx);
+  font:16px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text",Helvetica,Arial,sans-serif;
+  -webkit-text-size-adjust:100%}
+body{padding-top:var(--st)}
+.hide{visibility:hidden!important;height:0!important;min-height:0!important;overflow:hidden!important;
+  margin:0!important;padding:0!important;border:0!important}
+
+header{position:sticky;top:0;z-index:60;background:rgba(13,17,23,.95);
+  -webkit-backdrop-filter:saturate(180%) blur(14px);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line);padding:9px 13px 7px}
+.hrow{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.brand{display:flex;align-items:center;gap:9px;font-weight:800;font-size:19px;letter-spacing:-.4px}
+.logo{width:30px;height:30px;border-radius:9px;background:linear-gradient(140deg,#3b82f6,#22c55e);
+  display:flex;align-items:center;justify-content:center;font-size:16px}
+.off{font-size:10px;color:var(--ok);border:1px solid rgba(34,197,94,.4);background:rgba(34,197,94,.1);
+  padding:3px 7px;border-radius:20px;font-weight:700;letter-spacing:.3px}
+nav{display:flex;gap:5px;margin-top:8px}
+nav button{flex:1;min-height:40px;border:1px solid var(--line);background:var(--card);
+  color:var(--tx2);border-radius:10px;font-size:12.5px;font-weight:700;padding:0 3px;font-family:inherit}
+nav button.on{background:var(--ac);border-color:var(--ac);color:#fff}
+nav button:active{opacity:.6}
+
+main{padding:13px 13px calc(34px + var(--sb));max-width:780px;margin:0 auto}
+.card{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:15px;margin-bottom:12px}
+h2{font-size:12.5px;margin:0 0 11px;letter-spacing:.7px;text-transform:uppercase;color:var(--tx2);font-weight:800}
+h3{font-size:16.5px;margin:0 0 7px;letter-spacing:-.2px}
+p.mut{color:var(--tx2);font-size:13.5px;margin:6px 0}
+small.mut{color:var(--tx3);font-size:11.5px;display:block;line-height:1.45}
+.sep{height:1px;background:var(--line);margin:13px 0}
+
+label.f{display:block;margin-bottom:11px}
+label.f span{display:block;font-size:12px;color:var(--tx2);margin-bottom:5px;font-weight:700}
+input,select,textarea{width:100%;background:var(--bg2);border:1px solid var(--line);color:var(--tx);
+  border-radius:11px;padding:12px;font-size:16px;font-family:inherit;min-height:46px;appearance:none}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--ac)}
+textarea{min-height:120px;resize:vertical;line-height:1.5}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px}
+.btn{width:100%;min-height:52px;border:none;border-radius:13px;background:var(--ac);color:#fff;
+  font-size:16px;font-weight:700;font-family:inherit;margin-top:5px;
+  display:flex;align-items:center;justify-content:center;gap:8px}
+.btn:active{background:#2563eb}
+.btn.sec{background:var(--card2);border:1px solid var(--line);color:var(--tx)}
+.btn.sec:active{background:#2c3644}
+.btn.dgr{background:#3a1d1d;border:1px solid #5c2a2a;color:#fca5a5}
+.btn.sm{min-height:42px;font-size:13.5px;border-radius:11px}
+.row{display:flex;gap:9px}
+.row .btn{margin-top:0}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{padding:9px 13px;border-radius:20px;border:1px solid var(--line);background:var(--bg2);
+  color:var(--tx2);font-size:12.5px;font-weight:700;min-height:40px;display:flex;align-items:center}
+.chip.on{background:rgba(59,130,246,.2);border-color:var(--ac);color:#9dc3ff}
+.chip:active{opacity:.6}
+
+.steps{counter-reset:s}
+.step{display:flex;gap:11px;margin-bottom:11px;align-items:flex-start}
+.step .n{width:24px;height:24px;border-radius:50%;background:var(--ac);color:#fff;flex:none;
+  display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;margin-top:1px}
+.step div{font-size:13.5px;color:var(--tx2);line-height:1.5}
+.step b{color:var(--tx)}
+
+.shot{position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--line);
+  margin-bottom:11px;background:var(--bg2)}
+.shot img{width:100%;display:block;max-height:340px;object-fit:contain}
+.shot .del{position:absolute;top:8px;right:8px;width:32px;height:32px;border-radius:50%;
+  background:rgba(0,0,0,.7);color:#fff;border:none;font-size:16px;z-index:2}
+
+.ring{position:relative;width:106px;height:106px;flex:none}
+.ring svg{transform:rotate(-90deg)}
+.ring .val{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring .val b{font-size:30px;line-height:1}
+.ring .val i{font-style:normal;font-size:9.5px;color:var(--tx3);letter-spacing:.6px}
+.scorewrap{display:flex;align-items:center;gap:15px}
+.gradebox{display:flex;gap:4px;margin-top:9px}
+.gradebox div{flex:1;text-align:center;padding:6px 0;border-radius:7px;font-size:12px;font-weight:800;
+  background:var(--bg2);color:var(--tx3);border:1px solid var(--line)}
+.badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
+.badge{padding:6px 10px;border-radius:9px;font-size:11.5px;font-weight:800;border:1px solid;white-space:nowrap}
+.b-ok{background:rgba(34,197,94,.13);border-color:rgba(34,197,94,.42);color:#6ee7a8}
+.b-wn{background:rgba(245,158,11,.13);border-color:rgba(245,158,11,.42);color:#fcd34d}
+.b-bd{background:rgba(239,68,68,.13);border-color:rgba(239,68,68,.42);color:#fca5a5}
+.b-nt{background:rgba(148,163,184,.1);border-color:var(--line);color:var(--tx2)}
+
+.sello{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  width:76px;height:76px;background:#000;color:#fff;border:3px solid #fff;border-radius:13px;
+  font-size:9px;font-weight:800;text-align:center;line-height:1.1;padding:4px;text-transform:uppercase}
+.sello b{font-size:11px;display:block;margin-top:2px}
+
+.bar{margin-bottom:12px}
+.bar .t{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;gap:8px;align-items:baseline}
+.bar .t b{font-weight:600}
+.bar .t span{color:var(--tx2);font-size:11.5px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.track{height:10px;background:var(--bg2);border-radius:6px;overflow:hidden;position:relative}
+.fill{height:100%;border-radius:6px}
+.track i{position:absolute;top:0;bottom:0;width:2px;background:#8ea0b8;opacity:.7}
+
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{text-align:left;padding:9px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--tx2);font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;font-weight:800}
+td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+tr:last-child td{border-bottom:none}
+
+.ing{border:1px solid var(--line);border-radius:12px;margin-bottom:8px;overflow:hidden;background:var(--bg2)}
+.ing .hd{padding:11px 12px;display:flex;align-items:center;gap:9px;min-height:46px}
+.ing .hd b{flex:1;font-size:14px;font-weight:600}
+.ing .dot{width:10px;height:10px;border-radius:50%;flex:none}
+.ing .cod{font-size:10.5px;color:var(--tx3);font-weight:700}
+.ing .bd{padding:0 12px 12px;font-size:13px;color:var(--tx2);line-height:1.55}
+.ing .bd .kv{margin-top:6px}
+.ing .bd .kv b{color:var(--tx);font-weight:700}
+.arrow{color:var(--tx3);font-size:14px}
+.ing.open .arrow{transform:rotate(90deg);display:inline-block}
+
+.note{border-left:3px solid var(--warn);background:rgba(245,158,11,.07);padding:10px 12px;
+  border-radius:0 10px 10px 0;font-size:13.5px;margin-bottom:8px;line-height:1.5}
+.note.bad{border-color:var(--bad);background:rgba(239,68,68,.07)}
+.note.ok{border-color:var(--ok);background:rgba(34,197,94,.07)}
+.note.inf{border-color:var(--ac);background:rgba(59,130,246,.07)}
+.note b{display:block;margin-bottom:2px;color:var(--tx)}
+
+.org{display:flex;gap:11px;align-items:flex-start;padding:11px;border-radius:12px;
+  background:var(--bg2);border:1px solid var(--line);margin-bottom:8px}
+.org .ic{font-size:22px;width:34px;text-align:center;flex:none;line-height:1.2}
+.org .tx{flex:1;min-width:0}
+.org .tx b{display:block;font-size:14px;margin-bottom:2px}
+.org .tx span{font-size:12.5px;color:var(--tx2);line-height:1.5;display:block}
+.org .pill{font-size:10px;font-weight:800;padding:3px 8px;border-radius:20px;flex:none;margin-top:2px}
+
+.hitem{display:flex;align-items:center;gap:11px;padding:11px;border:1px solid var(--line);
+  border-radius:12px;margin-bottom:8px;background:var(--bg2);min-height:62px}
+.hitem img{width:46px;height:46px;border-radius:9px;object-fit:cover;flex:none;background:var(--card)}
+.hitem .ph{width:46px;height:46px;border-radius:9px;flex:none;background:var(--card2);
+  display:flex;align-items:center;justify-content:center;font-size:20px}
+.hitem .m{flex:1;min-width:0}
+.hitem .m b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hitem .m span{font-size:11px;color:var(--tx3)}
+.hitem .s{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:15px;flex:none;color:#0b1017}
+
+.lnk{display:flex;align-items:center;gap:9px;padding:12px;border:1px solid var(--line);
+  border-radius:11px;background:var(--bg2);margin-bottom:8px;color:var(--tx);
+  text-decoration:none;font-size:13.5px;min-height:48px}
+.lnk .ic{font-size:17px}
+.lnk small{display:block;color:var(--tx3);font-size:11px;margin-top:1px}
+
+.ovl{position:fixed;inset:0;background:rgba(6,9,13,.94);z-index:200;display:flex;
+  align-items:center;justify-content:center;padding:22px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.toast{position:fixed;left:13px;right:13px;bottom:calc(18px + var(--sb));z-index:300;
+  background:#2b3644;border:1px solid var(--line);border-radius:13px;padding:13px 15px;
+  font-size:14px;box-shadow:0 12px 34px rgba(0,0,0,.6);display:none}
+.toast.err{background:#3a1d1d;border-color:#5c2a2a;color:#fecaca}
+.srch{position:relative}
+.res{max-height:290px;overflow-y:auto;-webkit-overflow-scrolling:touch;margin-top:9px}
+.res div{padding:12px 11px;border-bottom:1px solid var(--line);font-size:14px;min-height:46px}
+.res div:active{background:var(--card2)}
+.res div small{color:var(--tx3);font-size:11px;display:block}
+.kcalbox{display:flex;gap:8px;margin-bottom:11px}
+.kcalbox div{flex:1;background:var(--bg2);border:1px solid var(--line);border-radius:11px;
+  padding:10px 8px;text-align:center}
+.kcalbox b{display:block;font-size:18px;font-variant-numeric:tabular-nums}
+.kcalbox span{font-size:10px;color:var(--tx3);text-transform:uppercase;letter-spacing:.4px;font-weight:700}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hrow">
+    <div class="brand"><span class="logo">🥗</span>NutriScan</div>
+    <span class="off">● OFFLINE</span>
+  </div>
+  <nav>
+    <button data-v="scan" class="on">📷 Analizar</button>
+    <button data-v="res">📊 Informe</button>
+    <button data-v="perf">👤 Perfil</button>
+    <button data-v="hist">🕓 Historial</button>
+  </nav>
+</header>
+
+<main>
+
+<!-- ══════════════ ANALIZAR ══════════════ -->
+<section class="view" id="v-scan">
+
+  <div class="card">
+    <h2>Captura automática</h2>
+    <div class="row">
+      <button class="btn" id="btnCam">📷 Apuntar la cámara</button>
+      <button class="btn sec" id="btnLib">🖼️ Elegir foto</button>
+    </div>
+    <small class="mut" style="margin-top:9px">Foto → el iPhone lee la etiqueta con su OCR nativo (Vision, sin internet) → el informe aparece solo.</small>
+    <div id="shotBox" style="margin-top:11px"></div>
+    <input type="file" id="fileIn" accept="image/*" capture="environment" class="hide">
+    <input type="file" id="fileLib" accept="image/*" class="hide">
+    <div class="sep"></div>
+    <button class="btn sec sm" id="btnSetup">⚙️ Configurar los Atajos (una sola vez)</button>
+    <button class="btn sec sm" id="btnNoAtajo" style="margin-top:8px">Guardar solo la foto, sin Atajo</button>
+  </div>
+
+  <div class="card">
+    <h2>Entrada manual</h2>
+    <small class="mut" style="margin-bottom:11px">Si prefieres no usar Atajos: copia el texto con <b>Texto en Vivo</b> de Fotos, mantén pulsado el cuadro y elige <b>Pegar</b>. El informe se genera solo al pegar.</small>
+    <label class="f"><span>Nombre del producto</span>
+      <input type="text" id="inNombre" placeholder="Ej: Galletas de chocolate XYZ"></label>
+    <label class="f"><span>Tabla nutricional e ingredientes (pega o escribe)</span>
+      <textarea id="inTexto" placeholder="Energía 480 kcal&#10;Proteínas 6 g&#10;Grasas totales 22 g&#10;  Saturadas 11 g&#10;Carbohidratos 62 g&#10;  Azúcares 34 g&#10;Fibra 2 g&#10;Sodio 380 mg&#10;&#10;INGREDIENTES: harina de trigo, azúcar, aceite vegetal de palma, jarabe de glucosa, cacao, emulsionante (lecitina de soya INS 322), saborizante artificial, sal."></textarea></label>
+    <div class="row" style="margin-bottom:11px">
+      <button class="btn sec sm" id="btnParse">🔎 Leer valores del texto</button>
+      <button class="btn sec sm" id="btnDemo">🧪 Ejemplo</button>
+    </div>
+    <small class="mut">El lector reconoce formatos en español e inglés, por 100 g o por porción, sodio o sal, kcal o kJ.</small>
+  </div>
+
+  <div class="card">
+    <h2>Valores nutricionales</h2>
+    <div class="row" style="margin-bottom:12px">
+      <button class="btn sec sm" id="btnBase">📚 Buscar en base local (94 alimentos)</button>
+    </div>
+    <label class="f"><span>Los valores están expresados por…</span>
+      <select id="inBase">
+        <option value="100">100 g / 100 ml</option>
+        <option value="porc">Una porción</option>
+      </select></label>
+    <div class="g2">
+      <label class="f"><span>Tamaño de porción (g o ml)</span><input type="number" id="inPorcG" inputmode="decimal" placeholder="30"></label>
+      <label class="f"><span>Porciones por envase</span><input type="number" id="inPorcN" inputmode="decimal" placeholder="10"></label>
+    </div>
+    <label class="f"><span>Tipo de producto</span>
+      <select id="inTipo">
+        <option value="solido">Sólido</option>
+        <option value="bebida">Bebida / líquido</option>
+        <option value="grasa">Aceite, grasa o mantequilla</option>
+        <option value="queso">Queso</option>
+        <option value="fruto">Frutos secos / semillas</option>
+      </select></label>
+    <div class="sep"></div>
+    <div class="g2" id="nutGrid"></div>
+    <div class="sep"></div>
+    <label class="f"><span>Ingredientes (separados por coma)</span>
+      <textarea id="inIng" style="min-height:82px" placeholder="harina de trigo, azúcar, aceite de palma, lecitina de soya…"></textarea></label>
+    <button class="btn" id="btnGo">🔬 Generar informe</button>
+    <small class="mut" style="margin-top:9px" id="perfHint"></small>
+  </div>
+</section>
+
+<!-- ══════════════ INFORME ══════════════ -->
+<section class="view hide" id="v-res"><div id="resBox"></div></section>
+
+<!-- ══════════════ PERFIL ══════════════ -->
+<section class="view hide" id="v-perf">
+  <div class="card">
+    <h2>Datos personales</h2>
+    <div class="g2">
+      <label class="f"><span>Edad (años)</span><input type="number" id="p_edad" inputmode="decimal" min="0" max="120"></label>
+      <label class="f"><span>Sexo</span><select id="p_sexo"><option value="m">Masculino</option><option value="f">Femenino</option></select></label>
+      <label class="f"><span>Peso (kg)</span><input type="number" id="p_peso" inputmode="decimal" step="0.1"></label>
+      <label class="f"><span>Talla (cm)</span><input type="number" id="p_talla" inputmode="decimal" step="0.5"></label>
+    </div>
+    <label class="f"><span>Actividad física</span>
+      <select id="p_act">
+        <option value="1.2">Sedentario — sin ejercicio</option>
+        <option value="1.375">Ligera — 1 a 3 días/semana</option>
+        <option value="1.55" selected>Moderada — 3 a 5 días/semana</option>
+        <option value="1.725">Intensa — 6 a 7 días/semana</option>
+        <option value="1.9">Muy intensa — atleta o trabajo físico</option>
+      </select></label>
+    <label class="f"><span>Objetivo</span>
+      <select id="p_obj">
+        <option value="1">Mantener peso</option>
+        <option value="0.8">Bajar peso (−20 %)</option>
+        <option value="1.15">Subir peso (+15 %)</option>
+      </select></label>
+  </div>
+
+  <div class="card">
+    <h2>Condiciones de salud</h2>
+    <div class="chips" id="condChips"></div>
+    <div class="sep"></div>
+    <label class="f"><span>Alergias / intolerancias</span>
+      <input type="text" id="p_alerg" placeholder="maní, lactosa, gluten, mariscos…"></label>
+    <label class="f"><span>Notas (dieta, medicamentos)</span>
+      <input type="text" id="p_notas" placeholder="dieta hiposódica, vegetariano…"></label>
+    <button class="btn" id="btnSavePerf">💾 Guardar perfil</button>
+  </div>
+
+  <div class="card" id="needsBox"></div>
+</section>
+
+<!-- ══════════════ HISTORIAL ══════════════ -->
+<section class="view hide" id="v-hist">
+  <div class="card"><h2>Productos analizados</h2><div id="histList"></div></div>
+  <div class="card" id="diaBox"></div>
+  <button class="btn dgr" id="btnClrHist">🗑️ Borrar historial</button>
+</section>
+
+</main>
+
+<!-- Configuración de Atajos -->
+<div class="ovl hide" id="setupOvl">
+  <div class="card" style="width:100%;max-width:520px;margin:0">
+    <h2>Atajos de iOS · configuración única</h2>
+    <p class="mut">Los Atajos usan el OCR nativo de Apple: rápido, preciso en español y <b>sin conexión</b>. Se configuran una vez y después la app lee cada etiqueta con un solo toque.</p>
+    <div class="sep"></div>
+    <h3>Paso 1 · Copia la dirección de esta app</h3>
+    <div style="background:var(--bg2);border:1px solid var(--line);border-radius:11px;padding:11px;
+      font-size:11.5px;word-break:break-all;color:var(--tx2);margin:8px 0" id="appUrl"></div>
+    <button class="btn sec sm" id="btnCopyUrl">📋 Copiar dirección</button>
+    <div class="sep"></div>
+    <h3>Paso 2 · Crea el atajo «NutriScan Cámara»</h3>
+    <div class="steps">
+      <div class="step"><span class="n">1</span><div>Abre <b>Atajos</b> → <b>+</b> → ponle exactamente el nombre <b>NutriScan Cámara</b>.</div></div>
+      <div class="step"><span class="n">2</span><div>Añade la acción <b>Tomar foto</b>.</div></div>
+      <div class="step"><span class="n">3</span><div>Añade <b>Extraer texto de la imagen</b> (categoría Documentos). Es el OCR de Apple, funciona sin internet.</div></div>
+      <div class="step"><span class="n">4</span><div>Añade <b>Codificar texto</b> y elige <b>Codificar en URL</b>, con el <b>Texto</b> del paso anterior como entrada.</div></div>
+      <div class="step"><span class="n">5</span><div>Añade <b>Abrir URL</b> y escribe la dirección copiada seguida de <b>#t=</b> y luego el <b>Texto codificado</b>.<br>
+        <small class="mut" style="margin-top:4px">Queda así: <code>…nutriscan.html#t=</code><i>[Texto codificado]</i></small></div></div>
+    </div>
+    <div class="sep"></div>
+    <h3>Paso 3 · Duplica para la galería</h3>
+    <p class="mut">Duplica el atajo, llámalo <b>NutriScan Galería</b> y cambia solo la primera acción: <b>Seleccionar fotos</b> en lugar de <b>Tomar foto</b>.</p>
+    <div class="note inf"><b>Listo</b>Desde entonces, «Apuntar la cámara» abre el atajo, tomas la foto y el informe aparece solo al volver.</div>
+    <div class="sep"></div>
+    <h3>Si la dirección de arriba empieza por <code>file:</code> o <code>data:</code></h3>
+    <p class="mut">Atajos no puede reabrir esas direcciones. Usa esta variante, que funciona igual de bien:</p>
+    <div class="steps">
+      <div class="step"><span class="n">1</span><div>En el atajo, activa <b>Mostrar en la hoja para compartir</b> (ajustes del atajo, icono ⓘ).</div></div>
+      <div class="step"><span class="n">2</span><div>Reemplaza la última acción <b>Abrir URL</b> por <b>Ejecutar JavaScript en la página web</b>, con este código:<br>
+        <small class="mut" style="margin-top:5px"><code>window.NutriScan.recibir(`[Texto]`); completion();</code></small><br>
+        <small class="mut">Donde <b>[Texto]</b> es la variable del paso «Extraer texto», insertada entre los acentos graves.</small></div></div>
+      <div class="step"><span class="n">3</span><div>Con NutriScan abierta en Safari, toca <b>Compartir</b> → el atajo. Tomas la foto y el informe aparece en la misma pestaña.</div></div>
+    </div>
+    <div class="note"><b>Consejo</b>Añade también los atajos a la pantalla de inicio o al botón de acción: puedes analizar una etiqueta sin abrir la app primero.</div>
+    <button class="btn" id="setupClose">Entendido</button>
+  </div>
+</div>
+
+<!-- Buscador base local -->
+<div class="ovl hide" id="baseOvl">
+  <div class="card" style="width:100%;max-width:460px;margin:0">
+    <h2>Base local de alimentos</h2>
+    <div class="srch"><input type="text" id="baseQ" placeholder="Buscar: pan, leche, palta, bebida…" autocomplete="off"></div>
+    <div class="res" id="baseRes"></div>
+    <button class="btn sec" id="baseClose" style="margin-top:11px">Cerrar</button>
+  </div>
+</div>
+
+<div class="toast" id="toastEl"></div>
+
+<script>
+'use strict';
+/* ══════════════════════════════════════════════════════════════
+   NutriScan — 100 % offline. Sin API, sin red, sin dependencias.
+   Todo el análisis se calcula localmente en el dispositivo.
+   ══════════════════════════════════════════════════════════════ */
+
+const $  = id => document.getElementById(id);
+const esc = s => String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const K = { perf:'ns_perfil', hist:'ns_hist', last:'ns_last' };
+const ls = { g:(k,d)=>{try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},
+             s:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}} };
+let toastT;
+function toast(m,err){ clearTimeout(toastT); const t=$('toastEl');
+  t.className='toast'+(err?' err':''); t.textContent=m; t.style.display='block';
+  toastT=setTimeout(()=>t.style.display='none', err?5000:2400); }
+
+document.querySelectorAll('nav button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('nav button').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on');
+  ['scan','res','perf','hist'].forEach(v=>$('v-'+v).className='view'+(v===b.dataset.v?'':' hide'));
+  if(b.dataset.v==='hist'){ renderHist(); renderDia(); }
+  if(b.dataset.v==='perf') renderNeeds();
+  window.scrollTo(0,0);
+}));
+const goto = v => document.querySelector('nav button[data-v="'+v+'"]').click();
+
+/* ══════════ A. PERFIL Y REQUERIMIENTOS ══════════ */
+const CONDS = [
+  ['dm2','Diabetes 2'],['dm1','Diabetes 1'],['prediab','Resist. insulina'],['hta','Hipertensión'],
+  ['dislip','Colesterol alto'],['obes','Sobrepeso/obesidad'],['erc','Enf. renal crónica'],
+  ['higado','Hígado graso'],['celiaco','Celiaquía'],['lactosa','Intol. lactosa'],
+  ['gota','Gota / ácido úrico'],['reflujo','Reflujo/gastritis'],['emb','Embarazo'],['lact','Lactancia'],
+  ['card','Enf. cardiovascular'],['osteo','Osteoporosis'],['anemia','Anemia'],['sii','Colon irritable'],
+  ['tiroid','Tiroides'],['migr','Migraña'],['fenil','Fenilcetonuria']
+];
+let perfil = ls.g(K.perf,null);
+
+function renderCondChips(){
+  const s=(perfil&&perfil.conds)||[];
+  $('condChips').innerHTML = CONDS.map(([i,l])=>`<div class="chip${s.includes(i)?' on':''}" data-c="${i}">${l}</div>`).join('');
+  $('condChips').querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>c.classList.toggle('on')));
+}
+function loadPerf(){
+  const p=perfil||{};
+  $('p_edad').value=p.edad??''; $('p_sexo').value=p.sexo||'m';
+  $('p_peso').value=p.peso??''; $('p_talla').value=p.talla??'';
+  $('p_act').value=p.act||'1.55'; $('p_obj').value=p.obj||'1';
+  $('p_alerg').value=p.alerg||''; $('p_notas').value=p.notas||'';
+  renderCondChips(); hint();
+}
+function hint(){
+  $('perfHint').innerHTML = perfil
+    ? `Porcentajes calculados para: <b>${perfil.edad} años, ${perfil.peso} kg</b>${(perfil.conds||[]).length?' · '+perfil.conds.length+' condición(es)':''}.`
+    : '⚠️ Sin perfil: se usará un adulto de referencia (2000 kcal). Configura tu <b>Perfil</b> para porcentajes reales.';
+}
+$('btnSavePerf').addEventListener('click',()=>{
+  const edad=parseFloat($('p_edad').value), peso=parseFloat($('p_peso').value), talla=parseFloat($('p_talla').value);
+  if(!(edad>=0&&edad<=120)) return toast('Edad inválida',true);
+  if(!(peso>0&&peso<400))   return toast('Peso inválido',true);
+  if(!(talla>0&&talla<260)) return toast('Talla inválida',true);
+  perfil={edad,peso,talla,sexo:$('p_sexo').value,act:$('p_act').value,obj:$('p_obj').value,
+    alerg:$('p_alerg').value.trim(),notas:$('p_notas').value.trim(),
+    conds:Array.from($('condChips').querySelectorAll('.chip.on')).map(c=>c.dataset.c)};
+  ls.s(K.perf,perfil); renderNeeds(); hint(); toast('Perfil guardado ✓');
+});
+
+/* Gasto energético basal: Schofield (<18 a) / Mifflin-St Jeor (≥18 a) */
+function tmb(p){
+  const P=p.peso,T=p.talla,E=p.edad,S=p.sexo;
+  if(E<18){
+    if(S==='m') return E<3?59.512*P-30.4 : E<10?22.706*P+504.3 : 17.686*P+658.2;
+    return        E<3?58.317*P-31.1 : E<10?20.315*P+485.9 : 13.384*P+692.6;
+  }
+  return 10*P+6.25*T-5*E+(S==='m'?5:-161);
+}
+/* Micronutrientes: DRI/OMS por banda etaria */
+function micros(p){
+  const E=p.edad, f=p.sexo==='f', c=p.conds||[];
+  let m;
+  if(E<1)       m={ca:260,fe:11,k:860,mg:75,zn:3,vc:50,va:500,vd:10,b12:0.5,fol:80,na:'—'};
+  else if(E<4)  m={ca:700,fe:7,k:2000,mg:80,zn:3,vc:15,va:300,vd:15,b12:0.9,fol:150};
+  else if(E<9)  m={ca:1000,fe:10,k:2300,mg:130,zn:5,vc:25,va:400,vd:15,b12:1.2,fol:200};
+  else if(E<14) m={ca:1300,fe:8,k:2500,mg:240,zn:8,vc:45,va:600,vd:15,b12:1.8,fol:300};
+  else if(E<19) m={ca:1300,fe:f?15:11,k:3000,mg:f?360:410,zn:f?9:11,vc:f?65:75,va:f?700:900,vd:15,b12:2.4,fol:400};
+  else if(E<51) m={ca:1000,fe:f?18:8,k:f?2600:3400,mg:f?310:400,zn:f?8:11,vc:f?75:90,va:f?700:900,vd:15,b12:2.4,fol:400};
+  else if(E<71) m={ca:f?1200:1000,fe:8,k:f?2600:3400,mg:f?320:420,zn:f?8:11,vc:f?75:90,va:f?700:900,vd:15,b12:2.4,fol:400};
+  else          m={ca:1200,fe:8,k:f?2600:3400,mg:f?320:420,zn:f?8:11,vc:f?75:90,va:f?700:900,vd:20,b12:2.4,fol:400};
+  if(c.includes('emb')){ m.fe=27; m.fol=600; m.vc+=10; m.zn+=3; }
+  if(c.includes('lact')){ m.fe=9; m.fol=500; m.vc+=45; m.zn+=4; m.ca=1000; }
+  if(c.includes('osteo')) m.ca=1200;
+  if(c.includes('anemia')) m.fe=Math.max(m.fe,18);
+  if(c.includes('erc'))   m.k=2000;
+  return m;
+}
+function needs(p){
+  if(!p||!p.peso) p={edad:35,peso:70,talla:170,sexo:'m',act:'1.55',obj:'1',conds:[]};
+  const c=p.conds||[];
+  let kcal=tmb(p)*parseFloat(p.act||1.55)*parseFloat(p.obj||1);
+  if(c.includes('emb')) kcal+=340;
+  if(c.includes('lact')) kcal+=450;
+  kcal=Math.round(kcal/10)*10;
+
+  let gkg = p.edad<1?1.4 : p.edad<4?1.1 : p.edad<14?0.95 : p.edad<18?0.85 : p.edad<65?0.83 : 1.1;
+  if(c.includes('erc')) gkg=0.7;
+  if(c.includes('emb')) gkg+=0.35;
+  if(c.includes('lact')) gkg+=0.4;
+
+  let na = p.edad>=16?2000 : Math.round(2000*Math.min(1,kcal/2000)/10)*10;
+  if(c.includes('hta')||c.includes('erc')||c.includes('card')) na=1500;
+
+  let azu=Math.round(kcal*0.10/4);
+  const azuId=Math.round(kcal*0.05/4);
+  if(c.includes('dm2')||c.includes('dm1')||c.includes('prediab')||c.includes('higado')||c.includes('obes')) azu=azuId;
+  let sat=Math.round(kcal*0.10/9);
+  if(c.includes('dislip')||c.includes('card')) sat=Math.round(kcal*0.07/9);
+
+  const m=micros(p);
+  return { kcal, prot:Math.round(p.peso*gkg), gkg:+gkg.toFixed(2),
+    grasa:Math.round(kcal*0.30/9), sat, carb:Math.round(kcal*0.52/4),
+    azucar:azu, azucarIdeal:azuId, fibra:Math.max(10,Math.round(kcal/1000*14)),
+    sodio:na, agua:Math.round(p.peso*35), tmb:Math.round(tmb(p)),
+    imc: p.talla?+(p.peso/Math.pow(p.talla/100,2)).toFixed(1):null,
+    colesterol:300, ...m };
+}
+function renderNeeds(){
+  const n=needs(perfil), p=perfil;
+  let imc='';
+  if(n.imc){
+    imc = (p&&p.edad<18)
+      ? `IMC ${n.imc} kg/m² — en menores de 18 años se interpreta con curvas OMS por edad, no con cortes de adulto.`
+      : (()=>{const v=n.imc;return `IMC ${v} kg/m² — ${v<18.5?'bajo peso':v<25?'normal':v<30?'sobrepeso':v<35?'obesidad grado I':v<40?'obesidad grado II':'obesidad grado III'}.`})();
+  }
+  $('needsBox').innerHTML=`
+   <h2>Tus requerimientos diarios</h2>
+   <div class="kcalbox">
+     <div><b>${n.kcal}</b><span>kcal/día</span></div>
+     <div><b>${n.tmb}</b><span>basal</span></div>
+     <div><b>${n.prot}</b><span>g proteína</span></div>
+   </div>
+   <table>
+     <tr><th>Nutriente</th><th class="num">Meta diaria</th></tr>
+     <tr><td>Proteínas</td><td class="num">${n.prot} g <small class="mut" style="display:inline">(${n.gkg} g/kg)</small></td></tr>
+     <tr><td>Carbohidratos</td><td class="num">${n.carb} g</td></tr>
+     <tr><td>Azúcares libres <b>máx</b></td><td class="num">${n.azucar} g</td></tr>
+     <tr><td>Grasas totales</td><td class="num">${n.grasa} g</td></tr>
+     <tr><td>Saturadas <b>máx</b></td><td class="num">${n.sat} g</td></tr>
+     <tr><td>Fibra</td><td class="num">${n.fibra} g</td></tr>
+     <tr><td>Sodio <b>máx</b></td><td class="num">${n.sodio} mg</td></tr>
+     <tr><td>Colesterol <b>máx</b></td><td class="num">${n.colesterol} mg</td></tr>
+     <tr><td>Calcio</td><td class="num">${n.ca} mg</td></tr>
+     <tr><td>Hierro</td><td class="num">${n.fe} mg</td></tr>
+     <tr><td>Potasio</td><td class="num">${n.k} mg</td></tr>
+     <tr><td>Magnesio</td><td class="num">${n.mg} mg</td></tr>
+     <tr><td>Zinc</td><td class="num">${n.zn} mg</td></tr>
+     <tr><td>Vitamina C</td><td class="num">${n.vc} mg</td></tr>
+     <tr><td>Vitamina A</td><td class="num">${n.va} µg</td></tr>
+     <tr><td>Vitamina D</td><td class="num">${n.vd} µg</td></tr>
+     <tr><td>Vitamina B12</td><td class="num">${n.b12} µg</td></tr>
+     <tr><td>Folato</td><td class="num">${n.fol} µg</td></tr>
+     <tr><td>Agua</td><td class="num">${n.agua} ml</td></tr>
+   </table>
+   ${imc?`<div class="note inf" style="margin-top:12px"><b>Composición</b>${imc}</div>`:''}
+   <small class="mut">Energía: Mifflin-St Jeor (≥18 a) o Schofield (&lt;18 a) × factor de actividad. Metas de azúcar, grasa saturada, sodio y fibra según OMS; micronutrientes según DRI/IOM ajustados por edad, sexo y condiciones declaradas. Orientativo, no reemplaza evaluación profesional.</small>`;
+}
+
+/* ══════════ B. DICCIONARIO DE INGREDIENTES ══════════
+   k: palabras clave (minúsculas, sin tilde) · t: tipo · r: riesgo
+   q: qué es · f: función · o: órganos/sistemas · up: marcador ultraprocesado */
+const N = 'ninguno', B='bajo', M='medio', A='alto';
+const DIC = [
+ {k:['harina de trigo','harina trigo','trigo','harina'],n:'Harina de trigo',t:'base',r:B,c:null,
+  q:'Grano de trigo molido. Si es refinada perdió el salvado y el germen, con ellos la mayor parte de la fibra, el magnesio y las vitaminas del grupo B.',
+  f:'Da estructura y volumen a la masa.',o:['digestivo'],al:'gluten'},
+ {k:['harina integral','trigo integral','integral'],n:'Harina integral',t:'base',r:N,c:null,
+  q:'Harina que conserva el grano completo, con salvado y germen.',
+  f:'Estructura, aporta fibra y minerales.',o:['digestivo','corazon','metabolico'],al:'gluten'},
+ {k:['azucar','sacarosa','azucar de cana','azucar rubia','azucar blanca'],n:'Azúcar (sacarosa)',t:'azucar',r:M,c:null,
+  q:'Azúcar de mesa. Aporta 4 kcal por gramo y ningún micronutriente: son calorías vacías.',
+  f:'Endulza, da color al hornear y conserva.',o:['pancreas','higado','dientes','metabolico']},
+ {k:['jarabe de maiz','alta fructosa','jmaf','sirope de maiz','jarabe de fructosa','fructosa'],n:'Jarabe de maíz alta fructosa',t:'azucar',r:A,c:null,up:1,
+  q:'Endulzante líquido industrial muy rico en fructosa, que el hígado metaboliza directamente.',
+  f:'Endulza más barato que el azúcar y da textura.',o:['higado','pancreas','metabolico']},
+ {k:['jarabe de glucosa','glucosa','dextrosa','maltosa','jarabe'],n:'Jarabe de glucosa',t:'azucar',r:M,c:null,up:1,
+  q:'Azúcar líquida de absorción muy rápida obtenida del almidón.',
+  f:'Endulza, evita cristalización y da textura.',o:['pancreas','metabolico']},
+ {k:['maltodextrina'],n:'Maltodextrina',t:'azucar',r:M,c:null,up:1,
+  q:'Almidón fragmentado. Aunque no sabe dulce, eleva la glicemia incluso más rápido que el azúcar (IG ≈ 110).',
+  f:'Da cuerpo, volumen y evita apelmazamiento.',o:['pancreas','metabolico']},
+ {k:['miel'],n:'Miel',t:'azucar',r:B,c:null,
+  q:'Azúcar natural de las abejas con trazas de antioxidantes. Para el organismo sigue siendo azúcar libre.',
+  f:'Endulza y aporta humedad.',o:['pancreas','metabolico']},
+ {k:['aceite de palma','grasa de palma','palma','palmiste'],n:'Aceite de palma',t:'grasa',r:M,c:null,up:1,
+  q:'Grasa vegetal sólida a temperatura ambiente, con cerca de 50 % de grasa saturada (ácido palmítico).',
+  f:'Aporta textura crujiente y larga vida útil, es barata.',o:['corazon','arterias','higado']},
+ {k:['aceite de girasol','girasol','aceite de maravilla','maravilla'],n:'Aceite de girasol',t:'grasa',r:B,c:null,
+  q:'Aceite vegetal rico en ácido linoleico (omega-6) y vitamina E.',
+  f:'Grasa para freír o dar textura.',o:['corazon']},
+ {k:['aceite de oliva','oliva'],n:'Aceite de oliva',t:'grasa',r:N,c:null,
+  q:'Aceite rico en ácido oleico y polifenoles; base de la dieta mediterránea.',
+  f:'Grasa de cocción y sabor.',o:['corazon','arterias','cerebro']},
+ {k:['hidrogenad','parcialmente hidrogenado','grasa trans','trans'],n:'Grasa parcialmente hidrogenada',t:'grasa',r:A,c:null,up:1,
+  q:'Aceite endurecido industrialmente: es la principal fuente de grasas trans. La OMS pide eliminarlas de la dieta; no hay nivel seguro.',
+  f:'Da solidez, textura y vida útil muy larga.',o:['corazon','arterias','higado']},
+ {k:['manteca','grasa animal','sebo','grasa de cerdo'],n:'Manteca / grasa animal',t:'grasa',r:M,c:null,
+  q:'Grasa de origen animal con alto contenido de saturadas y colesterol.',
+  f:'Textura, sabor y hojaldrado.',o:['corazon','arterias']},
+ {k:['leche','leche entera','leche en polvo','solidos lacteos','suero de leche','lactosuero'],n:'Leche / derivados lácteos',t:'base',r:N,c:null,
+  q:'Aporta proteína de alto valor biológico, calcio, fósforo y vitamina B12.',
+  f:'Sabor, cremosidad y valor nutricional.',o:['huesos','musculo'],al:'lactosa'},
+ {k:['proteina aislada','aislado de proteina','concentrado de proteina','caseinato','proteina de soya texturizada'],n:'Proteína aislada',t:'base',r:B,c:null,up:1,
+  q:'Proteína extraída y purificada industrialmente, fuera de su matriz alimentaria original.',
+  f:'Sube el contenido proteico y da textura.',o:['musculo']},
+ {k:['almidon modificado','almidon de maiz modificado','almidon'],n:'Almidón modificado',t:'espesante',r:B,c:'INS 1400-1450',up:1,
+  q:'Almidón tratado química o físicamente para resistir calor y acidez.',
+  f:'Espesa y estabiliza.',o:['pancreas']},
+ {k:['sal','cloruro de sodio','sal de mar','sal yodada'],n:'Sal (cloruro de sodio)',t:'base',r:M,c:null,
+  q:'1 g de sal aporta unos 400 mg de sodio. El exceso sostenido eleva la presión arterial y sobrecarga el riñón.',
+  f:'Sabor y conservación.',o:['riñon','arterias','corazon']},
+ {k:['glutamato','glutamato monosodico','msg','621','potenciador del sabor','extracto de levadura','inosinato','guanilato','ribonucleotidos'],n:'Potenciador del sabor (glutamato y similares)',t:'aditivo',r:M,c:'INS 621/627/631',up:1,
+  q:'Realza el sabor umami. Seguro en las dosis habituales según EFSA y FDA; algunas personas sensibles refieren cefalea. Su presencia indica producto muy formulado y suele acompañarse de mucho sodio.',
+  f:'Intensifica el sabor y aumenta la palatabilidad.',o:['cerebro','riñon']},
+ {k:['nitrito','nitrato','250','251','252','nitrito de sodio'],n:'Nitritos y nitratos',t:'conservante',r:A,c:'INS 249-252',up:1,
+  q:'Conservan embutidos y evitan el botulismo, pero al cocinarse a alta temperatura forman nitrosaminas. La IARC clasifica las carnes procesadas como carcinógeno grupo 1.',
+  f:'Conservan, dan color rosado y evitan bacterias.',o:['colon','estomago']},
+ {k:['benzoato','211','acido benzoico'],n:'Benzoato de sodio',t:'conservante',r:M,c:'INS 211',
+  q:'Conservante antimicrobiano. Combinado con vitamina C y calor puede formar trazas de benceno en bebidas.',
+  f:'Evita hongos y levaduras.',o:['higado']},
+ {k:['sorbato','202','acido sorbico'],n:'Sorbato de potasio',t:'conservante',r:B,c:'INS 202',
+  q:'Conservante de los más seguros y usados; el organismo lo metaboliza como una grasa corta.',
+  f:'Evita hongos y levaduras.',o:[]},
+ {k:['sulfito','dioxido de azufre','metabisulfito','220','223','224'],n:'Sulfitos',t:'conservante',r:M,c:'INS 220-228',
+  q:'Conservan y evitan el pardeamiento. Pueden desencadenar crisis en personas asmáticas; declaración obligatoria sobre 10 mg/kg.',
+  f:'Conservan color y frenan la oxidación.',o:['pulmon'],al:'sulfitos'},
+ {k:['bha','bht','320','321','terbutilhidroquinona','tbhq'],n:'Antioxidantes sintéticos (BHA/BHT/TBHQ)',t:'aditivo',r:M,c:'INS 319-321',up:1,
+  q:'Evitan que las grasas se pongan rancias. El BHA está en revisión regulatoria por su perfil toxicológico; las dosis de uso se consideran seguras.',
+  f:'Prolongan la vida útil de las grasas.',o:['higado']},
+ {k:['tartrazina','102','amarillo 5','amarillo n 5'],n:'Tartrazina (amarillo 5)',t:'colorante',r:M,c:'INS 102',up:1,
+  q:'Colorante amarillo sintético. En la UE obliga a la advertencia «puede afectar la actividad y la atención de los niños».',
+  f:'Da color amarillo intenso.',o:['cerebro']},
+ {k:['rojo 40','allura','129','rojo allura','amarillo ocaso','110','carmoisina','122','ponceau','124'],n:'Colorantes azoicos (rojo 40, amarillo ocaso…)',t:'colorante',r:M,c:'INS 110/122/124/129',up:1,
+  q:'Colorantes sintéticos del grupo azo. La misma advertencia europea sobre atención en niños aplica a estos colorantes.',
+  f:'Color llamativo y estable.',o:['cerebro']},
+ {k:['caramelo','150','color caramelo'],n:'Color caramelo',t:'colorante',r:B,c:'INS 150a-d',up:1,
+  q:'Colorante pardo. Las variantes 150c y 150d contienen 4-MEI, vigilado por las agencias sanitarias.',
+  f:'Da color oscuro a bebidas cola y salsas.',o:[]},
+ {k:['carmin','120','cochinilla'],n:'Carmín de cochinilla',t:'colorante',r:B,c:'INS 120',
+  q:'Colorante rojo natural obtenido de un insecto. Puede causar alergia en personas sensibles.',
+  f:'Color rojo natural.',o:[]},
+ {k:['lecitina','322','lecitina de soya','lecitina de girasol'],n:'Lecitina',t:'aditivo',r:N,c:'INS 322',
+  q:'Emulsionante natural extraído de la soya o el girasol; también está en el huevo.',
+  f:'Une agua y grasa para que la mezcla no se separe.',o:[],al:'soya'},
+ {k:['mono y digliceridos','471','esteres de','472','poliglicerol','475','polisorbato','433','carboximetilcelulosa','466'],n:'Emulsionantes industriales',t:'aditivo',r:M,c:'INS 471/472/433/466',up:1,
+  q:'Mantienen unidas grasa y agua. Estudios recientes sugieren que algunos (polisorbato 80, carboximetilcelulosa) podrían alterar la microbiota intestinal; la evidencia en humanos aún es preliminar.',
+  f:'Textura homogénea y cremosa.',o:['microbiota','digestivo']},
+ {k:['goma xantana','xantana','415','goma guar','412','carragenina','407','goma arabiga','414','pectina','440','goma tara','goma garrofin'],n:'Gomas y espesantes',t:'espesante',r:B,c:'INS 407-466',
+  q:'Fibras que dan cuerpo a la mezcla. La carragenina (INS 407) se discute por posible irritación intestinal en personas con colon irritable.',
+  f:'Espesan, gelifican y estabilizan.',o:['digestivo','microbiota']},
+ {k:['aspartamo','951'],n:'Aspartamo',t:'edulcorante',r:M,c:'INS 951',up:1,
+  q:'Edulcorante 200 veces más dulce que el azúcar, sin calorías. En 2023 la IARC lo clasificó como «posiblemente carcinógeno» (grupo 2B) manteniendo la IDA de 40 mg/kg/día. Contiene fenilalanina.',
+  f:'Endulza sin aportar calorías.',o:['metabolico'],al:'fenilalanina'},
+ {k:['sucralosa','955'],n:'Sucralosa',t:'edulcorante',r:B,c:'INS 955',up:1,
+  q:'Edulcorante sin calorías, estable al calor. La OMS desaconseja usar edulcorantes no calóricos para controlar el peso a largo plazo.',
+  f:'Endulza sin calorías.',o:['metabolico','microbiota']},
+ {k:['acesulfamo','950','acesulfame'],n:'Acesulfamo K',t:'edulcorante',r:B,c:'INS 950',up:1,
+  q:'Edulcorante sin calorías, casi siempre combinado con otros para enmascarar su regusto.',
+  f:'Endulza sin calorías.',o:['metabolico']},
+ {k:['sacarina','954'],n:'Sacarina',t:'edulcorante',r:B,c:'INS 954',up:1,
+  q:'El edulcorante artificial más antiguo. Considerado seguro dentro de la IDA.',
+  f:'Endulza sin calorías.',o:['metabolico']},
+ {k:['stevia','glucosidos de esteviol','960','esteviol'],n:'Stevia (glucósidos de esteviol)',t:'edulcorante',r:B,c:'INS 960',
+  q:'Edulcorante de origen vegetal sin calorías, el mejor evaluado del grupo.',
+  f:'Endulza sin calorías.',o:['metabolico']},
+ {k:['sorbitol','420','maltitol','965','xilitol','967','manitol','421','eritritol','968','poliol'],n:'Polioles (sorbitol, maltitol, xilitol…)',t:'edulcorante',r:B,c:'INS 420-968',
+  q:'Alcoholes de azúcar con aproximadamente la mitad de las calorías. Sobre 20 g al día suelen causar gases y diarrea osmótica.',
+  f:'Endulzan y dan volumen sin azúcar.',o:['digestivo']},
+ {k:['saborizante','aroma','aroma artificial','saborizante identico al natural','esencia'],n:'Saborizantes y aromas',t:'saborizante',r:B,c:null,up:1,
+  q:'Mezclas de decenas de compuestos que imitan un sabor. Su presencia es el marcador más fiable de ultraprocesamiento.',
+  f:'Crean o refuerzan el sabor perdido en el proceso.',o:[]},
+ {k:['cafeina'],n:'Cafeína',t:'otro',r:M,c:null,
+  q:'Estimulante del sistema nervioso central. Límite recomendado: 400 mg/día en adultos, 200 mg en embarazo, y se desaconseja en menores de 12 años.',
+  f:'Estimula y aporta amargor.',o:['cerebro','corazon']},
+ {k:['acido fosforico','338','fosfato','450','451','452','polifosfato'],n:'Fosfatos y ácido fosfórico',t:'aditivo',r:M,c:'INS 338/450-452',up:1,
+  q:'Acidulantes y retenedores de agua. El exceso de fósforo inorgánico compite con el calcio y es especialmente riesgoso en enfermedad renal.',
+  f:'Acidifican, dan textura y retienen agua.',o:['riñon','huesos']},
+ {k:['acido citrico','330','citrato','331'],n:'Ácido cítrico',t:'aditivo',r:N,c:'INS 330',
+  q:'Acidulante presente de forma natural en los cítricos; el industrial se obtiene por fermentación.',
+  f:'Da acidez y conserva.',o:['dientes']},
+ {k:['acido ascorbico','300','vitamina c','ascorbato'],n:'Ácido ascórbico (vitamina C)',t:'vitamina',r:N,c:'INS 300',
+  q:'Vitamina C, que además actúa como antioxidante en el alimento.',
+  f:'Evita la oxidación y enriquece.',o:['inmune','piel']},
+ {k:['tocoferol','307','vitamina e'],n:'Tocoferoles (vitamina E)',t:'vitamina',r:N,c:'INS 306-309',
+  q:'Vitamina E natural usada como antioxidante de las grasas.',
+  f:'Evita el enranciamiento.',o:['corazon','piel']},
+ {k:['bicarbonato','500','polvo de hornear','leudante','levadura quimica','pirofosfato'],n:'Leudantes',t:'aditivo',r:B,c:'INS 500/450',
+  q:'Liberan gas para que la masa suba. Aportan sodio.',f:'Hacen esponjosa la masa.',o:['riñon']},
+ {k:['levadura'],n:'Levadura',t:'base',r:N,c:null,
+  q:'Hongo que fermenta la masa y aporta vitaminas del grupo B.',f:'Fermenta y da volumen.',o:['digestivo']},
+ {k:['cacao','chocolate','licor de cacao','manteca de cacao'],n:'Cacao',t:'base',r:N,c:null,
+  q:'Rico en flavonoides y magnesio. El beneficio depende del porcentaje de cacao real frente al azúcar añadido.',
+  f:'Sabor, color y grasa.',o:['corazon','cerebro']},
+ {k:['avena'],n:'Avena',t:'base',r:N,c:null,
+  q:'Cereal con betaglucanos, una fibra soluble que reduce el colesterol LDL de forma demostrada.',
+  f:'Aporta cuerpo, fibra y sabor.',o:['corazon','digestivo','metabolico']},
+ {k:['arroz','harina de arroz'],n:'Arroz',t:'base',r:B,c:null,
+  q:'Cereal sin gluten. El arroz blanco tiene índice glucémico alto; el integral, mucho más fibra.',
+  f:'Base energética.',o:['pancreas']},
+ {k:['soya','soja','proteina de soya'],n:'Soya',t:'base',r:N,c:null,
+  q:'Legumbre con proteína completa e isoflavonas.',f:'Proteína y textura.',o:['musculo','corazon'],al:'soya'},
+ {k:['huevo','clara','yema','albumina'],n:'Huevo',t:'base',r:N,c:null,
+  q:'Proteína de referencia, con colina, luteína y vitamina D.',f:'Estructura, emulsión y color.',o:['musculo','cerebro','ojos'],al:'huevo'},
+ {k:['mani','cacahuate','almendra','nuez','avellana','castana','pistacho','semilla','chia','linaza','sesamo','ajonjoli'],n:'Frutos secos y semillas',t:'base',r:N,c:null,
+  q:'Grasas insaturadas, fibra, magnesio y vitamina E. Alérgeno frecuente y de reacciones graves.',
+  f:'Sabor, textura y valor nutricional.',o:['corazon','cerebro'],al:'frutos secos'},
+ {k:['fibra','inulina','fructooligosacarido','fos','polidextrosa'],n:'Fibra añadida (inulina, FOS)',t:'base',r:N,c:null,
+  q:'Fibras prebióticas que alimentan a las bacterias buenas del colon. En exceso producen gases.',
+  f:'Suben el contenido de fibra y dan cuerpo.',o:['microbiota','digestivo']},
+ {k:['agua'],n:'Agua',t:'base',r:N,c:null,q:'Agua potable o purificada.',f:'Disuelve y da volumen.',o:[]},
+ {k:['gluten','gluten de trigo'],n:'Gluten',t:'base',r:B,c:null,
+  q:'Proteína del trigo, la cebada y el centeno. Solo es dañina en celiaquía, alergia al trigo o sensibilidad no celíaca.',
+  f:'Elasticidad de la masa.',o:['digestivo'],al:'gluten'},
+ {k:['carne','pollo','vacuno','cerdo','pavo'],n:'Carne',t:'base',r:B,c:null,
+  q:'Proteína completa con hierro hemínico, zinc y vitamina B12.',f:'Aporte proteico principal.',o:['musculo','sangre']},
+ {k:['pescado','atun','salmon','jurel','merluza'],n:'Pescado',t:'base',r:N,c:null,
+  q:'Proteína magra con omega-3 EPA y DHA, yodo y vitamina D.',f:'Aporte proteico.',o:['corazon','cerebro','ojos'],al:'pescado'},
+ {k:['tomate','zanahoria','espinaca','verdura','hortaliza','cebolla','ajo','pimiento','zapallo'],n:'Verduras',t:'base',r:N,c:null,
+  q:'Fibra, potasio, folato, vitamina C y antioxidantes con muy pocas calorías.',
+  f:'Sabor, color y nutrientes.',o:['digestivo','corazon','inmune','ojos']},
+ {k:['fruta','manzana','platano','naranja','frutilla','durazno','pina','uva','pulpa de'],n:'Fruta',t:'base',r:N,c:null,
+  q:'Fibra, vitamina C, potasio y polifenoles. En jugo pierde la fibra y el azúcar pasa a ser libre.',
+  f:'Sabor dulce natural.',o:['digestivo','corazon','inmune']},
+ {k:['legumbre','lenteja','poroto','frijol','garbanzo','arveja'],n:'Legumbres',t:'base',r:N,c:null,
+  q:'Combinan proteína vegetal, fibra soluble, hierro y folato; de índice glucémico bajo.',
+  f:'Base proteica y de fibra.',o:['digestivo','corazon','metabolico','microbiota']}
+];
+/* Fallback por rango de código INS/E */
+function insRange(num){
+  const n=+num;
+  if(n>=100&&n<=199) return ['Colorante','colorante',B,'Da o devuelve color al producto.'];
+  if(n>=200&&n<=299) return ['Conservante','conservante',B,'Evita el crecimiento de bacterias y hongos.'];
+  if(n>=300&&n<=399) return ['Antioxidante / regulador de acidez','aditivo',B,'Evita la oxidación o ajusta el pH.'];
+  if(n>=400&&n<=499) return ['Espesante / emulsionante / estabilizante','espesante',B,'Da textura y evita que se separen los componentes.'];
+  if(n>=500&&n<=599) return ['Regulador de acidez / antiaglomerante','aditivo',B,'Ajusta el pH o evita que se apelmace.'];
+  if(n>=600&&n<=699) return ['Potenciador del sabor','aditivo',M,'Intensifica el sabor.'];
+  if(n>=900&&n<=999) return ['Edulcorante / recubrimiento / gas','edulcorante',B,'Endulza, da brillo o desplaza el oxígeno.'];
+  if(n>=1100&&n<=1599) return ['Enzima / almidón modificado','espesante',B,'Modifica textura o consistencia.'];
+  return null;
+}
+const norm = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,' ').trim();
+
+function analizarIngrediente(raw){
+  const s = norm(raw);
+  let best=null, bl=0;
+  for(const d of DIC) for(const k of d.k){
+    if(s.includes(k) && k.length>bl){ best=d; bl=k.length; }
+  }
+  if(best) return { nombre:raw.trim(), n:best.n, t:best.t, r:best.r, c:best.c, q:best.q, f:best.f,
+                    o:best.o||[], up:best.up||0, al:best.al||null };
+  const m = s.match(/(?:ins|e)\s*[-–]?\s*(\d{3,4})/);
+  if(m){ const rg=insRange(m[1]);
+    if(rg) return { nombre:raw.trim(), n:rg[0], t:rg[1], r:rg[2], c:'INS '+m[1], q:'Aditivo alimentario código '+m[1]+'. '+rg[3],
+                    f:rg[3], o:[], up:1, al:null };
+  }
+  return { nombre:raw.trim(), n:raw.trim(), t:'otro', r:B, c:null,
+           q:'Ingrediente no identificado en la base local. Si aparece un código INS o E, escríbelo para clasificarlo.',
+           f:'—', o:[], up:0, al:null };
+}
+
+/* ══════════ C. ÓRGANOS Y SISTEMAS ══════════ */
+const ORG = {
+  corazon  :['❤️','Corazón'],        arterias:['🩸','Arterias y circulación'],
+  riñon    :['🫘','Riñones'],         higado  :['🫀','Hígado'],
+  pancreas :['🍬','Páncreas y glicemia'], digestivo:['🌀','Aparato digestivo'],
+  microbiota:['🦠','Microbiota intestinal'], huesos:['🦴','Huesos y dientes'],
+  musculo  :['💪','Músculo'],         cerebro :['🧠','Cerebro y sistema nervioso'],
+  inmune   :['🛡️','Sistema inmune'],  ojos    :['👁️','Vista'],
+  piel     :['✨','Piel y cicatrización'], sangre:['🩹','Sangre'],
+  metabolico:['⚖️','Metabolismo y peso'], dientes:['🦷','Dientes'],
+  colon    :['🧻','Colon'],           estomago:['🔥','Estómago'],
+  pulmon   :['🫁','Vía respiratoria'], tiroides:['🦋','Tiroides']
+};
+/* Reglas nutriente → sistema. v = valor por 100 g/ml */
+function sistemas(x, ings, beb, n, pPorc){
+  const map = {}; // id -> {ben:[], rie:[]}
+  const add=(id,tipo,txt)=>{ if(!ORG[id]) return; (map[id]=map[id]||{ben:[],rie:[]})[tipo].push(txt); };
+
+  // — Beneficios
+  if(x.fibra_g>=3)   { add('digestivo','ben','La fibra ('+x.fibra_g+' g/100 g) aumenta el volumen y la velocidad del tránsito intestinal.');
+                       add('microbiota','ben','Alimenta a las bacterias del colon, que producen butirato protector.');
+                       add('metabolico','ben','Aumenta la saciedad y enlentece la absorción de azúcares.'); }
+  if(x.fibra_g>=6)     add('corazon','ben','Una fibra soluble alta se asocia a menor colesterol LDL.');
+  if(x.proteina_g>=10) add('musculo','ben','Aporte proteico relevante ('+x.proteina_g+' g/100 g) para mantener y reparar masa muscular.');
+  if(x.potasio_mg>=300){ add('corazon','ben','El potasio contrarresta el efecto del sodio sobre la presión arterial.');
+                         add('arterias','ben','Favorece la relajación de la pared vascular.'); }
+  if(x.calcio_mg>=120) add('huesos','ben','Aporta calcio, esencial para la mineralización ósea y dentaria.');
+  if(x.hierro_mg>=2)   add('sangre','ben','Aporta hierro, necesario para la hemoglobina y el transporte de oxígeno.');
+  if(x.vitc_mg>=15)  { add('inmune','ben','La vitamina C sostiene la función de los glóbulos blancos.');
+                       add('piel','ben','Necesaria para sintetizar colágeno.'); }
+  if(x.vita_ug>=80)    add('ojos','ben','La vitamina A es indispensable para la visión nocturna y la córnea.');
+  if(x.vitd_ug>=2)     add('huesos','ben','La vitamina D permite absorber el calcio del intestino.');
+  if(x.magnesio_mg>=50)add('musculo','ben','El magnesio participa en la contracción y relajación muscular.');
+  if(x.omega3_g>=0.3){ add('cerebro','ben','El omega-3 forma parte estructural de las membranas neuronales.');
+                       add('corazon','ben','El omega-3 reduce los triglicéridos.'); }
+
+  // — Riesgos
+  const naPorc = pPorc.sodio_mg||0;
+  if(x.sodio_mg>= (beb?100:400)){
+    add('arterias','rie','Sodio elevado ('+x.sodio_mg+' mg/100 '+(beb?'ml':'g')+'): retiene líquido y eleva la presión arterial.');
+    add('riñon','rie','Obliga al riñón a filtrar y excretar una carga alta de sodio.');
+    add('corazon','rie','El consumo sostenido de sodio aumenta el riesgo de hipertensión e insuficiencia cardíaca.');
+  }
+  if(x.sat_g>=(beb?3:5)){
+    add('arterias','rie','Grasa saturada alta ('+x.sat_g+' g/100 g): eleva el colesterol LDL y favorece la placa ateromatosa.');
+    add('corazon','rie','Se asocia a mayor riesgo cardiovascular cuando desplaza a las grasas insaturadas.');
+  }
+  if(x.trans_g>0){
+    add('arterias','rie','Contiene grasas trans: suben el LDL y bajan el HDL simultáneamente. La OMS pide eliminarlas.');
+    add('higado','rie','Favorecen la inflamación y el depósito de grasa hepática.');
+  }
+  if(x.azucar_g>=(beb?5:10)){
+    add('pancreas','rie','Azúcar alta ('+x.azucar_g+' g/100 '+(beb?'ml':'g')+'): exige picos repetidos de insulina.');
+    add('higado','rie','La fructosa del azúcar se metaboliza en el hígado y en exceso genera grasa hepática.');
+    add('dientes','rie','El azúcar libre es el principal factor de caries.');
+    add('metabolico','rie','Aporta calorías sin saciedad, lo que facilita el aumento de peso.');
+  }
+  if(x.colesterol_mg>=100) add('arterias','rie','Contenido de colesterol relevante ('+x.colesterol_mg+' mg/100 g).');
+  if(x.cafeina_mg>0)     { add('cerebro','rie','Contiene cafeína ('+ (pPorc.cafeina_mg||x.cafeina_mg) +' mg por porción): puede alterar el sueño y aumentar la ansiedad.');
+                           add('corazon','rie','Puede elevar transitoriamente la frecuencia cardíaca y la presión.'); }
+
+  // — Desde ingredientes
+  ings.forEach(i=>{
+    (i.o||[]).forEach(id=>{
+      if(i.r==='alto'||i.r==='medio') add(id,'rie',i.n+': '+i.q.split('.')[0]+'.');
+      else if(i.r==='ninguno')        add(id,'ben',i.n+': '+i.q.split('.')[0]+'.');
+    });
+  });
+  return map;
+}
+
+/* ══════════ D. PARSER DE TEXTO DE ETIQUETA ══════════ */
+const NUTPAT = [
+  ['kcal',        /(?:energ[íi]a|calor[íi]as?|energy|valor\s*energ)[^0-9\-]{0,40}?(\d+[.,]?\d*)\s*(?:kcal|cal\b)/i],
+  ['kcal_kj',     /(\d+[.,]?\d*)\s*kj/i],
+  ['kcal_alt',    /(?:energ[íi]a|calor[íi]as?|energy)[^0-9\n]{0,25}(\d+[.,]?\d*)/i],  // «Energía (kcal) 60»
+  ['proteina_g',  /prote[íi]nas?[^0-9\-]{0,25}?(\d+[.,]?\d*)/i],
+  ['carb_g',      /(?:carbohidratos?|hidratos\s*de\s*carbono|h\.?\s*de\s*c\.?(?:\s*disp\.?)?|carbohydrate)[^0-9\-]{0,30}?(\d+[.,]?\d*)/i],
+  ['azucar_g',    /az[úu]car(?:es)?(?:\s*totales)?[^0-9\-]{0,25}?(\d+[.,]?\d*)/i],
+  ['fibra_g',     /fibra(?:\s*(?:diet[ée]tica|alimentaria))?[^0-9\-]{0,25}?(\d+[.,]?\d*)/i],
+  ['grasa_g',     /grasas?\s*(?:totales?)?[^0-9\-]{0,25}?(\d+[.,]?\d*)/i],
+  ['sat_g',       /(?:grasas?\s*)?saturadas?[^0-9\-]{0,25}?(\d+[.,]?\d*)/i],
+  ['trans_g',     /(?:grasas?\s*)?trans[^0-9\-]{0,25}?(\d+[.,]?\d*)/i],
+  ['mono_g',      /monoinsaturadas?[^0-9\-]{0,25}?(\d+[.,]?\d*)/i],
+  ['poli_g',      /poliinsaturadas?[^0-9\-]{0,25}?(\d+[.,]?\d*)/i],
+  ['colesterol_mg',/colesterol[^0-9\-]{0,25}?(\d+[.,]?\d*)/i],
+  ['sodio_mg',    /sodio[^0-9\-]{0,25}?(\d+[.,]?\d*)\s*(mg|g)?/i],
+  ['potasio_mg',  /potasio[^0-9\-]{0,25}?(\d+[.,]?\d*)/i],
+  ['calcio_mg',   /calcio[^0-9\-]{0,25}?(\d+[.,]?\d*)/i],
+  ['hierro_mg',   /hierro[^0-9\-]{0,25}?(\d+[.,]?\d*)/i],
+  ['magnesio_mg', /magnesio[^0-9\-]{0,25}?(\d+[.,]?\d*)/i],
+  ['zinc_mg',     /zinc[^0-9\-]{0,25}?(\d+[.,]?\d*)/i],
+  ['vitc_mg',     /vitamina\s*c[^0-9\-]{0,25}?(\d+[.,]?\d*)/i],
+  ['vita_ug',     /vitamina\s*a[^0-9\-]{0,25}?(\d+[.,]?\d*)/i],
+  ['vitd_ug',     /vitamina\s*d[^0-9\-]{0,25}?(\d+[.,]?\d*)/i],
+  ['cafeina_mg',  /cafe[íi]na[^0-9\-]{0,25}?(\d+[.,]?\d*)/i]
+];
+function parseTexto(txt){
+  const t = txt.replace(/ /g,' ');
+  const out = {};
+  for(const [k,re] of NUTPAT){
+    const m = t.match(re);
+    if(!m) continue;
+    const v = parseFloat(m[1].replace(',','.'));
+    if(isNaN(v)) continue;
+    if(k==='kcal_kj'){ if(out.kcal==null) out.kcal=Math.round(v/4.184); continue; }
+    if(k==='kcal_alt'){ if(out.kcal==null) out.kcal=v; continue; }
+    if(k==='sodio_mg' && m[2] && m[2].toLowerCase()==='g'){ out.sodio_mg=v*1000; continue; }
+    out[k]=v;
+  }
+  // Sal → sodio (1 g sal = 400 mg Na)
+  if(out.sodio_mg==null){
+    const s=t.match(/\bsal\b[^0-9\-]{0,20}?(\d+[.,]?\d*)\s*g/i);
+    if(s) out.sodio_mg=Math.round(parseFloat(s[1].replace(',','.'))*400);
+  }
+  // Porción
+  // «Porción: 1 envase (300 g)» → toma el número que va pegado a la unidad, no el primero de la línea
+  const p = t.match(/porci[óo]n(?!es)[^\n]{0,45}?(\d+[.,]?\d*)\s*(?:g|ml|gr)\b/i)
+         || t.match(/(?:por|per)\s*(\d+[.,]?\d*)\s*(?:g|ml)\b/i);
+  if(p) out._porcG = parseFloat(p[1].replace(',','.'));
+  const pe = t.match(/porciones?\s*por\s*(?:envase|paquete)[^0-9\n]{0,14}(\d+[.,]?\d*)/i);
+  if(pe) out._porcN = parseFloat(pe[1].replace(',','.'));
+  // La tabla chilena trae dos columnas («100 g» y «1 Porción»); el parser lee la primera
+  out._por100 = /\b100\s*(?:g|ml|gr)\b/i.test(t);
+  // Ingredientes
+  const ig = t.match(/ingredientes?\s*[:\-]?\s*([\s\S]{5,900})/i);
+  if(ig){
+    out._ing = ig[1].split(/\n\s*\n|CONTIENE|ELABORAD|Fabricad|Cons[eé]rvese|INFORMACI[ÓO]N/i)[0]
+      .replace(/\.\s*$/,'').trim();
+  }
+  return out;
+}
+
+/* ══════════ E. BASE LOCAL DE ALIMENTOS (por 100 g/ml) ══════════ */
+/* [nombre, kcal, prot, carb, azu, fib, gra, sat, sodio, tipo, ig] */
+const BASE = [
+ ['Agua',0,0,0,0,0,0,0,1,'bebida',0],
+ ['Leche entera',61,3.2,4.8,4.8,0,3.3,1.9,44,'bebida',31],
+ ['Leche descremada',34,3.4,5,5,0,0.1,0.1,42,'bebida',32],
+ ['Yogur natural sin azúcar',61,3.5,4.7,4.7,0,3.3,2.1,46,'solido',35],
+ ['Yogur de sabor azucarado',95,3.2,15,14,0,2.5,1.6,50,'solido',48],
+ ['Bebida cola azucarada',42,0,10.6,10.6,0,0,0,4,'bebida',63],
+ ['Bebida cola sin azúcar',0.3,0,0,0,0,0,0,6,'bebida',0],
+ ['Néctar de fruta envasado',54,0.1,13,12,0.2,0,0,5,'bebida',55],
+ ['Jugo de naranja natural',45,0.7,10.4,8.4,0.2,0.2,0,1,'bebida',50],
+ ['Bebida energética',45,0,11,11,0,0,0,40,'bebida',70],
+ ['Cerveza',43,0.5,3.6,0,0,0,0,4,'bebida',0],
+ ['Pan blanco (marraqueta)',270,8.5,53,2.5,2.4,1.2,0.3,540,'solido',75],
+ ['Pan integral',247,10,41,4,7,3.5,0.7,450,'solido',53],
+ ['Pan de molde blanco',265,8,49,5,2.5,3.5,0.9,490,'solido',70],
+ ['Galletas dulces tipo obleas',480,5,66,32,2,22,11,300,'solido',70],
+ ['Galletas de agua / soda',420,9,70,3,2.5,11,4,900,'solido',72],
+ ['Cereal de desayuno azucarado',380,6,84,35,3,2,0.6,450,'solido',77],
+ ['Avena en hojuelas',389,17,66,1,10.6,7,1.2,2,'solido',55],
+ ['Arroz blanco cocido',130,2.7,28,0.1,0.4,0.3,0.1,1,'solido',73],
+ ['Arroz integral cocido',112,2.6,24,0.4,1.8,0.9,0.2,5,'solido',55],
+ ['Fideos cocidos',131,5,25,0.6,1.3,1.1,0.2,1,'solido',49],
+ ['Papas fritas de paquete',536,7,53,0.5,4.8,34,3.5,525,'solido',70],
+ ['Papa cocida',87,2,20,0.9,1.8,0.1,0,5,'solido',78],
+ ['Puré de papas instantáneo',360,8,76,3,6,3,1.5,900,'solido',85],
+ ['Lentejas cocidas',116,9,20,1.8,7.9,0.4,0.1,2,'solido',32],
+ ['Porotos cocidos',127,8.7,23,0.3,6.4,0.5,0.1,2,'solido',30],
+ ['Garbanzos cocidos',164,8.9,27,4.8,7.6,2.6,0.3,7,'solido',28],
+ ['Quinoa cocida',120,4.4,21,0.9,2.8,1.9,0.2,7,'solido',53],
+ ['Pechuga de pollo cocida',165,31,0,0,0,3.6,1,74,'solido',0],
+ ['Carne de vacuno magra',217,26,0,0,0,12,4.6,66,'solido',0],
+ ['Cerdo (lomo)',242,27,0,0,0,14,5,62,'solido',0],
+ ['Salmón',208,20,0,0,0,13,3.1,59,'solido',0],
+ ['Atún en agua (lata)',116,26,0,0,0,0.8,0.2,320,'solido',0],
+ ['Merluza',90,18,0,0,0,1.3,0.3,90,'solido',0],
+ ['Huevo entero',143,13,0.7,0.4,0,9.5,3.1,142,'solido',0],
+ ['Jamón de pavo',110,17,2,1.5,0,3.5,1.2,980,'solido',0],
+ ['Vienesas / salchichas',290,11,3,1.5,0,26,10,1000,'solido',0],
+ ['Mortadela',311,12,3,1,0,28,10.4,1100,'solido',0],
+ ['Queso gauda',356,25,2.2,2.2,0,27,17,819,'queso',0],
+ ['Queso fresco',264,18,3,3,0,20,12,400,'queso',0],
+ ['Quesillo',72,12,3,3,0,1,0.6,250,'queso',0],
+ ['Mantequilla',717,0.9,0.1,0.1,0,81,51,11,'grasa',0],
+ ['Margarina',717,0.2,0.7,0,0,80,16,700,'grasa',0],
+ ['Aceite vegetal',884,0,0,0,0,100,14,0,'grasa',0],
+ ['Aceite de oliva',884,0,0,0,0,100,14,2,'grasa',0],
+ ['Palta',160,2,8.5,0.7,6.7,15,2.1,7,'solido',15],
+ ['Manzana',52,0.3,14,10,2.4,0.2,0,1,'solido',36],
+ ['Plátano',89,1.1,23,12,2.6,0.3,0.1,1,'solido',51],
+ ['Naranja',47,0.9,12,9,2.4,0.1,0,0,'solido',43],
+ ['Frutilla',32,0.7,7.7,4.9,2,0.3,0,1,'solido',40],
+ ['Uva',69,0.7,18,16,0.9,0.2,0.1,2,'solido',59],
+ ['Sandía',30,0.6,7.6,6.2,0.4,0.2,0,1,'solido',72],
+ ['Pera',57,0.4,15,10,3.1,0.1,0,1,'solido',38],
+ ['Durazno',39,0.9,10,8.4,1.5,0.3,0,0,'solido',42],
+ ['Tomate',18,0.9,3.9,2.6,1.2,0.2,0,5,'solido',15],
+ ['Lechuga',15,1.4,2.9,0.8,1.3,0.2,0,28,'solido',15],
+ ['Zanahoria',41,0.9,10,4.7,2.8,0.2,0,69,'solido',39],
+ ['Brócoli',34,2.8,7,1.7,2.6,0.4,0,33,'solido',15],
+ ['Espinaca',23,2.9,3.6,0.4,2.2,0.4,0.1,79,'solido',15],
+ ['Zapallo',26,1,6.5,2.8,0.5,0.1,0,1,'solido',75],
+ ['Cebolla',40,1.1,9.3,4.2,1.7,0.1,0,4,'solido',15],
+ ['Choclo',86,3.3,19,3.2,2,1.4,0.2,15,'solido',52],
+ ['Almendras',579,21,22,4.4,12.5,50,3.8,1,'fruto',15],
+ ['Nueces',654,15,14,2.6,6.7,65,6.1,2,'fruto',15],
+ ['Maní salado',599,24,21,4,8,52,7,410,'fruto',14],
+ ['Semillas de chía',486,17,42,0,34,31,3.3,16,'fruto',1],
+ ['Chocolate de leche',535,7.6,59,52,3.4,30,18,79,'solido',45],
+ ['Chocolate 70 % cacao',598,7.8,46,24,11,43,24,20,'solido',23],
+ ['Helado de crema',207,3.5,24,21,0.7,11,6.8,80,'solido',52],
+ ['Manjar / dulce de leche',315,7,55,54,0,7,4.5,129,'solido',65],
+ ['Mermelada',278,0.4,69,60,1,0.1,0,32,'solido',51],
+ ['Miel',304,0.3,82,82,0.2,0,0,4,'solido',58],
+ ['Azúcar',387,0,100,100,0,0,0,1,'solido',65],
+ ['Ketchup',101,1.3,25,21,0.3,0.1,0,907,'solido',55],
+ ['Mayonesa',680,1,1.3,0.9,0,75,11,635,'grasa',0],
+ ['Salsa de soya',53,8,4.9,0.4,0.8,0.1,0,5493,'solido',0],
+ ['Caldo en cubo (preparado)',5,0.3,0.5,0.2,0,0.2,0.1,850,'bebida',0],
+ ['Sopa deshidratada (preparada)',30,1,4,1,0.3,1,0.4,400,'bebida',0],
+ ['Pizza (porción)',266,11,33,3.6,2.3,10,4.5,598,'solido',60],
+ ['Hamburguesa de comida rápida',295,17,24,5,1.6,14,5.5,497,'solido',66],
+ ['Nuggets de pollo',296,15,16,0.4,1,19,4,557,'solido',46],
+ ['Empanada de pino',270,10,30,2,1.5,12,5,520,'solido',55],
+ ['Completo / hot dog',280,10,26,5,1.4,15,5.5,700,'solido',65],
+ ['Sushi (roll)',150,6,30,4,1,1.5,0.3,400,'solido',55],
+ ['Barra de cereal',420,6,70,30,4,13,6,180,'solido',65],
+ ['Galletón / queque industrial',430,5,58,30,1.5,20,9,350,'solido',70],
+ ['Cecinas tipo salame',407,22,1.6,0.6,0,34,13,1740,'solido',0],
+ ['Atún en aceite (lata)',198,29,0,0,0,8,1.5,354,'solido',0],
+ ['Leche condensada',321,7.9,54,54,0,8.7,5.5,127,'solido',61],
+ ['Yogur griego sin azúcar',97,9,3.9,3.9,0,5,3.2,36,'solido',11],
+ ['Tofu',76,8,1.9,0.6,0.3,4.8,0.7,7,'solido',15],
+ ['Hummus',166,7.9,14,0.3,6,9.6,1.4,379,'solido',6],
+ ['Té sin azúcar',1,0,0.3,0,0,0,0,3,'bebida',0],
+ ['Café negro sin azúcar',2,0.3,0,0,0,0,0,2,'bebida',0]
+];
+
+/* ══════════ F. MOTOR DE PUNTUACIÓN ══════════ */
+const pts=(v,t)=>{let s=0;for(const[l,p]of t)if(v>l)s=p;return s;};
+const T_EN =[[335,1],[670,2],[1005,3],[1340,4],[1675,5],[2010,6],[2345,7],[2680,8],[3015,9],[3350,10]];
+const T_AZ =[[4.5,1],[9,2],[13.5,3],[18,4],[22.5,5],[27,6],[31,7],[36,8],[40,9],[45,10]];
+const T_SA =[[1,1],[2,2],[3,3],[4,4],[5,5],[6,6],[7,7],[8,8],[9,9],[10,10]];
+const T_NA =[[90,1],[180,2],[270,3],[360,4],[450,5],[540,6],[630,7],[720,8],[810,9],[900,10]];
+const T_FI =[[0.9,1],[1.9,2],[2.8,3],[3.7,4],[4.7,5]];
+const T_PR =[[1.6,1],[3.2,2],[4.8,3],[6.4,4],[8.0,5]];
+const T_ENB=[[0,1],[30,2],[60,3],[90,4],[120,5],[150,6],[180,7],[210,8],[240,9],[270,10]];
+const T_AZB=[[0,1],[1.5,2],[3,3],[4.5,4],[6,5],[7.5,6],[9,7],[10.5,8],[12,9],[13.5,10]];
+
+function nutriScore(x,tipo){
+  const beb = tipo==='bebida';
+  const kJ=(x.kcal||0)*4.184, fv=x.fv||0;
+  const N = pts(kJ, beb?T_ENB:T_EN) + pts(x.azucar_g||0, beb?T_AZB:T_AZ)
+          + pts(x.sat_g||0,T_SA) + pts(x.sodio_mg||0,T_NA);
+  const pFV  = beb ? (fv>80?10:fv>60?4:fv>40?2:0) : (fv>80?5:fv>60?2:fv>40?1:0);
+  const pFib = pts(x.fibra_g||0,T_FI);
+  const pPro = pts(x.proteina_g||0,T_PR);
+  // excepciones oficiales: quesos siempre suman proteína; grasas usan tabla de saturadas/lípidos
+  const cuentaPro = tipo==='queso' || !(N>=11 && pFV<(beb?10:5));
+  const P = pFV + pFib + (cuentaPro?pPro:0);
+  const s = N-P;
+  const grade = beb ? (s<=1?'B':s<=5?'C':s<=9?'D':'E')
+                    : (s<=-1?'A':s<=2?'B':s<=10?'C':s<=18?'D':'E');
+  return {s,grade,score:Math.max(0,Math.min(100,Math.round((40-s)/55*100)))};
+}
+/* Sellos Ley 20.606 (Chile), límites vigentes desde jun-2019 */
+const LIM_S={kcal:275,sodio_mg:400,azucar_g:10,sat_g:4};
+const LIM_L={kcal:70, sodio_mg:100,azucar_g:5, sat_g:3};
+function sellos(x,tipo){
+  const L = tipo==='bebida'?LIM_L:LIM_S, o=[];
+  if((x.kcal||0)     >=L.kcal)     o.push(['CALORÍAS',   x.kcal+' kcal', L.kcal+' kcal']);
+  if((x.sodio_mg||0) >=L.sodio_mg) o.push(['SODIO',      x.sodio_mg+' mg', L.sodio_mg+' mg']);
+  if((x.azucar_g||0) >=L.azucar_g) o.push(['AZÚCARES',   x.azucar_g+' g',  L.azucar_g+' g']);
+  if((x.sat_g||0)    >=L.sat_g)    o.push(['GRASAS SAT.',x.sat_g+' g',    L.sat_g+' g']);
+  return o;
+}
+/* NOVA por marcadores de ultraprocesamiento */
+function nova(ings, x){
+  const up = ings.filter(i=>i.up);
+  if(up.length>=2) return [4, 'Contiene '+up.length+' marcadores de uso industrial exclusivo ('+up.slice(0,3).map(i=>i.n.toLowerCase()).join(', ')+'). Es una formulación, no un alimento modificado.'];
+  if(up.length===1) return [4, 'Contiene un ingrediente de uso industrial exclusivo ('+up[0].n.toLowerCase()+'), característico de los ultraprocesados.'];
+  const tiene = t => ings.some(i=>i.t===t);
+  if(ings.length>=6 && (tiene('aditivo')||tiene('conservante')||tiene('colorante')))
+    return [4,'Lista larga con aditivos cosméticos: perfil de ultraprocesado.'];
+  if(tiene('azucar')||tiene('conservante')||(x.sodio_mg||0)>=400)
+    return [3,'Alimento al que se añadió azúcar, sal, aceite o conservantes para hacerlo más sabroso o durable.'];
+  if(ings.length<=1 && (ings[0]&&['grasa','azucar'].includes(ings[0].t)))
+    return [2,'Sustancia extraída de un alimento y usada para cocinar, no para consumir sola.'];
+  if(ings.length<=3) return [1,'Pocos ingredientes reconocibles, sin aditivos ni azúcares añadidos.'];
+  return [3,'Producto procesado con varios ingredientes pero sin marcadores industriales claros.'];
+}
+/* Índice glucémico estimado (offline, heurístico) */
+function estimarIG(x, tipo, ings, igBase){
+  if(igBase!=null) return [igBase,'Valor de la base local de alimentos.'];
+  const carb=x.carb_g||0, azu=x.azucar_g||0, fib=x.fibra_g||0, gra=x.grasa_g||0, pro=x.proteina_g||0;
+  if(carb<5) return [null,'Aporta muy pocos carbohidratos: el índice glucémico no es un dato útil aquí.'];
+  let ig=55;
+  const rap = ings.some(i=>/maltodextrina|glucosa|dextrosa|alta fructosa/i.test(i.n));
+  if(rap) ig+=20;
+  ig += Math.min(25, (azu/carb)*30);                       // proporción de azúcares simples
+  ig -= Math.min(20, (fib/Math.max(carb,1))*70);           // fibra frena la absorción
+  ig -= Math.min(12, gra*0.5);                             // grasa enlentece el vaciamiento gástrico
+  ig -= Math.min(8,  pro*0.4);
+  if(ings.some(i=>/integral|avena|legumbre|lenteja|poroto|garbanzo/i.test(i.n))) ig-=10;
+  ig = Math.max(5, Math.min(105, Math.round(ig)));
+  return [ig,'Estimado a partir de la relación azúcares/carbohidratos, fibra, grasa y proteína del producto. Es una aproximación, no una medición.'];
+}
+/* Advertencias personalizadas por perfil */
+function advertencias(x, pPorc, ings, tipo, n, sel){
+  const a=[], c=(perfil&&perfil.conds)||[];
+  const alergUsr = ((perfil&&perfil.alerg)||'').split(/[,;]/).map(s=>norm(s)).filter(s=>s.length>2);
+  // Alergias declaradas
+  ings.forEach(i=>{
+    const t = norm(i.nombre+' '+i.n+' '+(i.al||''));
+    alergUsr.forEach(al=>{ if(t.includes(al))
+      a.push(['bad','⛔ ALERGIA DECLARADA: «'+al+'» aparece en «'+i.nombre+'». No consumir sin verificar el envase original.']); });
+  });
+  const alergs = [...new Set(ings.map(i=>i.al).filter(Boolean))];
+  if(c.includes('celiaco') && alergs.includes('gluten'))
+    a.push(['bad','Contiene gluten y tienes celiaquía declarada: no apto.']);
+  if(c.includes('lactosa') && alergs.includes('lactosa'))
+    a.push(['warn','Contiene lácteos: puede provocar síntomas por tu intolerancia a la lactosa.']);
+  if(c.includes('fenil') && ings.some(i=>/aspartamo/i.test(i.n)))
+    a.push(['bad','Contiene aspartamo, fuente de fenilalanina: contraindicado en fenilcetonuria.']);
+  // Condiciones metabólicas
+  const pctAzu = n.azucar? (pPorc.azucar_g||0)/n.azucar*100 : 0;
+  if((c.includes('dm2')||c.includes('dm1')||c.includes('prediab')) && pctAzu>25)
+    a.push(['bad','Una porción cubre el '+Math.round(pctAzu)+' % de tu límite diario de azúcar, muy alto para tu control glicémico.']);
+  if(c.includes('hta')||c.includes('card')||c.includes('erc')){
+    const pctNa = n.sodio? (pPorc.sodio_mg||0)/n.sodio*100 : 0;
+    if(pctNa>20) a.push(['bad','Una porción aporta el '+Math.round(pctNa)+' % de tu límite diario de sodio ('+n.sodio+' mg), restringido por tu condición.']);
+  }
+  if(c.includes('erc') && (x.potasio_mg>=300 || x.fosforo_mg>=150))
+    a.push(['warn','Contenido relevante de potasio o fósforo: en enfermedad renal ambos deben controlarse.']);
+  if(c.includes('erc') && ings.some(i=>/fosfato|fosf[óo]rico/i.test(i.n)))
+    a.push(['bad','Contiene fosfatos añadidos, que se absorben casi por completo y son especialmente riesgosos en enfermedad renal.']);
+  if((c.includes('dislip')||c.includes('card')) && (x.sat_g>=5))
+    a.push(['warn','Grasa saturada alta con tu perfil lipídico: prefiere versiones con grasas insaturadas.']);
+  if(c.includes('gota') && ings.some(i=>/alta fructosa|jarabe de maiz/i.test(i.n)))
+    a.push(['warn','El jarabe de maíz alto en fructosa eleva el ácido úrico y puede precipitar una crisis de gota.']);
+  if(c.includes('emb')){
+    if((pPorc.cafeina_mg||0)>0) a.push(['warn','Contiene cafeína ('+pPorc.cafeina_mg+' mg/porción): el límite en embarazo es 200 mg al día.']);
+    if(ings.some(i=>/pescado|atun/i.test(i.n))) a.push(['inf','Pescado en el embarazo: prefiere especies bajas en mercurio y bien cocidas.']);
+  }
+  if(c.includes('reflujo') && (ings.some(i=>/cafeina|acido citrico|fosf[óo]rico/i.test(i.n)) || tipo==='bebida' && x.kcal>30))
+    a.push(['warn','Bebidas ácidas, carbonatadas o con cafeína suelen empeorar el reflujo.']);
+  if(c.includes('sii') && ings.some(i=>/inulina|fos|poliol|sorbitol|maltitol|carragenina/i.test(i.n)))
+    a.push(['warn','Contiene FODMAP o polioles que frecuentemente desencadenan síntomas en colon irritable.']);
+  if(c.includes('migr') && ings.some(i=>/glutamato|nitrito|aspartamo/i.test(i.n)))
+    a.push(['warn','Contiene aditivos descritos como gatillo de migraña en personas susceptibles.']);
+  if(c.includes('anemia') && ings.some(i=>/te\b|cafe|tanino/i.test(i.n)))
+    a.push(['inf','El té y el café reducen la absorción de hierro: sepáralos de las comidas principales.']);
+  // Edad
+  if(perfil && perfil.edad<2 && sel.length)
+    a.push(['bad','Menor de 2 años: la OMS desaconseja por completo los alimentos con azúcar añadida o sellos de advertencia.']);
+  if(perfil && perfil.edad<14 && sel.length>=3)
+    a.push(['warn','En Chile este producto no puede venderse ni publicitarse en establecimientos escolares por su número de sellos.']);
+  if(perfil && perfil.edad<12 && (pPorc.cafeina_mg||0)>0)
+    a.push(['bad','Contiene cafeína: no se recomienda en menores de 12 años.']);
+  if(perfil && perfil.edad>=65 && (pPorc.proteina_g||0)>0 && n.prot)
+    a.push(['inf','Sobre los 65 años el requerimiento proteico sube a 1,1 g/kg: esta porción aporta '+Math.round((pPorc.proteina_g/n.prot)*100)+' % de tu meta.']);
+  return a;
+}
+
+/* ══════════ G. FLUJO DE ENTRADA ══════════ */
+const NUTS = [
+  ['kcal','Energía','kcal'],['proteina_g','Proteínas','g'],['carb_g','Carbohidratos','g'],
+  ['azucar_g','Azúcares','g'],['fibra_g','Fibra','g'],['grasa_g','Grasas totales','g'],
+  ['sat_g','Saturadas','g'],['trans_g','Trans','g'],['colesterol_mg','Colesterol','mg'],
+  ['sodio_mg','Sodio','mg'],['potasio_mg','Potasio','mg'],['calcio_mg','Calcio','mg'],
+  ['hierro_mg','Hierro','mg'],['magnesio_mg','Magnesio','mg'],['zinc_mg','Zinc','mg'],
+  ['vitc_mg','Vitamina C','mg'],['vita_ug','Vitamina A','µg'],['vitd_ug','Vitamina D','µg'],
+  ['cafeina_mg','Cafeína','mg'],['omega3_g','Omega-3','g']
+];
+$('nutGrid').innerHTML = NUTS.map(([k,l,u])=>
+  `<label class="f"><span>${l} (${u})</span><input type="number" inputmode="decimal" step="0.1" id="n_${k}"></label>`).join('');
+
+let foto = null;
+function renderShot(){
+  $('shotBox').innerHTML = foto
+    ? `<div class="shot"><img src="${foto}"><button class="del" id="delShot">✕</button></div>` : '';
+  const d=$('delShot'); if(d) d.addEventListener('click',()=>{foto=null;renderShot();});
+}
+/* Atajos de iOS: la app los invoca y ellos devuelven el texto por la URL */
+function runAtajo(nombre){
+  const t=setTimeout(()=>toast('No se encontró el atajo «'+nombre+'». Tócalo en «Configurar los Atajos».',true),2200);
+  window.addEventListener('pagehide',()=>clearTimeout(t),{once:true});
+  location.href='shortcuts://run-shortcut?name='+encodeURIComponent(nombre);
+}
+$('btnCam').addEventListener('click',()=>runAtajo('NutriScan Cámara'));
+$('btnLib').addEventListener('click',()=>runAtajo('NutriScan Galería'));
+$('btnNoAtajo').addEventListener('click',()=>$('fileLib').click());
+$('btnSetup').addEventListener('click',()=>{
+  $('appUrl').textContent=appURL(); $('setupOvl').className='ovl'; window.scrollTo(0,0);
+});
+$('setupClose').addEventListener('click',()=>$('setupOvl').className='ovl hide');
+const appURL = () => (location.href.split('#')[0]).split('?')[0];
+$('btnCopyUrl').addEventListener('click',async()=>{
+  const u=appURL();
+  try{ await navigator.clipboard.writeText(u); toast('Dirección copiada ✓'); }
+  catch(e){
+    const ta=document.createElement('textarea'); ta.value=u;
+    ta.style.cssText='position:fixed;top:0;left:0;opacity:0'; document.body.appendChild(ta);
+    ta.select(); ta.setSelectionRange(0,u.length);
+    try{ document.execCommand('copy'); toast('Dirección copiada ✓'); }
+    catch(_){ toast('Selecciona el texto de arriba y cópialo a mano',true); }
+    ta.remove();
+  }
+});
+
+['fileIn','fileLib'].forEach(id=>$(id).addEventListener('change',e=>{
+  const f=e.target.files&&e.target.files[0]; if(!f) return;
+  const rd=new FileReader();
+  rd.onload=()=>{ const im=new Image(); im.onload=()=>{
+      const MAX=1100; let w=im.width,h=im.height;
+      if(Math.max(w,h)>MAX){const k=MAX/Math.max(w,h);w=Math.round(w*k);h=Math.round(h*k);}
+      const cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+      cv.getContext('2d').drawImage(im,0,0,w,h);
+      foto=cv.toDataURL('image/jpeg',0.7); renderShot();
+    }; im.src=rd.result; };
+  rd.readAsDataURL(f); e.target.value='';
+}));
+
+/* ── Ingreso automático del texto: desde el Atajo (#t=), al pegar o al abrir ── */
+function recibirTexto(txt){
+  if(!txt || !txt.trim()) return false;
+  $('inTexto').value = txt.trim();
+  const n = aplicarParse(true);
+  if(n>=2){ generarInforme(true); return true; }
+  goto('scan'); toast('Texto recibido pero se reconocieron pocos valores: revísalos abajo', true);
+  return false;
+}
+window.NutriScan = { recibir: recibirTexto };   // para la acción «Ejecutar JavaScript» de Atajos
+
+function leerURL(){
+  const raw = (location.hash||'').replace(/^#/,'') || (location.search||'').replace(/^\?/,'');
+  const m = raw.match(/(?:^|&)t=([\s\S]*)$/);
+  if(!m) return;
+  let txt=''; try{ txt = decodeURIComponent(m[1].replace(/\+/g,' ')); }catch(e){ txt = m[1]; }
+  try{ history.replaceState(null,'',appURL()); }catch(e){ location.hash=''; }
+  recibirTexto(txt);
+}
+window.addEventListener('hashchange', leerURL);
+document.addEventListener('paste', e=>{
+  const t=(e.clipboardData||window.clipboardData).getData('text');
+  if(!t || t.trim().length<12) return;
+  if(document.activeElement && document.activeElement.id==='inIng') return;
+  e.preventDefault(); recibirTexto(t);
+});
+
+function aplicarParse(silencioso){
+  const t=$('inTexto').value;
+  if(!t.trim()){ if(!silencioso) toast('No hay texto que leer',true); return 0; }
+  const r=parseTexto(t);
+  let found=0;
+  NUTS.forEach(([k])=>{ if(r[k]!=null){ $('n_'+k).value=r[k]; found++; } });
+  if(r._porcG) $('inPorcG').value=r._porcG;
+  if(r._porcN) $('inPorcN').value=r._porcN;
+  if(r._ing)   $('inIng').value=r._ing;
+  $('inBase').value = r._por100 ? '100' : (r._porcG ? 'porc' : '100');
+  if(/100\s*ml|\d\s*ml\b|bebida|jugo|n[ée]ctar|refresco/i.test(t)) $('inTipo').value='bebida';
+  if(!$('inNombre').value.trim()){
+    const l=t.split('\n').map(s=>s.trim()).filter(s=>s.length>2 && !/\d/.test(s)
+      && !/ingrediente|informaci[óo]n|nutricional|conservar|elaborad|contiene|porci[óo]n/i.test(s))[0];
+    if(l) $('inNombre').value=l.slice(0,60);
+  }
+  if(!silencioso) toast(found? found+' valores reconocidos ✓' : 'No se reconocieron valores: revisa el texto o llénalos a mano', !found);
+  return found;
+}
+$('btnParse').addEventListener('click',()=>aplicarParse(false));
+$('btnDemo').addEventListener('click',()=>{
+  $('inNombre').value='Galletas rellenas de chocolate';
+  $('inTexto').value=`INFORMACIÓN NUTRICIONAL por 100 g
+Energía 480 kcal
+Proteínas 5,2 g
+Grasas totales 22 g
+  Saturadas 11 g
+  Trans 0,3 g
+Carbohidratos 64 g
+  Azúcares totales 34 g
+Fibra dietética 2,1 g
+Sodio 380 mg
+Porción 30 g (3 galletas). Porciones por envase 8.
+INGREDIENTES: harina de trigo, azúcar, aceite vegetal de palma, jarabe de glucosa, cacao, almidón modificado, emulsionante (lecitina de soya INS 322), saborizante artificial, bicarbonato de sodio, sal.`;
+  aplicarParse();
+});
+
+/* Base local */
+$('btnBase').addEventListener('click',()=>{ $('baseOvl').className='ovl'; $('baseQ').value=''; renderBase(''); setTimeout(()=>$('baseQ').focus(),150); });
+$('baseClose').addEventListener('click',()=>$('baseOvl').className='ovl hide');
+$('baseQ').addEventListener('input',e=>renderBase(e.target.value));
+function renderBase(q){
+  const n=norm(q);
+  const r=BASE.filter(b=>!n||norm(b[0]).includes(n)).slice(0,40);
+  $('baseRes').innerHTML = r.length
+    ? r.map((b,i)=>`<div data-b="${BASE.indexOf(b)}">${esc(b[0])}<small>${b[1]} kcal · ${b[4]} g azúcar · ${b[8]} mg sodio · por 100 ${b[9]==='bebida'?'ml':'g'}</small></div>`).join('')
+    : '<div style="color:var(--tx3)">Sin resultados</div>';
+  $('baseRes').querySelectorAll('[data-b]').forEach(d=>d.addEventListener('click',()=>{
+    const b=BASE[+d.dataset.b];
+    $('inNombre').value=b[0]; $('inBase').value='100'; $('inTipo').value=b[9];
+    const v={kcal:b[1],proteina_g:b[2],carb_g:b[3],azucar_g:b[4],fibra_g:b[5],grasa_g:b[6],sat_g:b[7],sodio_mg:b[8]};
+    NUTS.forEach(([k])=>{ $('n_'+k).value = v[k]!=null? v[k] : ''; });
+    $('inIng').value=b[0].toLowerCase();
+    $('inPorcG').value=$('inPorcG').value||100;
+    igBaseSel = b[10]||null;
+    $('baseOvl').className='ovl hide'; toast(b[0]+' cargado ✓');
+  }));
+}
+let igBaseSel = null;
+
+/* ══════════ H. GENERAR INFORME ══════════ */
+function generarInforme(auto){
+  const x={};
+  NUTS.forEach(([k])=>{ const v=parseFloat($('n_'+k).value); if(!isNaN(v)) x[k]=v; });
+  if(x.kcal==null && x.carb_g==null && x.grasa_g==null){
+    toast('Ingresa al menos la energía o los macronutrientes',true); return; }
+
+  const tipo=$('inTipo').value;
+  const porcG=parseFloat($('inPorcG').value)||100;
+  const porcN=parseFloat($('inPorcN').value)||null;
+
+  // Normalizar todo a 100 g/ml
+  let x100={};
+  if($('inBase').value==='porc'){
+    const f=100/porcG; Object.keys(x).forEach(k=>x100[k]=+(x[k]*f).toFixed(2));
+  } else x100={...x};
+
+  const ings = $('inIng').value.split(/[,;]|\)\s*,/).map(s=>s.replace(/[()]/g,'').trim())
+    .filter(s=>s.length>1).slice(0,45).map(analizarIngrediente);
+
+  // Estimación de fruta/verdura para el score
+  const fv = ings.filter(i=>/fruta|verdura|legumbre|frutos secos|semilla/i.test(i.n)).length
+    ? Math.min(100, ings.filter(i=>/fruta|verdura|legumbre|frutos secos|semilla/i.test(i.n)).length/Math.max(ings.length,1)*140) : 0;
+  x100.fv=Math.round(fv);
+
+  const ns  = nutriScore(x100,tipo);
+  const nv  = nova(ings,x100);
+  let score = ns.score + (nv[0]===4?-12: nv[0]===3?-5: nv[0]===1?5:0);
+  if(x100.trans_g>0) score-=8;
+  score=Math.max(0,Math.min(100,Math.round(score)));
+
+  const f=porcG/100, pPorc={};
+  Object.keys(x100).forEach(k=>{ if(k!=='fv') pPorc[k]=+(x100[k]*f).toFixed(1); });
+
+  const [ig,igTxt]=estimarIG(x100,tipo,ings,igBaseSel);
+  const carbNeto=Math.max(0,(pPorc.carb_g||0)-(pPorc.fibra_g||0));
+  const cg = ig!=null ? +((ig*carbNeto)/100).toFixed(1) : null;
+
+  const n=needs(perfil);
+  const sel=sellos(x100,tipo);
+  const d = { nombre:$('inNombre').value.trim()||'Producto sin nombre', tipo, x100, pPorc,
+    porcG, porcN, ings, score, grade:ns.grade, nova:nv[0], novaTxt:nv[1], ig, igTxt, cg,
+    sellos:sel, needs:n, foto,
+    sistemas: sistemas(x100,ings,tipo==='bebida',n,pPorc),
+    adv: advertencias(x100,pPorc,ings,tipo,n,sel),
+    alergs: [...new Set(ings.map(i=>i.al).filter(Boolean))],
+    ts: Date.now() };
+
+  ls.s(K.last,d); pushHist(d); renderRes(d); goto('res');
+  igBaseSel=null;
+  if(auto) toast('Etiqueta leída y analizada ✓');
+}
+$('btnGo').addEventListener('click',()=>generarInforme(false));
+
+/* ══════════ I. RENDER DEL INFORME ══════════ */
+const GC={A:'#22c55e',B:'#84cc16',C:'#eab308',D:'#f97316',E:'#ef4444'};
+const sc=s=>s>=70?'#22c55e':s>=50?'#84cc16':s>=35?'#eab308':s>=20?'#f97316':'#ef4444';
+const RC={ninguno:'#22c55e',bajo:'#84cc16',medio:'#f59e0b',alto:'#ef4444'};
+const NOVAT={1:['Sin procesar o mínimamente procesado','Alimento natural o con procesos que no agregan sustancias: lavado, refrigerado, molido, pasteurizado.'],
+ 2:['Ingrediente culinario procesado','Sustancia extraída de un alimento —aceite, azúcar, sal— usada para cocinar, no para consumir sola.'],
+ 3:['Procesado','Alimento natural al que se añadió sal, azúcar o aceite para conservarlo o hacerlo más sabroso. Ingredientes aún reconocibles.'],
+ 4:['Ultraprocesado','Formulación industrial con ingredientes de uso exclusivamente industrial. Su predominio en la dieta se asocia a obesidad, diabetes tipo 2 y enfermedad cardiovascular.']};
+
+function bar(l,v,u,max,inv,extra){
+  if(v==null||!max) return '';
+  const rel=v/max, pc=Math.min(100,rel*100);
+  const col = inv ? (rel>1?'#ef4444':rel>0.5?'#f59e0b':rel>0.25?'#eab308':'#22c55e')
+                  : (rel>=0.5?'#22c55e':rel>=0.25?'#84cc16':rel>=0.1?'#eab308':'#4b5563');
+  return `<div class="bar"><div class="t"><b>${l}</b>
+    <span style="color:${col}"><b style="font-size:14px">${Math.round(rel*100)} %</b> · ${v} ${u} de ${max} ${u}</span></div>
+    <div class="track"><div class="fill" style="width:${pc}%;background:${col}"></div>${rel>1?'<i style="right:0"></i>':''}</div>
+    ${extra?`<small class="mut" style="margin-top:3px">${extra}</small>`:''}</div>`;
+}
+
+function renderRes(d){
+  if(!d){ $('resBox').innerHTML='<div class="card"><p class="mut">Aún no hay informe. Ve a <b>Analizar</b>.</p></div>'; return; }
+  const x=d.x100, p=d.pPorc, n=d.needs, C=sc(d.score), circ=2*Math.PI*45, U=d.tipo==='bebida'?'ml':'g';
+  let h='';
+
+  /* Encabezado */
+  h+=`<div class="card">
+    <h3>${esc(d.nombre)}</h3>
+    <p class="mut" style="margin-top:-3px">Porción de ${d.porcG} ${U}${d.porcN?` · ${d.porcN} porci${d.porcN==1?'ón':'ones'} por envase`:''}</p>
+    <div class="scorewrap">
+      <div class="ring"><svg width="106" height="106">
+        <circle cx="53" cy="53" r="45" stroke="#2b333f" stroke-width="9" fill="none"/>
+        <circle cx="53" cy="53" r="45" stroke="${C}" stroke-width="9" fill="none" stroke-linecap="round"
+          stroke-dasharray="${circ}" stroke-dashoffset="${circ*(1-d.score/100)}"/></svg>
+        <div class="val"><b style="color:${C}">${d.score}</b><i>DE 100</i></div></div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12.5px;color:var(--tx2);font-weight:700">Calidad nutricional global</div>
+        <div class="gradebox">${['A','B','C','D','E'].map(g=>
+          `<div class="${g===d.grade?'on':''}" style="${g===d.grade?'background:'+GC[g]+';color:#0b1017':''}">${g}</div>`).join('')}</div>
+        <small class="mut" style="margin-top:6px">Nutri-Score <b>${d.grade}</b> ajustado por procesamiento NOVA y grasas trans.</small>
+      </div></div>
+    <div class="badges">
+      <span class="badge ${d.nova>=4?'b-bd':d.nova===3?'b-wn':'b-ok'}">NOVA ${d.nova}</span>
+      ${d.ig!=null?`<span class="badge ${d.ig>=70?'b-bd':d.ig>=56?'b-wn':'b-ok'}">IG ${d.ig}</span>`:''}
+      ${d.cg!=null?`<span class="badge ${d.cg>=20?'b-bd':d.cg>=11?'b-wn':'b-ok'}">CG ${d.cg}</span>`:''}
+      <span class="badge ${d.sellos.length>=3?'b-bd':d.sellos.length?'b-wn':'b-ok'}">${d.sellos.length} sello${d.sellos.length===1?'':'s'}</span>
+      ${d.alergs.length?`<span class="badge b-wn">⚠ ${d.alergs.join(', ')}</span>`:''}
+    </div></div>`;
+
+  /* Advertencias personalizadas */
+  if(d.adv.length){
+    h+=`<div class="card"><h2>⚠️ Para ti en particular</h2>
+      ${d.adv.map(([t,m])=>`<div class="note ${t==='bad'?'bad':t==='inf'?'inf':''}">${esc(m)}</div>`).join('')}
+      ${!perfil?'<small class="mut">Configura tu perfil para advertencias específicas.</small>':''}</div>`;
+  }
+
+  /* PORCENTAJE DE NECESIDADES DIARIAS */
+  h+=`<div class="card"><h2>% de tus necesidades diarias · 1 porción (${d.porcG} ${U})</h2>
+    <small class="mut" style="margin-bottom:12px">${perfil
+      ? `Calculado para ${perfil.edad} años, ${perfil.peso} kg, ${perfil.talla} cm, actividad ${({'1.2':'sedentaria','1.375':'ligera','1.55':'moderada','1.725':'intensa','1.9':'muy intensa'})[perfil.act]||'—'} → <b>${n.kcal} kcal/día</b>.`
+      : `Adulto de referencia de ${n.kcal} kcal/día — configura tu perfil para valores propios.`}</small>
+    ${bar('Energía',p.kcal,'kcal',n.kcal,true)}
+    ${bar('Proteínas',p.proteina_g,'g',n.prot,false)}
+    ${bar('Carbohidratos',p.carb_g,'g',n.carb,true)}
+    ${bar('Azúcares',p.azucar_g,'g',n.azucar,true,'Límite OMS: menos del 10 % de la energía; ideal bajo el 5 % ('+n.azucarIdeal+' g).')}
+    ${bar('Fibra',p.fibra_g,'g',n.fibra,false)}
+    ${bar('Grasas totales',p.grasa_g,'g',n.grasa,true)}
+    ${bar('Grasas saturadas',p.sat_g,'g',n.sat,true)}
+    ${bar('Sodio',p.sodio_mg,'mg',n.sodio,true,'Equivale a '+(p.sodio_mg?(p.sodio_mg/400).toFixed(1):0)+' g de sal.')}
+    ${bar('Colesterol',p.colesterol_mg,'mg',n.colesterol,true)}
+    ${bar('Calcio',p.calcio_mg,'mg',n.ca,false)}
+    ${bar('Hierro',p.hierro_mg,'mg',n.fe,false)}
+    ${bar('Potasio',p.potasio_mg,'mg',n.k,false)}
+    ${bar('Magnesio',p.magnesio_mg,'mg',n.mg,false)}
+    ${bar('Zinc',p.zinc_mg,'mg',n.zn,false)}
+    ${bar('Vitamina C',p.vitc_mg,'mg',n.vc,false)}
+    ${bar('Vitamina A',p.vita_ug,'µg',n.va,false)}
+    ${bar('Vitamina D',p.vitd_ug,'µg',n.vd,false)}
+    ${p.trans_g?`<div class="note bad"><b>Grasas trans: ${p.trans_g} g por porción</b>La OMS recomienda eliminarlas por completo: no existe un nivel de consumo seguro.</div>`:''}
+    ${p.cafeina_mg?`<div class="note"><b>Cafeína: ${p.cafeina_mg} mg por porción</b>Límite diario sugerido: 400 mg en adultos, 200 mg en embarazo. No se recomienda en menores de 12 años.</div>`:''}
+    ${d.porcN&&d.porcN>1?`<div class="note inf"><b>Si consumes el envase completo (${d.porcN} porciones)</b>
+      ${Math.round((p.kcal||0)*d.porcN)} kcal (${Math.round((p.kcal||0)*d.porcN/n.kcal*100)} % del día),
+      ${((p.azucar_g||0)*d.porcN).toFixed(1)} g de azúcar (${Math.round((p.azucar_g||0)*d.porcN/n.azucar*100)} % del límite) y
+      ${Math.round((p.sodio_mg||0)*d.porcN)} mg de sodio (${Math.round((p.sodio_mg||0)*d.porcN/n.sodio*100)} % del límite).</div>`:''}
+  </div>`;
+
+  /* ÓRGANOS Y SISTEMAS */
+  const S=d.sistemas, ids=Object.keys(S);
+  if(ids.length){
+    const ben = ids.filter(i=>S[i].ben.length), rie = ids.filter(i=>S[i].rie.length);
+    h+=`<div class="card"><h2>Órganos y sistemas afectados</h2>`;
+    if(ben.length){
+      h+=`<p class="mut" style="font-weight:700;color:#6ee7a8;margin-bottom:8px">▲ Beneficia</p>`;
+      h+=ben.map(i=>`<div class="org"><span class="ic">${ORG[i][0]}</span><div class="tx"><b>${ORG[i][1]}</b>
+        <span>${S[i].ben.map(esc).join(' ')}</span></div>
+        <span class="pill" style="background:rgba(34,197,94,.16);color:#6ee7a8">+</span></div>`).join('');
+    }
+    if(rie.length){
+      h+=`<p class="mut" style="font-weight:700;color:#fca5a5;margin:14px 0 8px">▼ Sobrecarga o perjudica</p>`;
+      h+=rie.map(i=>`<div class="org"><span class="ic">${ORG[i][0]}</span><div class="tx"><b>${ORG[i][1]}</b>
+        <span>${S[i].rie.map(esc).join(' ')}</span></div>
+        <span class="pill" style="background:rgba(239,68,68,.16);color:#fca5a5">−</span></div>`).join('');
+    }
+    h+=`<small class="mut" style="margin-top:10px">Relaciones derivadas de la composición declarada y de la evidencia nutricional general. El efecto real depende de la cantidad y de la frecuencia con que consumas el producto, no de una porción aislada.</small></div>`;
+  }
+
+  /* SELLOS */
+  h+=`<div class="card"><h2>Sellos de advertencia · Ley 20.606 (Chile)</h2>`;
+  h+= d.sellos.length
+    ? `<div style="display:flex;gap:9px;flex-wrap:wrap">${d.sellos.map(s=>`<div class="sello">Alto en<b>${s[0]}</b></div>`).join('')}</div>
+       <table style="margin-top:13px"><tr><th>Nutriente</th><th class="num">Producto</th><th class="num">Límite</th></tr>
+       ${d.sellos.map(s=>`<tr><td>${s[0]}</td><td class="num">${s[1]}</td><td class="num">${s[2]}</td></tr>`).join('')}</table>`
+    : `<div class="note ok"><b>Sin sellos</b>No supera ningún límite chileno por 100 ${U}.</div>`;
+  h+=`<small class="mut" style="margin-top:9px">Límites vigentes desde junio de 2019, por 100 ${U}. Con uno o más sellos el producto no puede venderse ni publicitarse en establecimientos escolares.</small></div>`;
+
+  /* IMPACTO GLUCÉMICO */
+  if(d.ig!=null){
+    const c1=d.ig>=70?['Alto','bad']:d.ig>=56?['Medio','']:['Bajo','ok'];
+    const c2=d.cg==null?null:(d.cg>=20?['Alta','bad']:d.cg>=11?['Media','']:['Baja','ok']);
+    h+=`<div class="card"><h2>Impacto sobre la glicemia</h2>
+      <div class="note ${c1[1]}"><b>Índice glucémico ≈ ${d.ig} — ${c1[0]}</b>
+        Rapidez con que eleva el azúcar en sangre comparado con la glucosa pura (100). ${esc(d.igTxt)}</div>
+      ${c2?`<div class="note ${c2[1]}"><b>Carga glucémica de la porción: ${d.cg} — ${c2[0]}</b>
+        Combina el índice glucémico con los carbohidratos netos que realmente comes. Es el dato más útil en la práctica.</div>`:''}
+      <small class="mut">Referencias — IG: bajo ≤55, medio 56-69, alto ≥70. Carga glucémica: baja ≤10, media 11-19, alta ≥20. Varía con la cocción, la madurez y la combinación con otros alimentos de la comida.</small></div>`;
+  }
+
+  /* NOVA */
+  const nt=NOVAT[d.nova]||['—',''];
+  h+=`<div class="card"><h2>Nivel de procesamiento</h2>
+    <div style="display:flex;gap:5px;margin-bottom:12px">${[1,2,3,4].map(i=>
+      `<div style="flex:1;height:8px;border-radius:4px;background:${d.nova>=i?(d.nova===4?'#ef4444':d.nova===3?'#f59e0b':d.nova===2?'#eab308':'#22c55e'):'#2b333f'}"></div>`).join('')}</div>
+    <h3>NOVA ${d.nova} — ${nt[0]}</h3><p class="mut">${nt[1]}</p>
+    <div class="note inf"><b>En este producto</b>${esc(d.novaTxt)}</div></div>`;
+
+  /* INGREDIENTES */
+  if(d.ings.length){
+    h+=`<div class="card"><h2>Ingredientes explicados (${d.ings.length})</h2>
+      ${d.ings.map((i,k)=>`<div class="ing" data-i="${k}">
+        <div class="hd"><span class="dot" style="background:${RC[i.r]||'#64748b'}"></span>
+          <b>${esc(i.nombre)}</b>${i.c?`<span class="cod">${esc(i.c)}</span>`:''}<span class="arrow">›</span></div>
+        <div class="bd hide">
+          <div>${esc(i.q)}</div>
+          ${i.f&&i.f!=='—'?`<div class="kv"><b>Para qué está:</b> ${esc(i.f)}</div>`:''}
+          <div class="kv"><b>Categoría:</b> ${esc(i.t)}${i.up?' · marcador de ultraprocesado':''}</div>
+          <div class="kv"><b>Nivel de preocupación:</b> <span style="color:${RC[i.r]}">${esc(i.r)}</span></div>
+          ${(i.o||[]).length?`<div class="kv"><b>Afecta a:</b> ${i.o.map(o=>ORG[o]?ORG[o][1]:o).join(', ')}</div>`:''}
+        </div></div>`).join('')}
+      <small class="mut">Toca cada ingrediente para ver el detalle. El punto de color indica el nivel de preocupación según la evidencia disponible; «bajo» o «ninguno» significa que es seguro en las dosis habituales.</small></div>`;
+  }
+
+  /* BALANCE */
+  const pos=[], neg=[];
+  if(x.fibra_g>=6) pos.push('Alto en fibra ('+x.fibra_g+' g/100 '+U+'): favorece saciedad y tránsito intestinal.');
+  else if(x.fibra_g>=3) pos.push('Fuente de fibra ('+x.fibra_g+' g/100 '+U+').');
+  if(x.proteina_g>=12) pos.push('Alto contenido proteico ('+x.proteina_g+' g/100 '+U+').');
+  if((x.azucar_g||0)<5) pos.push('Bajo en azúcares.');
+  if((x.sodio_mg||0)<120) pos.push('Bajo en sodio.');
+  if((x.sat_g||0)<1.5) pos.push('Bajo en grasas saturadas.');
+  if(d.nova<=2) pos.push('Alimento natural o mínimamente procesado.');
+  if(!d.ings.some(i=>i.up)) pos.push('Sin ingredientes de uso exclusivamente industrial.');
+  d.sellos.forEach(s=>neg.push('Supera el límite chileno de '+s[0].toLowerCase()+': '+s[1]+' por 100 '+U+' (límite '+s[2]+').'));
+  if(x.trans_g>0) neg.push('Contiene grasas trans, que la OMS pide eliminar de la dieta.');
+  if(d.nova===4) neg.push('Producto ultraprocesado: su consumo habitual se asocia a mayor riesgo cardiometabólico.');
+  const alto=d.ings.filter(i=>i.r==='alto');
+  if(alto.length) neg.push('Contiene ingredientes de mayor preocupación: '+alto.map(i=>i.n).join(', ')+'.');
+  if((x.fibra_g||0)<1.5 && (x.carb_g||0)>30) neg.push('Carbohidratos abundantes con muy poca fibra: absorción rápida.');
+
+  const frec = d.score>=70?['Diario','ok']: d.score>=50?['Frecuente, sin problema','ok']
+             : d.score>=35?['Ocasional: 1 a 2 veces por semana','']
+             : d.score>=20?['Excepcional: máximo 1 vez al mes','bad']:['Mejor evitarlo','bad'];
+  h+=`<div class="card"><h2>Balance</h2>
+    ${pos.map(t=>`<div class="note ok">${esc(t)}</div>`).join('')}
+    ${neg.map(t=>`<div class="note bad">${esc(t)}</div>`).join('')}
+    <div class="sep"></div>
+    <div class="note ${frec[1]}"><b>Frecuencia sugerida de consumo</b>${frec[0]}.</div></div>`;
+
+  /* TABLA COMPLETA */
+  const rows=NUTS.filter(([k])=>x[k]!=null);
+  h+=`<div class="card"><h2>Tabla nutricional</h2><table>
+    <tr><th>Nutriente</th><th class="num">100 ${U}</th><th class="num">Porción</th><th class="num">% día</th></tr>
+    ${rows.map(([k,l,u])=>{
+      const meta={kcal:n.kcal,proteina_g:n.prot,carb_g:n.carb,azucar_g:n.azucar,fibra_g:n.fibra,
+        grasa_g:n.grasa,sat_g:n.sat,sodio_mg:n.sodio,colesterol_mg:n.colesterol,calcio_mg:n.ca,
+        hierro_mg:n.fe,potasio_mg:n.k,magnesio_mg:n.mg,zinc_mg:n.zn,vitc_mg:n.vc,vita_ug:n.va,vitd_ug:n.vd}[k];
+      const pc = meta? Math.round(p[k]/meta*100)+' %' : '—';
+      return `<tr><td>${l}</td><td class="num">${x[k]} ${u}</td><td class="num">${p[k]} ${u}</td><td class="num">${pc}</td></tr>`;
+    }).join('')}</table>
+    <small class="mut" style="margin-top:8px">La columna «% día» usa <b>tus</b> requerimientos, no los del 2000 kcal genérico de la etiqueta.</small></div>`;
+
+  /* ENLACES ACOTADOS */
+  const q=encodeURIComponent(d.nombre);
+  h+=`<div class="card"><h2>Ampliar información (requiere internet)</h2>
+    <a class="lnk" href="https://cl.openfoodfacts.org/cgi/search.pl?search_terms=${q}&search_simple=1&action=process" target="_blank" rel="noopener">
+      <span class="ic">🔎</span><span>Buscar este producto en Open Food Facts<small>Base abierta y colaborativa de productos envasados</small></span></a>
+    <a class="lnk" href="https://www.minsal.cl/ley-de-alimentos-nuevo-etiquetado-de-alimentos/" target="_blank" rel="noopener">
+      <span class="ic">🇨🇱</span><span>Ley de etiquetado, MINSAL<small>Texto oficial de los sellos de advertencia</small></span></a>
+    ${d.ings.some(i=>i.c)?`<a class="lnk" href="https://www.efsa.europa.eu/en/topics/topic/food-additives" target="_blank" rel="noopener">
+      <span class="ic">🧪</span><span>Evaluaciones de aditivos, EFSA<small>Autoridad Europea de Seguridad Alimentaria</small></span></a>`:''}
+    <a class="lnk" href="https://www.who.int/es/news-room/fact-sheets/detail/healthy-diet" target="_blank" rel="noopener">
+      <span class="ic">🌍</span><span>Alimentación sana, OMS<small>Recomendaciones de azúcar, sodio y grasas</small></span></a>
+    <small class="mut">Son los únicos enlaces de la app. Todo lo demás funciona sin conexión.</small></div>`;
+
+  h+=`<div class="card"><small class="mut">Herramienta informativa y educativa. Los valores dependen de lo que hayas ingresado: verifica siempre el envase original. No sustituye la evaluación de un médico o nutricionista, en especial si tienes una enfermedad crónica, estás embarazada o el producto es para un niño.</small></div>
+    <button class="btn sec" id="btnNew">📷 Analizar otro producto</button>`;
+
+  $('resBox').innerHTML=h;
+  $('resBox').querySelectorAll('.ing .hd').forEach(hd=>hd.addEventListener('click',()=>{
+    const b=hd.parentElement, bd=b.querySelector('.bd');
+    const o=b.classList.toggle('open'); bd.className='bd'+(o?'':' hide');
+  }));
+  const bn=$('btnNew'); if(bn) bn.addEventListener('click',()=>goto('scan'));
+}
+
+/* ══════════ J. HISTORIAL Y BALANCE DEL DÍA ══════════ */
+function pushHist(d){
+  const h=ls.g(K.hist,[]);
+  h.unshift({ts:d.ts,nombre:d.nombre,score:d.score,grade:d.grade,nova:d.nova,
+    sellos:d.sellos.length,foto:d.foto,kcal:d.pPorc.kcal||0,azucar:d.pPorc.azucar_g||0,
+    sodio:d.pPorc.sodio_mg||0,sat:d.pPorc.sat_g||0,full:d});
+  ls.s(K.hist,h.slice(0,50));
+}
+function renderHist(){
+  const h=ls.g(K.hist,[]);
+  $('histList').innerHTML = h.length ? h.map((it,i)=>`
+    <div class="hitem" data-h="${i}">
+      ${it.foto?`<img src="${it.foto}">`:'<div class="ph">🥫</div>'}
+      <div class="m"><b>${esc(it.nombre)}</b>
+        <span>NOVA ${it.nova} · ${it.sellos} sello${it.sellos===1?'':'s'} · ${new Date(it.ts).toLocaleDateString('es-CL')} ${new Date(it.ts).toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'})}</span></div>
+      <div class="s" style="background:${sc(it.score)}">${it.score}</div></div>`).join('')
+    : '<p class="mut">Todavía no has analizado ningún producto.</p>';
+  $('histList').querySelectorAll('.hitem').forEach(e=>e.addEventListener('click',()=>{
+    renderRes(h[+e.dataset.h].full); goto('res');
+  }));
+}
+function renderDia(){
+  const h=ls.g(K.hist,[]), hoy=new Date().toDateString();
+  const d=h.filter(i=>new Date(i.ts).toDateString()===hoy);
+  if(!d.length){ $('diaBox').innerHTML='<h2>Balance de hoy</h2><p class="mut">Sin productos analizados hoy.</p>'; return; }
+  const n=needs(perfil);
+  const t=d.reduce((a,i)=>({kcal:a.kcal+i.kcal,azucar:a.azucar+i.azucar,sodio:a.sodio+i.sodio,sat:a.sat+i.sat}),
+    {kcal:0,azucar:0,sodio:0,sat:0});
+  $('diaBox').innerHTML=`<h2>Balance de hoy (${d.length} producto${d.length===1?'':'s'})</h2>
+    <small class="mut" style="margin-bottom:12px">Suma de una porción de cada producto analizado hoy.</small>
+    ${bar('Energía',Math.round(t.kcal),'kcal',n.kcal,true)}
+    ${bar('Azúcares',+t.azucar.toFixed(1),'g',n.azucar,true)}
+    ${bar('Grasas saturadas',+t.sat.toFixed(1),'g',n.sat,true)}
+    ${bar('Sodio',Math.round(t.sodio),'mg',n.sodio,true)}`;
+}
+$('btnClrHist').addEventListener('click',()=>{ ls.s(K.hist,[]); renderHist(); renderDia(); toast('Historial borrado'); });
+
+/* ══════════ Init ══════════ */
+renderShot(); loadPerf(); renderNeeds(); renderRes(ls.g(K.last,null)); leerURL();
+
+/* Service worker: deja la app usable sin el servidor encendido y sin conexión */
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('./sw.js').catch(()=>{ /* file:// o data:: sigue funcionando, solo sin caché */ });
+}
+
+/* ══════════ Autotest: abre la app con  ?test  al final de la URL ══════════ */
+if(location.search.includes('test')){
+  const A=(c,m)=>{ if(!c) throw new Error('FALLO — '+m); };
+  const R=[];
+  // Gasto energético
+  A(Math.abs(tmb({edad:30,peso:70,talla:175,sexo:'m'})-1648.75)<0.01,'Mifflin hombre');
+  A(Math.abs(tmb({edad:30,peso:60,talla:165,sexo:'f'})-1320.25)<0.01,'Mifflin mujer');
+  A(Math.abs(tmb({edad:8,peso:25,talla:128,sexo:'m'})-1071.95)<0.1,'Schofield escolar');
+  R.push('TMB');
+  // Requerimientos
+  A(needs({edad:50,peso:80,talla:175,sexo:'m',act:'1.2',obj:'1',conds:['hta']}).sodio===1500,'sodio en HTA');
+  A(needs({edad:30,peso:70,talla:175,sexo:'m',act:'1.55',obj:'1',conds:[]}).sodio===2000,'sodio adulto sano');
+  A(needs({edad:30,peso:70,talla:175,sexo:'m',act:'1.55',obj:'1',conds:['erc']}).prot===49,'proteína ERC 0,7 g/kg');
+  A(needs({edad:30,peso:60,talla:165,sexo:'f',act:'1.55',obj:'1',conds:['emb']}).fe===27,'hierro en embarazo');
+  A(needs({edad:8,peso:25,talla:128,sexo:'m',act:'1.55',obj:'1',conds:[]}).ca===1000,'calcio escolar');
+  R.push('Requerimientos');
+  // Nutri-Score
+  A(nutriScore({kcal:42,azucar_g:10.6,sat_g:0,sodio_mg:4,fibra_g:0,proteina_g:0,fv:0},'bebida').grade>='D','bebida cola D/E');
+  A(nutriScore({kcal:116,azucar_g:1.8,sat_g:0.1,sodio_mg:2,fibra_g:7.9,proteina_g:9,fv:100},'solido').grade==='A','lentejas A');
+  R.push('Nutri-Score');
+  // Sellos
+  A(sellos({kcal:480,sodio_mg:600,azucar_g:22,sat_g:9},'solido').length===4,'galleta 4 sellos');
+  A(sellos({kcal:42,sodio_mg:4,azucar_g:10.6,sat_g:0},'bebida').length===1,'cola: solo sello de azúcares');
+  A(sellos({kcal:61,sodio_mg:44,azucar_g:4.8,sat_g:1.9},'bebida').length===0,'leche entera sin sellos');
+  A(sellos({kcal:52,sodio_mg:1,azucar_g:10,sat_g:0},'solido').length===1,'manzana solo azúcar');
+  R.push('Sellos');
+  // Parser
+  const pr=parseTexto('Energía 480 kcal\nProteínas 5,2 g\nGrasas totales 22 g\nSaturadas 11 g\nCarbohidratos 64 g\nAzúcares totales 34 g\nFibra dietética 2,1 g\nSodio 380 mg\nPorción 30 g. Porciones por envase 8.\nINGREDIENTES: harina de trigo, azúcar, aceite de palma.');
+  A(pr.kcal===480&&pr.azucar_g===34&&pr.sat_g===11&&pr.sodio_mg===380,'parser valores');
+  A(pr._porcG===30&&pr._porcN===8,'parser porción');
+  A(/harina de trigo/.test(pr._ing),'parser ingredientes');
+  A(parseTexto('Sal 2,5 g').sodio_mg===1000,'conversión sal→sodio');
+  A(parseTexto('Energía 2000 kJ').kcal===478,'conversión kJ→kcal');
+  // Etiqueta chilena real de dos columnas, con «kcal» antes del número
+  const q=parseTexto('INFORMACIÓN NUTRICIONAL\nPorción: 1 envase (300 g)\nPorciones por envase: 1\n100 g   1 Porción\nEnergía (kcal) 60   238\nProteínas (g) 3,1   14,1\nGrasa Total (g) 0,4   3,5\nH. de C. Disp. (g) 11,1   42,2\nAzúcares Totales (g) 0,9   3,4\nSodio (mg) 250   850');
+  A(q.kcal===60,'dos columnas: energía de la columna 100 g');
+  A(q.proteina_g===3.1 && q.azucar_g===0.9 && q.sodio_mg===250,'dos columnas: resto de nutrientes');
+  A(q.carb_g===11.1,'formato chileno «H. de C. Disp.»');
+  A(q._porcG===300,'porción dentro de paréntesis');
+  A(q._porcN===1,'porciones por envase');
+  A(q._por100===true,'base 100 g sin la palabra «por»');
+  R.push('Parser');
+  // Diccionario
+  A(analizarIngrediente('aceite vegetal de palma').n==='Aceite de palma','match palma');
+  A(analizarIngrediente('lecitina de soya (INS 322)').n==='Lecitina','match lecitina');
+  A(analizarIngrediente('conservante INS 202').c==='INS 202','fallback rango INS');
+  A(analizarIngrediente('emulsionante E-471').n==='Emulsionantes industriales','match E-471');
+  A(analizarIngrediente('estabilizante E-1520').c==='INS 1520','fallback rango E');
+  A(analizarIngrediente('jarabe de maíz de alta fructosa').up===1,'marcador ultraprocesado');
+  R.push('Diccionario');
+  // NOVA
+  A(nova([analizarIngrediente('lentejas')],{sodio_mg:2})[0]<=2,'lenteja NOVA 1-2');
+  A(nova('harina de trigo, azúcar, aceite de palma, jarabe de glucosa, saborizante artificial, colorante tartrazina'
+    .split(',').map(analizarIngrediente),{sodio_mg:380})[0]===4,'galleta NOVA 4');
+  R.push('NOVA');
+  // IG
+  A(estimarIG({carb_g:0.5},'solido',[],null)[0]===null,'IG no aplica sin carbohidratos');
+  const igA=estimarIG({carb_g:64,azucar_g:34,fibra_g:2,grasa_g:22,proteina_g:5},'solido',[],null)[0];
+  const igB=estimarIG({carb_g:20,azucar_g:1.8,fibra_g:8,grasa_g:0.4,proteina_g:9},'solido',[],null)[0];
+  A(igA>igB,'IG galleta > IG lenteja');
+  R.push('IG');
+  // Sistemas
+  const sis=sistemas({fibra_g:8,proteina_g:9,potasio_mg:400,sodio_mg:600,azucar_g:20,sat_g:6,trans_g:0.3},
+    [],false,needs(null),{sodio_mg:180});
+  A(sis.digestivo&&sis.digestivo.ben.length,'beneficio digestivo por fibra');
+  A(sis.arterias&&sis.arterias.rie.length>=2,'riesgo arterial por sodio y grasas');
+  A(sis.dientes&&sis.dientes.rie.length,'riesgo dental por azúcar');
+  R.push('Sistemas');
+  setTimeout(()=>toast('✅ TODOS LOS TESTS OK — '+R.join(' · ')),400);
+}
+</script>
+</body>
+</html>
