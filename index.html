@@ -319,7 +319,18 @@ tr:last-child td{border-bottom:none}
 <div class="ovl hide" id="setupOvl">
   <div class="card" style="width:100%;max-width:520px;margin:0">
     <h2>Atajos de iOS · configuración única</h2>
-    <p class="mut">Los Atajos usan el OCR nativo de Apple: rápido, preciso en español y <b>sin conexión</b>. Se configuran una vez y después la app lee cada etiqueta con un solo toque.</p>
+    <p class="mut">Los Atajos usan el OCR nativo de Apple: rápido, preciso en español y <b>sin conexión</b>.</p>
+
+    <div class="sep"></div>
+    <h3>Instalación en 2 toques</h3>
+    <p class="mut">Toca cada enlace y confirma <b>Añadir atajo</b>. Ya vienen hechos, no tienes que crear nada.</p>
+    <a class="lnk" href="./NutriScan%20Camara.shortcut"><span class="ic">📷</span>
+      <span>Instalar «NutriScan Camara»<small>Toma la foto y devuelve el análisis</small></span></a>
+    <a class="lnk" href="./NutriScan%20Galeria.shortcut"><span class="ic">🖼️</span>
+      <span>Instalar «NutriScan Galeria»<small>Usa una foto que ya tengas</small></span></a>
+    <div class="note"><b>Si iOS no deja añadirlos</b>Ajustes → Atajos → activa <b>Permitir atajos no fiables</b>, y vuelve a tocar el enlace.</div>
+    <div class="note inf"><b>Necesita internet solo ahora</b>Descargar los atajos es lo último que requiere conexión. Después todo funciona sin red.</div>
+
     <div class="sep"></div>
     <h3>Nombre de tus atajos</h3>
     <p class="mut">Escríbelos tal cual aparecen en la app Atajos, con mayúsculas y tildes idénticas. Si usas un solo atajo, pon el mismo nombre en ambos campos.</p>
@@ -1119,7 +1130,7 @@ function renderShot(){
 }
 /* Atajos de iOS: la app los invoca y ellos devuelven el texto por la URL.
    El nombre lo pone el usuario, porque iOS exige coincidencia exacta. */
-const ATA = ls.g('ns_atajos', {cam:'NutriScan Cámara', gal:'NutriScan Galería'});
+const ATA = ls.g('ns_atajos', {cam:'NutriScan Camara', gal:'NutriScan Galeria'});
 function runAtajo(nombre){
   const t=setTimeout(()=>{
     toast('iOS no encontró el atajo «'+nombre+'». Abre «Configurar los Atajos» y escribe su nombre exacto.',true);
