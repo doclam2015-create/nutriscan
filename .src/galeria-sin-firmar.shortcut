@@ -10,7 +10,7 @@
 			<key>WFWorkflowActionParameters</key>
 			<dict>
 				<key>UUID</key>
-				<string>82EE9BF1-CEAD-49FD-8FA9-5DF2A6D8376E</string>
+				<string>0AC4E325-A8AA-462B-9323-7B476882D25C</string>
 				<key>WFSelectMultiplePhotos</key>
 				<false/>
 			</dict>
@@ -21,7 +21,7 @@
 			<key>WFWorkflowActionParameters</key>
 			<dict>
 				<key>UUID</key>
-				<string>AD680B5E-B105-4E0E-A1EF-4D9F5BFBB966</string>
+				<string>A53E56A1-8C11-4638-9050-24C02DD8290B</string>
 				<key>WFImage</key>
 				<dict>
 					<key>Value</key>
@@ -29,7 +29,21 @@
 						<key>OutputName</key>
 						<string>Photos</string>
 						<key>OutputUUID</key>
-						<string>82EE9BF1-CEAD-49FD-8FA9-5DF2A6D8376E</string>
+						<string>0AC4E325-A8AA-462B-9323-7B476882D25C</string>
+						<key>Type</key>
+						<string>ActionOutput</string>
+					</dict>
+					<key>WFSerializationType</key>
+					<string>WFTextTokenAttachment</string>
+				</dict>
+				<key>imageFile</key>
+				<dict>
+					<key>Value</key>
+					<dict>
+						<key>OutputName</key>
+						<string>Photos</string>
+						<key>OutputUUID</key>
+						<string>0AC4E325-A8AA-462B-9323-7B476882D25C</string>
 						<key>Type</key>
 						<string>ActionOutput</string>
 					</dict>
@@ -44,7 +58,7 @@
 			<key>WFWorkflowActionParameters</key>
 			<dict>
 				<key>UUID</key>
-				<string>B931204F-3B35-47EC-AEB8-5D395D98B608</string>
+				<string>5AE63562-E7E4-4B64-A008-FEF0E8369B58</string>
 				<key>WFEncodeMode</key>
 				<string>Encode</string>
 				<key>WFInput</key>
@@ -54,7 +68,7 @@
 						<key>OutputName</key>
 						<string>Text</string>
 						<key>OutputUUID</key>
-						<string>AD680B5E-B105-4E0E-A1EF-4D9F5BFBB966</string>
+						<string>A53E56A1-8C11-4638-9050-24C02DD8290B</string>
 						<key>Type</key>
 						<string>ActionOutput</string>
 					</dict>
@@ -79,7 +93,7 @@
 								<key>OutputName</key>
 								<string>URL Encoded Text</string>
 								<key>OutputUUID</key>
-								<string>B931204F-3B35-47EC-AEB8-5D395D98B608</string>
+								<string>5AE63562-E7E4-4B64-A008-FEF0E8369B58</string>
 								<key>Type</key>
 								<string>ActionOutput</string>
 							</dict>

@@ -10,11 +10,13 @@
 			<key>WFWorkflowActionParameters</key>
 			<dict>
 				<key>UUID</key>
-				<string>0B623F12-F1B7-4DEF-99F7-FA0AA6A6A681</string>
+				<string>EDDF13B4-7C60-4207-B2AA-76BEF27FC0A8</string>
 				<key>WFCameraCaptureDevice</key>
 				<string>Back</string>
 				<key>WFCameraCaptureShowPreview</key>
 				<true/>
+				<key>WFPhotoCount</key>
+				<integer>1</integer>
 			</dict>
 		</dict>
 		<dict>
@@ -23,7 +25,7 @@
 			<key>WFWorkflowActionParameters</key>
 			<dict>
 				<key>UUID</key>
-				<string>5BF4D960-A00D-4CEB-BC97-DFCBF3034A45</string>
+				<string>53582119-9BB2-4D83-A7BC-8A24EFE817E1</string>
 				<key>WFImage</key>
 				<dict>
 					<key>Value</key>
@@ -31,7 +33,21 @@
 						<key>OutputName</key>
 						<string>Photo</string>
 						<key>OutputUUID</key>
-						<string>0B623F12-F1B7-4DEF-99F7-FA0AA6A6A681</string>
+						<string>EDDF13B4-7C60-4207-B2AA-76BEF27FC0A8</string>
+						<key>Type</key>
+						<string>ActionOutput</string>
+					</dict>
+					<key>WFSerializationType</key>
+					<string>WFTextTokenAttachment</string>
+				</dict>
+				<key>imageFile</key>
+				<dict>
+					<key>Value</key>
+					<dict>
+						<key>OutputName</key>
+						<string>Photo</string>
+						<key>OutputUUID</key>
+						<string>EDDF13B4-7C60-4207-B2AA-76BEF27FC0A8</string>
 						<key>Type</key>
 						<string>ActionOutput</string>
 					</dict>
@@ -46,7 +62,7 @@
 			<key>WFWorkflowActionParameters</key>
 			<dict>
 				<key>UUID</key>
-				<string>1CDD794E-6CC2-407A-A642-56287CFE0E22</string>
+				<string>B2498EFA-66EE-43F9-85CB-D879C1DBD8E3</string>
 				<key>WFEncodeMode</key>
 				<string>Encode</string>
 				<key>WFInput</key>
@@ -56,7 +72,7 @@
 						<key>OutputName</key>
 						<string>Text</string>
 						<key>OutputUUID</key>
-						<string>5BF4D960-A00D-4CEB-BC97-DFCBF3034A45</string>
+						<string>53582119-9BB2-4D83-A7BC-8A24EFE817E1</string>
 						<key>Type</key>
 						<string>ActionOutput</string>
 					</dict>
@@ -81,7 +97,7 @@
 								<key>OutputName</key>
 								<string>URL Encoded Text</string>
 								<key>OutputUUID</key>
-								<string>1CDD794E-6CC2-407A-A642-56287CFE0E22</string>
+								<string>B2498EFA-66EE-43F9-85CB-D879C1DBD8E3</string>
 								<key>Type</key>
 								<string>ActionOutput</string>
 							</dict>

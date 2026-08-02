@@ -1,7 +1,7 @@
 /* NutriScan — service worker.
    Red primero para el HTML (asi las correcciones llegan siempre),
    cache primero para iconos y manifiesto. Sin red, todo sale del cache. */
-const CACHE = 'nutriscan-v7';
+const CACHE = 'nutriscan-v8';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icon-180.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
