@@ -333,7 +333,8 @@ details[open] summary{margin-bottom:11px}
 
     <div class="sep"></div>
     <h3>Instalación en 2 toques</h3>
-    <p class="mut">Toca cada enlace y confirma <b>Añadir atajo</b>. Ya vienen hechos, no tienes que crear nada.</p>
+    <div class="note ok"><b>Puede que ya los tengas</b>Si se instalaron desde tu Mac, iCloud los sincroniza solo: mira en la app Atajos si aparecen <b>nutriscan-camara</b> y <b>nutriscan-galeria</b>. Si están, salta este paso.</div>
+    <p class="mut">Si no aparecen, toca cada enlace y confirma <b>Añadir atajo</b>. Ya vienen hechos, no tienes que crear nada.</p>
     <a class="lnk" href="shortcuts://import-workflow/?url=https%3A%2F%2Fdoclam2015-create.github.io%2Fnutriscan%2Fnutriscan-camara.shortcut&name=NutriScan%20Camara"><span class="ic">📷</span>
       <span>Instalar «NutriScan Camara»<small>Toma la foto y devuelve el análisis</small></span></a>
     <a class="lnk" href="shortcuts://import-workflow/?url=https%3A%2F%2Fdoclam2015-create.github.io%2Fnutriscan%2Fnutriscan-galeria.shortcut&name=NutriScan%20Galeria"><span class="ic">🖼️</span>
@@ -1152,7 +1153,7 @@ function renderShot(){
 }
 /* Atajos de iOS: la app los invoca y ellos devuelven el texto por la URL.
    El nombre lo pone el usuario, porque iOS exige coincidencia exacta. */
-const ATA = ls.g('ns_atajos', {cam:'NutriScan Camara', gal:'NutriScan Galeria'});
+const ATA = ls.g('ns_atajos', {cam:'nutriscan-camara', gal:'nutriscan-galeria'});
 function runAtajo(nombre){
   const t=setTimeout(()=>{
     toast('iOS no encontró el atajo «'+nombre+'». Abre «Configurar los Atajos» y escribe su nombre exacto.',true);
@@ -1170,7 +1171,7 @@ $('btnSetup').addEventListener('click',()=>{
   $('appVer').textContent=APP_V;
   $('setupOvl').className='ovl'; $('setupOvl').scrollTop=0; $('avz').open=false; window.scrollTo(0,0);
 });
-const APP_V = '8';
+const APP_V = '9';
 $('btnUpd').addEventListener('click', async ()=>{
   toast('Buscando la versión más reciente…');
   try{
