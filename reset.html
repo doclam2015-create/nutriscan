@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Actualizar NutriScan</title>
+<style>
+  html,body{margin:0;background:#0d1117;color:#e9eef5;min-height:100%;
+    font:17px/1.5 -apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif}
+  main{max-width:460px;margin:0 auto;padding:60px 22px;text-align:center}
+  h1{font-size:22px;margin:0 0 8px}
+  p{color:#9aa7b8;font-size:15px}
+  .sp{width:44px;height:44px;margin:26px auto;border:3px solid #2b333f;
+    border-top-color:#3b82f6;border-radius:50%;animation:s .85s linear infinite}
+  @keyframes s{to{transform:rotate(360deg)}}
+  ul{text-align:left;color:#9aa7b8;font-size:14px;line-height:1.9;
+    list-style:none;padding:0;margin:22px 0}
+  li:before{content:'⏳ ';}
+  li.ok:before{content:'✅ ';}
+  a{display:block;margin-top:26px;background:#3b82f6;color:#fff;text-decoration:none;
+    padding:16px;border-radius:13px;font-weight:700}
+</style>
+</head>
+<body>
+<main>
+  <h1>Actualizando NutriScan</h1>
+  <p>Esto borra la copia antigua guardada en el iPhone y carga la versión nueva. Tus datos y tu perfil no se tocan.</p>
+  <div class="sp" id="sp"></div>
+  <ul>
+    <li id="p1">Quitando la versión antigua</li>
+    <li id="p2">Vaciando la copia guardada</li>
+    <li id="p3">Cargando la versión nueva</li>
+  </ul>
+  <a id="ir" href="./index.html" style="display:none">Abrir NutriScan</a>
+</main>
+<script>
+(async () => {
+  const ok = id => document.getElementById(id).className = 'ok';
+  try {
+    if ('serviceWorker' in navigator) {
+      const rs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(rs.map(r => r.unregister()));
+    }
+    ok('p1');
+    if (window.caches) {
+      const ks = await caches.keys();
+      await Promise.all(ks.map(k => caches.delete(k)));
+    }
+    ok('p2');
+  } catch (e) { /* si algo falla, el redirect igual recarga desde la red */ }
+  ok('p3');
+  document.getElementById('sp').style.display = 'none';
+  document.getElementById('ir').style.display = 'block';
+  setTimeout(() => location.replace('./index.html?v=' + Date.now()), 900);
+})();
+</script>
+</body>
+</html>

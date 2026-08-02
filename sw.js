@@ -1,5 +1,7 @@
-/* NutriScan — service worker. Deja la app disponible sin conexión y sin el servidor encendido. */
-const CACHE = 'nutriscan-v5';
+/* NutriScan — service worker.
+   Red primero para el HTML (asi las correcciones llegan siempre),
+   cache primero para iconos y manifiesto. Sin red, todo sale del cache. */
+const CACHE = 'nutriscan-v6';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icon-180.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
@@ -14,10 +16,32 @@ self.addEventListener('activate', e => {
   );
 });
 
-/* Cache primero: la app debe abrir aunque el servidor esté apagado.
-   ponytail: sin estrategia de revalidación — para actualizar, sube CACHE a v2. */
+const esHTML = req =>
+  req.mode === 'navigate' || (req.headers.get('accept') || '').includes('text/html');
+
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
+  const url = new URL(e.request.url);
+  if (url.origin !== self.location.origin) return;
+
+  /* Los atajos nunca pasan por aqui: los descarga la app Atajos de iOS. */
+  if (url.pathname.endsWith('.shortcut')) return;
+
+  /* HTML: red primero. Con conexion, siempre la version publicada mas
+     reciente; sin conexion, la copia guardada. */
+  if (esHTML(e.request)) {
+    e.respondWith(
+      fetch(e.request)
+        .then(res => {
+          const copy = res.clone();
+          caches.open(CACHE).then(c => c.put('./index.html', copy));
+          return res;
+        })
+        .catch(() => caches.match('./index.html', { ignoreSearch: true }))
+    );
+    return;
+  }
+
   e.respondWith(
     caches.match(e.request, { ignoreSearch: true }).then(hit =>
       hit || fetch(e.request).then(res => {
@@ -26,7 +50,7 @@ self.addEventListener('fetch', e => {
           caches.open(CACHE).then(c => c.put(e.request, copy));
         }
         return res;
-      }).catch(() => caches.match('./index.html'))
+      })
     )
   );
 });

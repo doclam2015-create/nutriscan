@@ -347,6 +347,11 @@ details[open] summary{margin-bottom:11px}
     <button class="btn" id="setupClose">Listo</button>
 
     <div class="sep"></div>
+    <div class="note inf"><b>Versión instalada: <span id="appVer"></span></b>
+      Si algo no funciona como te digo, toca este botón: descarga la última versión sin borrar tus datos.</div>
+    <button class="btn sec sm" id="btnUpd">🔄 Actualizar la app</button>
+
+    <div class="sep"></div>
     <details id="avz"><summary>Opciones avanzadas · crear los atajos a mano</summary>
     <h3>Nombre de tus atajos</h3>
     <p class="mut">Escríbelos tal cual aparecen en la app Atajos, con mayúsculas y tildes idénticas. Si usas un solo atajo, pon el mismo nombre en ambos campos.</p>
@@ -1162,7 +1167,18 @@ $('btnNoAtajo').addEventListener('click',()=>$('fileLib').click());
 $('btnSetup').addEventListener('click',()=>{
   $('appUrl').textContent=appURL();
   $('a_cam').value=ATA.cam; $('a_gal').value=ATA.gal;
+  $('appVer').textContent=APP_V;
   $('setupOvl').className='ovl'; $('setupOvl').scrollTop=0; $('avz').open=false; window.scrollTo(0,0);
+});
+const APP_V = '6';
+$('btnUpd').addEventListener('click', async ()=>{
+  toast('Buscando la versión más reciente…');
+  try{
+    if('serviceWorker' in navigator)
+      for(const r of await navigator.serviceWorker.getRegistrations()) await r.unregister();
+    if(window.caches) for(const k of await caches.keys()) await caches.delete(k);
+  }catch(e){}
+  location.replace('./index.html?v='+Date.now());
 });
 $('btnSaveAtajos').addEventListener('click',()=>{
   const c=$('a_cam').value.trim(), g=$('a_gal').value.trim();
