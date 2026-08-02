@@ -218,13 +218,14 @@ details[open] summary{margin-bottom:11px}
       <button class="btn" id="btnCam">📷 Apuntar la cámara</button>
       <button class="btn sec" id="btnLib">🖼️ Elegir foto</button>
     </div>
-    <small class="mut" style="margin-top:9px">Foto → el iPhone lee la etiqueta con su OCR nativo (Vision, sin internet) → el informe aparece solo.</small>
+    <small class="mut" style="margin-top:9px">Fotografía la <b>tabla nutricional</b> de cerca y bien iluminada. La app lee la etiqueta y genera el informe sola.</small>
     <div id="shotBox" style="margin-top:11px"></div>
     <input type="file" id="fileIn" accept="image/*" capture="environment" class="hide">
     <input type="file" id="fileLib" accept="image/*" class="hide">
+    <div id="ocrBox" class="hide"></div>
     <div class="sep"></div>
-    <button class="btn sec sm" id="btnSetup">⚙️ Configurar los Atajos (una sola vez)</button>
-    <button class="btn sec sm" id="btnNoAtajo" style="margin-top:8px">Guardar solo la foto, sin Atajo</button>
+    <button class="btn sec sm" id="btnAtajos">⚡ Usar los Atajos de iOS (más rápido y preciso)</button>
+    <button class="btn sec sm" id="btnSetup" style="margin-top:8px">⚙️ Configurar los Atajos</button>
   </div>
 
   <div class="card">
@@ -896,8 +897,11 @@ function parseTexto(txt){
   if(p) out._porcG = parseFloat(p[1].replace(',','.'));
   const pe = t.match(/porciones?\s*por\s*(?:envase|paquete)[^0-9\n]{0,14}(\d+[.,]?\d*)/i);
   if(pe) out._porcN = parseFloat(pe[1].replace(',','.'));
-  // La tabla chilena trae dos columnas («100 g» y «1 Porción»); el parser lee la primera
-  out._por100 = /\b100\s*(?:g|ml|gr)\b/i.test(t);
+  // La tabla chilena trae dos columnas («100 g» y «1 Porción»); el parser lee la primera.
+  // El OCR se come a menudo la «g» de «100 g», así que también detectamos el formato:
+  // si varias filas traen dos números, la primera columna es la de 100 g/ml.
+  const dosColumnas = (t.match(/^[^\n\d]{3,40}[\s:.]*\d+[.,]?\d*\s+\d+[.,]?\d*\s*$/gm)||[]).length;
+  out._por100 = /\b100\s*(?:g|ml|gr)\b/i.test(t) || dosColumnas>=3;
   // Ingredientes
   const ig = t.match(/ingredientes?\s*[:\-]?\s*([\s\S]{5,900})/i);
   if(ig){
@@ -1162,16 +1166,16 @@ function runAtajo(nombre){
   window.addEventListener('pagehide',()=>clearTimeout(t),{once:true});
   location.href='shortcuts://run-shortcut?name='+encodeURIComponent(nombre);
 }
-$('btnCam').addEventListener('click',()=>runAtajo(ATA.cam));
-$('btnLib').addEventListener('click',()=>runAtajo(ATA.gal));
-$('btnNoAtajo').addEventListener('click',()=>$('fileLib').click());
+$('btnCam').addEventListener('click',()=>$('fileIn').click());
+$('btnLib').addEventListener('click',()=>$('fileLib').click());
+$('btnAtajos').addEventListener('click',()=>runAtajo(ATA.cam));
 $('btnSetup').addEventListener('click',()=>{
   $('appUrl').textContent=appURL();
   $('a_cam').value=ATA.cam; $('a_gal').value=ATA.gal;
   $('appVer').textContent=APP_V;
   $('setupOvl').className='ovl'; $('setupOvl').scrollTop=0; $('avz').open=false; window.scrollTo(0,0);
 });
-const APP_V = '9';
+const APP_V = '11';
 $('btnUpd').addEventListener('click', async ()=>{
   toast('Buscando la versión más reciente…');
   try{
@@ -1203,17 +1207,107 @@ $('btnCopyUrl').addEventListener('click',async()=>{
   }
 });
 
-['fileIn','fileLib'].forEach(id=>$(id).addEventListener('change',e=>{
-  const f=e.target.files&&e.target.files[0]; if(!f) return;
-  const rd=new FileReader();
-  rd.onload=()=>{ const im=new Image(); im.onload=()=>{
-      const MAX=1100; let w=im.width,h=im.height;
-      if(Math.max(w,h)>MAX){const k=MAX/Math.max(w,h);w=Math.round(w*k);h=Math.round(h*k);}
-      const cv=document.createElement('canvas'); cv.width=w; cv.height=h;
-      cv.getContext('2d').drawImage(im,0,0,w,h);
-      foto=cv.toDataURL('image/jpeg',0.7); renderShot();
-    }; im.src=rd.result; };
-  rd.readAsDataURL(f); e.target.value='';
+/* ════════ OCR dentro de la app (Tesseract local, sin servicios externos) ════════ */
+
+/* Carga el motor solo la primera vez que se usa. */
+function cargarScript(src){
+  return new Promise((ok,err)=>{
+    const s=document.createElement('script'); s.src=src; s.async=true;
+    s.onload=ok; s.onerror=()=>err(new Error('No se pudo cargar '+src));
+    document.head.appendChild(s);
+  });
+}
+let tessWorker=null, tessCargando=null;
+async function motorOCR(prog){
+  if(tessWorker) return tessWorker;
+  if(tessCargando) return tessCargando;
+  tessCargando = (async()=>{
+    if(!window.Tesseract){ prog('Preparando el lector (solo la primera vez)…',5); await cargarScript('./ocr/tesseract.min.js'); }
+    prog('Cargando el idioma español…',15);
+    /* rutas absolutas: dentro del worker las relativas no se resuelven */
+    const base = new URL('./ocr/', location.href).href;
+    tessWorker = await Tesseract.createWorker('spa', 1, {
+      workerPath: base+'worker.min.js', corePath: base, langPath: base, gzip:true,
+      logger: m => { if(m.status==='recognizing text') prog('Leyendo la etiqueta…', 40+Math.round(m.progress*58)); }
+    });
+    return tessWorker;
+  })();
+  try{ return await tessCargando; } finally { tessCargando=null; }
+}
+
+/* Preprocesa: escala, gris y contraste. Sube mucho el acierto en etiquetas. */
+function prepararImagen(file){
+  return new Promise((ok,err)=>{
+    const rd=new FileReader();
+    rd.onerror=()=>err(new Error('No se pudo leer la imagen'));
+    rd.onload=()=>{
+      const im=new Image();
+      im.onerror=()=>err(new Error('Imagen no válida'));
+      im.onload=()=>{
+        const MAX=2000; let w=im.width,h=im.height;
+        const k=Math.min(MAX/Math.max(w,h), 2);      // amplía si es pequeña, reduce si es enorme
+        if(k!==1){ w=Math.round(w*k); h=Math.round(h*k); }
+        const cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+        const cx=cv.getContext('2d',{willReadFrequently:true});
+        cx.drawImage(im,0,0,w,h);
+        const d=cx.getImageData(0,0,w,h), p=d.data;
+        let sum=0;
+        for(let i=0;i<p.length;i+=4){
+          const g=0.299*p[i]+0.587*p[i+1]+0.114*p[i+2];
+          p[i]=p[i+1]=p[i+2]=g; sum+=g;
+        }
+        const media=sum/(p.length/4);
+        const C=1.6;                                  // realce de contraste alrededor de la media
+        for(let i=0;i<p.length;i+=4){
+          const v=Math.max(0,Math.min(255,(p[i]-media)*C+media));
+          p[i]=p[i+1]=p[i+2]=v;
+        }
+        cx.putImageData(d,0,0);
+        // miniatura para el historial
+        const tw=Math.round(360*(w/h>1?1:w/h)), th=Math.round(tw*h/w);
+        const tv=document.createElement('canvas'); tv.width=tw; tv.height=th;
+        tv.getContext('2d').drawImage(im,0,0,tw,th);
+        ok({canvas:cv, thumb:tv.toDataURL('image/jpeg',0.65)});
+      };
+      im.src=rd.result;
+    };
+    rd.readAsDataURL(file);
+  });
+}
+
+function ocrProgreso(txt,pc){
+  const b=$('ocrBox');
+  b.className='';
+  b.innerHTML=`<div class="note inf" style="margin:11px 0 0">
+    <b>${esc(txt)}</b>
+    <div class="track" style="margin-top:7px"><div class="fill" style="width:${pc}%;background:var(--ac)"></div></div>
+    <small class="mut" style="margin-top:5px">La primera lectura descarga el motor (unos 10 MB). Después funciona sin conexión.</small></div>`;
+}
+const ocrFin = () => { $('ocrBox').className='hide'; $('ocrBox').innerHTML=''; };
+
+let ocrOcupado=false;
+['fileIn','fileLib'].forEach(id=>$(id).addEventListener('change', async e=>{
+  const f=e.target.files&&e.target.files[0]; e.target.value='';
+  if(!f || ocrOcupado) return;
+  ocrOcupado=true;
+  try{
+    ocrProgreso('Preparando la imagen…',8);
+    const {canvas,thumb} = await prepararImagen(f);
+    foto=thumb; renderShot();
+    const w = await motorOCR(ocrProgreso);
+    ocrProgreso('Leyendo la etiqueta…',40);
+    const { data } = await w.recognize(canvas);
+    ocrFin();
+    const txt=(data.text||'').trim();
+    if(txt.length<15){
+      toast('No se distinguió texto. Acerca más la cámara a la tabla nutricional y evita reflejos.',true);
+      return;
+    }
+    if(!recibirTexto(txt)) $('inTexto').value=txt;   // deja lo leído para corregirlo a mano
+  }catch(err){
+    ocrFin();
+    toast('No se pudo leer la imagen: '+(err.message||'error'),true);
+  }finally{ ocrOcupado=false; }
 }));
 
 /* ── Ingreso automático del texto: desde el Atajo (#t=), al pegar o al abrir ── */
@@ -1255,8 +1349,11 @@ function aplicarParse(silencioso){
   $('inBase').value = r._por100 ? '100' : (r._porcG ? 'porc' : '100');
   if(/100\s*ml|\d\s*ml\b|bebida|jugo|n[ée]ctar|refresco/i.test(t)) $('inTipo').value='bebida';
   if(!$('inNombre').value.trim()){
-    const l=t.split('\n').map(s=>s.trim()).filter(s=>s.length>2 && !/\d/.test(s)
-      && !/ingrediente|informaci[óo]n|nutricional|conservar|elaborad|contiene|porci[óo]n/i.test(s))[0];
+    // solo lo anterior a la lista de ingredientes, y nunca una línea que sea una enumeración
+    const l=t.split(/ingredientes/i)[0].split('\n').map(s=>s.trim()).filter(s=>
+         s.length>2 && !/\d/.test(s)
+      && !/informaci[óo]n|nutricional|conservar|elaborad|contiene|porci[óo]n|declaraci/i.test(s)
+      && (s.match(/,/g)||[]).length<2 && !/[,;]$/.test(s))[0];
     if(l) $('inNombre').value=l.slice(0,60);
   }
   if(!silencioso) toast(found? found+' valores reconocidos ✓' : 'No se reconocieron valores: revisa el texto o llénalos a mano', !found);
@@ -1320,7 +1417,7 @@ function generarInforme(auto){
     const f=100/porcG; Object.keys(x).forEach(k=>x100[k]=+(x[k]*f).toFixed(2));
   } else x100={...x};
 
-  const ings = $('inIng').value.split(/[,;]|\)\s*,/).map(s=>s.replace(/[()]/g,'').trim())
+  const ings = $('inIng').value.replace(/\s*\n\s*/g,' ').split(/[,;]|\)\s*,/).map(s=>s.replace(/[()]/g,'').trim())
     .filter(s=>s.length>1).slice(0,45).map(analizarIngrediente);
 
   // Estimación de fruta/verdura para el score
@@ -1657,6 +1754,11 @@ if(location.search.includes('test')){
   A(q._porcG===300,'porción dentro de paréntesis');
   A(q._porcN===1,'porciones por envase');
   A(q._por100===true,'base 100 g sin la palabra «por»');
+  // Salida real del OCR: se come la «g» de «100 g», se detecta por las dos columnas
+  const o=parseTexto('INFORMACION NUTRICIONAL\nPorcion: 30 g (6 galletas)\nPorciones por envase: 8\n\n100 y Porcion\nEnergia (kcal) 480 144\nProteinas (g) 5,2 1,6\nGrasa total (g) 22,0 6,6\nGrasas saturadas (g) 11,0 3,3\nH. de C. Disp. (g) 64,0 19,2\nAzucares totales (g) 34,0 10,2\nFibra dietetica (g) 2,1 0,6\nSodio (mg) 380 114\nINGREDIENTES: harina de trigo, azucar, aceite vegetal de palma.');
+  A(o.kcal===480 && o.azucar_g===34 && o.sodio_mg===380,'OCR: columna de 100 g');
+  A(o._porcG===30 && o._porcN===8,'OCR: porción y envase');
+  A(o._por100===true,'OCR: dos columnas pese a leer «100 y»');
   R.push('Parser');
   // Diccionario
   A(analizarIngrediente('aceite vegetal de palma').n==='Aceite de palma','match palma');
