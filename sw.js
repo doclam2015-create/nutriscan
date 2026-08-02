@@ -1,5 +1,5 @@
 /* NutriScan — service worker. Deja la app disponible sin conexión y sin el servidor encendido. */
-const CACHE = 'nutriscan-v3';
+const CACHE = 'nutriscan-v4';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icon-180.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
