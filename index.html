@@ -1708,7 +1708,8 @@ function generarInforme(auto){
     toast('Ingresa al menos la energía o los macronutrientes',true); return; }
 
   const tipo=$('inTipo').value;
-  const porcG=parseFloat($('inPorcG').value)||100;
+  const porcDecl=parseFloat($('inPorcG').value)>0;   // ¿el envase declara porción o la suponemos?
+  const porcG=porcDecl? parseFloat($('inPorcG').value) : 100;
   const porcN=parseFloat($('inPorcN').value)||null;
 
   // Normalizar todo a 100 g/ml
@@ -1746,7 +1747,7 @@ function generarInforme(auto){
     sistemas: sistemas(x100,ings,tipo==='bebida',n,pPorc),
     adv: advertencias(x100,pPorc,ings,tipo,n,sel),
     alergs: [...new Set(ings.map(i=>i.al).filter(Boolean))],
-    cod: codPend, novaOFF, nsOFF,
+    cod: codPend, novaOFF, nsOFF, porcDecl,
     ts: Date.now() };
 
   /* Aprende: si venía de un código, queda guardado para leerlo sin conexión la próxima vez. */
@@ -1788,7 +1789,9 @@ function renderRes(d){
   /* Encabezado */
   h+=`<div class="card">
     <h3>${esc(d.nombre)}</h3>
-    <p class="mut" style="margin-top:-3px">Porción de ${d.porcG} ${U}${d.porcN?` · ${d.porcN} porci${d.porcN==1?'ón':'ones'} por envase`:''}</p>
+    <p class="mut" style="margin-top:-3px">${d.porcDecl===false
+      ? `Valores por 100 ${U} — el envase no declara el tamaño de la porción`
+      : `Porción de ${d.porcG} ${U}${d.porcN?` · ${d.porcN} porci${d.porcN==1?'ón':'ones'} por envase`:''}`}</p>
     <div class="scorewrap">
       <div class="ring"><svg width="106" height="106">
         <circle cx="53" cy="53" r="45" stroke="#2b333f" stroke-width="9" fill="none"/>
@@ -1822,7 +1825,7 @@ function renderRes(d){
   }
 
   /* PORCENTAJE DE NECESIDADES DIARIAS */
-  h+=`<div class="card"><h2>% de tus necesidades diarias · 1 porción (${d.porcG} ${U})</h2>
+  h+=`<div class="card"><h2>% de tus necesidades diarias · ${d.porcDecl===false?`100 ${U}`:`1 porción (${d.porcG} ${U})`}</h2>
     <small class="mut" style="margin-bottom:12px">${perfil
       ? `Calculado para ${perfil.edad} años, ${perfil.peso} kg, ${perfil.talla} cm, actividad ${({'1.2':'sedentaria','1.375':'ligera','1.55':'moderada','1.725':'intensa','1.9':'muy intensa'})[perfil.act]||'—'} → <b>${n.kcal} kcal/día</b>.`
       : `Adulto de referencia de ${n.kcal} kcal/día — configura tu perfil para valores propios.`}</small>
