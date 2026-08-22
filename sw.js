@@ -1,7 +1,7 @@
 /* NutriScan — service worker.
    Red primero para el HTML (asi las correcciones llegan siempre),
    cache primero para iconos y manifiesto. Sin red, todo sale del cache. */
-const CACHE = 'nutriscan-v11';
+const CACHE = 'nutriscan-v12';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icon-180.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
@@ -23,9 +23,6 @@ self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
   const url = new URL(e.request.url);
   if (url.origin !== self.location.origin) return;
-
-  /* Los atajos nunca pasan por aqui: los descarga la app Atajos de iOS. */
-  if (url.pathname.endsWith('.shortcut')) return;
 
   /* HTML: red primero. Con conexion, siempre la version publicada mas
      reciente; sin conexion, la copia guardada. */

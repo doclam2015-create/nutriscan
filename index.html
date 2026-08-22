@@ -165,6 +165,34 @@ tr:last-child td{border-bottom:none}
 .lnk .ic{font-size:17px}
 .lnk small{display:block;color:var(--tx3);font-size:11px;margin-top:1px}
 
+
+/* ── Visor de cámara ── */
+.btn.big{min-height:62px;font-size:17px}
+#camOvl{position:fixed;inset:0;z-index:400;background:#000;display:flex;flex-direction:column}
+#camOvl.hide{display:none}
+#camWrap{position:relative;flex:1;overflow:hidden;background:#000}
+#camVid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+#camMask{position:absolute;inset:0;pointer-events:none}
+.mira{position:absolute;left:8%;right:8%;top:50%;height:150px;transform:translateY(-50%);
+  border:2px solid rgba(255,255,255,.85);border-radius:14px;box-shadow:0 0 0 3000px rgba(0,0,0,.45)}
+.mira i{position:absolute;left:0;right:0;top:50%;height:2px;background:#ef4444;opacity:.85;
+  animation:sweep 2.2s ease-in-out infinite}
+@keyframes sweep{0%,100%{top:12%}50%{top:88%}}
+.mira.ocr{height:62%;}
+.mira.ocr i{display:none}
+#camMsg{position:absolute;left:0;right:0;top:14px;text-align:center;color:#fff;font-size:14px;
+  font-weight:600;text-shadow:0 1px 4px #000;padding:0 18px;line-height:1.4}
+#camBar{background:#0d1117;padding:13px 15px calc(13px + env(safe-area-inset-bottom));
+  border-top:1px solid var(--line)}
+#camModo{display:flex;gap:7px;margin-bottom:11px}
+#camModo button{flex:1;min-height:40px;border-radius:11px;border:1px solid var(--line);
+  background:var(--card2);color:var(--tx2);font-size:13.5px;font-weight:600}
+#camModo button.on{background:var(--ac);border-color:var(--ac);color:#fff}
+#camAcc{display:flex;gap:9px;align-items:center}
+#camAcc .btn{margin-top:0}
+#camCerrar{flex:1;min-height:52px;border-radius:13px;border:1px solid var(--line);
+  background:var(--card2);color:var(--tx2);font-size:15px;font-weight:600}
+#camAcc.disparo #camCerrar{flex:none;width:104px}
 .ovl{position:fixed;inset:0;background:rgba(6,9,13,.94);z-index:200;display:flex;
   align-items:center;justify-content:center;padding:22px;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .toast{position:fixed;left:13px;right:13px;bottom:calc(18px + var(--sb));z-index:300;
@@ -213,24 +241,21 @@ details[open] summary{margin-bottom:11px}
 <section class="view" id="v-scan">
 
   <div class="card">
-    <h2>Captura automática</h2>
-    <div class="row">
-      <button class="btn" id="btnCam">📷 Apuntar la cámara</button>
+    <h2>Escanear producto</h2>
+    <button class="btn big" id="btnScan">📷 Abrir la cámara</button>
+    <div class="row" style="margin-top:9px">
       <button class="btn sec" id="btnLib">🖼️ Elegir foto</button>
+      <button class="btn sec" id="btnCod">⌨️ Escribir el código</button>
     </div>
-    <small class="mut" style="margin-top:9px">Fotografía la <b>tabla nutricional</b> de cerca y bien iluminada. La app lee la etiqueta y genera el informe sola.</small>
+    <small class="mut" style="margin-top:10px">Apunta al <b>código de barras</b>: el producto se identifica solo y el informe es exacto. Si no tiene código o no está en la base, la app lee la <b>tabla nutricional</b> con la cámara.</small>
     <div id="shotBox" style="margin-top:11px"></div>
-    <input type="file" id="fileIn" accept="image/*" capture="environment" class="hide">
     <input type="file" id="fileLib" accept="image/*" class="hide">
     <div id="ocrBox" class="hide"></div>
-    <div class="sep"></div>
-    <button class="btn sec sm" id="btnAtajos">⚡ Usar los Atajos de iOS (más rápido y preciso)</button>
-    <button class="btn sec sm" id="btnSetup" style="margin-top:8px">⚙️ Configurar los Atajos</button>
   </div>
 
   <div class="card">
     <h2>Entrada manual</h2>
-    <small class="mut" style="margin-bottom:11px">Si prefieres no usar Atajos: copia el texto con <b>Texto en Vivo</b> de Fotos, mantén pulsado el cuadro y elige <b>Pegar</b>. El informe se genera solo al pegar.</small>
+    <small class="mut" style="margin-bottom:11px">Para productos sin código o mal leídos. También puedes copiar el texto con <b>Texto en Vivo</b> de Fotos y pegarlo aquí: el informe se genera solo al pegar.</small>
     <label class="f"><span>Nombre del producto</span>
       <input type="text" id="inNombre" placeholder="Ej: Galletas de chocolate XYZ"></label>
     <label class="f"><span>Tabla nutricional e ingredientes (pega o escribe)</span>
@@ -272,6 +297,8 @@ details[open] summary{margin-bottom:11px}
     <button class="btn" id="btnGo">🔬 Generar informe</button>
     <small class="mut" style="margin-top:9px" id="perfHint"></small>
   </div>
+
+  <button class="btn sec sm" id="btnSetup">❔ Cómo se usa · ajustes · actualizar</button>
 </section>
 
 <!-- ══════════════ INFORME ══════════════ -->
@@ -326,27 +353,41 @@ details[open] summary{margin-bottom:11px}
 
 </main>
 
-<!-- Configuración de Atajos -->
+<!-- Ayuda y ajustes -->
+<div id="camOvl" class="hide">
+  <div id="camWrap">
+    <video id="camVid" playsinline muted autoplay></video>
+    <div id="camMask"><div class="mira" id="camMira"><i></i></div><div id="camMsg"></div></div>
+  </div>
+  <div id="camBar">
+    <div id="camModo">
+      <button data-m="cod" class="on">🏷️ Código de barras</button>
+      <button data-m="ocr">📄 Tabla nutricional</button>
+    </div>
+    <div id="camAcc">
+      <button id="camCerrar">✕ Cancelar</button>
+      <button class="btn" id="camDisp">Leer la tabla</button>
+    </div>
+  </div>
+</div>
+
 <div class="ovl hide" id="setupOvl">
   <div class="card" style="width:100%;max-width:520px;margin:0">
-    <h2>Atajos de iOS · configuración única</h2>
-    <p class="mut">Los Atajos usan el OCR nativo de Apple: rápido, preciso en español y <b>sin conexión</b>.</p>
+    <h2>Cómo usarla</h2>
+    <div class="steps">
+      <div class="step"><span class="n">1</span><div>Toca <b>Abrir la cámara</b> y apunta al <b>código de barras</b> del envase. En cuanto lo reconoce, el informe sale solo.</div></div>
+      <div class="step"><span class="n">2</span><div>Si el producto no está en la base, la app cambia sola a <b>Tabla nutricional</b>: encuadra la tabla y pulsa <b>Leer la tabla</b>.</div></div>
+      <div class="step"><span class="n">3</span><div>Lo que leas queda guardado en el teléfono junto a su código: la próxima vez ese producto se reconoce al instante y <b>sin conexión</b>.</div></div>
+    </div>
 
     <div class="sep"></div>
-    <h3>Instalación en 2 toques</h3>
-    <div class="note ok"><b>Puede que ya los tengas</b>Si se instalaron desde tu Mac, iCloud los sincroniza solo: mira en la app Atajos si aparecen <b>nutriscan-camara</b> y <b>nutriscan-galeria</b>. Si están, salta este paso.</div>
-    <p class="mut">Si no aparecen, toca cada enlace y confirma <b>Añadir atajo</b>. Ya vienen hechos, no tienes que crear nada.</p>
-    <a class="lnk" href="shortcuts://import-workflow/?url=https%3A%2F%2Fdoclam2015-create.github.io%2Fnutriscan%2Fnutriscan-camara.shortcut&name=NutriScan%20Camara"><span class="ic">📷</span>
-      <span>Instalar «NutriScan Camara»<small>Toma la foto y devuelve el análisis</small></span></a>
-    <a class="lnk" href="shortcuts://import-workflow/?url=https%3A%2F%2Fdoclam2015-create.github.io%2Fnutriscan%2Fnutriscan-galeria.shortcut&name=NutriScan%20Galeria"><span class="ic">🖼️</span>
-      <span>Instalar «NutriScan Galeria»<small>Usa una foto que ya tengas</small></span></a>
-    <div class="note ok"><b>Atajos firmados</b>Desde iOS 15 Apple solo importa atajos con firma. Estos la llevan, así que se añaden sin tocar ningún ajuste del sistema.</div>
-    <div class="note"><b>Si el enlace no abre la app Atajos</b>Usa estos, que guardan el archivo en Archivos → Descargas; tócalo ahí para añadirlo.
-      <br><a href="./nutriscan-camara.shortcut" download style="color:#8fc0ff">Descargar el de cámara</a> ·
-      <a href="./nutriscan-galeria.shortcut" download style="color:#8fc0ff">Descargar el de galería</a></div>
-    <div class="note inf"><b>Necesita internet solo ahora</b>Descargar los atajos es lo último que requiere conexión. Después todo funciona sin red.</div>
+    <h3>Conexión</h3>
+    <p class="mut">Con internet consulta <b>Open Food Facts</b>, una base pública y gratuita de más de tres millones de productos. Sin internet funciona igual con la lectura de etiquetas, la base local de alimentos y los productos que ya escaneaste. No usa ninguna clave ni cuenta.</p>
 
-    <button class="btn" id="setupClose">Listo</button>
+    <div class="sep"></div>
+    <h3>Memoria de productos</h3>
+    <p class="mut" id="prodCount"></p>
+    <button class="btn sec sm" id="btnBorrarProd">🗑️ Vaciar la memoria de productos</button>
 
     <div class="sep"></div>
     <div class="note inf"><b>Versión instalada: <span id="appVer"></span></b>
@@ -354,44 +395,7 @@ details[open] summary{margin-bottom:11px}
     <button class="btn sec sm" id="btnUpd">🔄 Actualizar la app</button>
 
     <div class="sep"></div>
-    <details id="avz"><summary>Opciones avanzadas · crear los atajos a mano</summary>
-    <h3>Nombre de tus atajos</h3>
-    <p class="mut">Escríbelos tal cual aparecen en la app Atajos, con mayúsculas y tildes idénticas. Si usas un solo atajo, pon el mismo nombre en ambos campos.</p>
-    <label class="f"><span>Atajo de cámara</span><input type="text" id="a_cam" autocapitalize="words" autocorrect="off"></label>
-    <label class="f"><span>Atajo de galería</span><input type="text" id="a_gal" autocapitalize="words" autocorrect="off"></label>
-    <button class="btn sec sm" id="btnSaveAtajos">💾 Guardar nombres</button>
-    <div class="sep"></div>
-    <h3>Paso 1 · Copia la dirección de esta app</h3>
-    <div style="background:var(--bg2);border:1px solid var(--line);border-radius:11px;padding:11px;
-      font-size:11.5px;word-break:break-all;color:var(--tx2);margin:8px 0" id="appUrl"></div>
-    <button class="btn sec sm" id="btnCopyUrl">📋 Copiar dirección</button>
-    <div class="sep"></div>
-    <h3>Paso 2 · Crea el atajo «NutriScan Cámara»</h3>
-    <div class="steps">
-      <div class="step"><span class="n">1</span><div>Abre <b>Atajos</b> → <b>+</b> → ponle exactamente el nombre <b>NutriScan Cámara</b>.</div></div>
-      <div class="step"><span class="n">2</span><div>Añade la acción <b>Tomar foto</b>.</div></div>
-      <div class="step"><span class="n">3</span><div>Añade <b>Extraer texto de la imagen</b> (categoría Documentos). Es el OCR de Apple, funciona sin internet.</div></div>
-      <div class="step"><span class="n">4</span><div>Añade <b>Codificar texto</b> y elige <b>Codificar en URL</b>, con el <b>Texto</b> del paso anterior como entrada.</div></div>
-      <div class="step"><span class="n">5</span><div>Añade <b>Abrir URL</b> y escribe la dirección copiada seguida de <b>#t=</b> y luego el <b>Texto codificado</b>.<br>
-        <small class="mut" style="margin-top:4px">Queda así: <code>…nutriscan.html#t=</code><i>[Texto codificado]</i></small></div></div>
-    </div>
-    <div class="sep"></div>
-    <h3>Paso 3 · Duplica para la galería</h3>
-    <p class="mut">Duplica el atajo, llámalo <b>NutriScan Galería</b> y cambia solo la primera acción: <b>Seleccionar fotos</b> en lugar de <b>Tomar foto</b>.</p>
-    <div class="note inf"><b>Listo</b>Desde entonces, «Apuntar la cámara» abre el atajo, tomas la foto y el informe aparece solo al volver.</div>
-    <div class="sep"></div>
-    <h3>Si la dirección de arriba empieza por <code>file:</code> o <code>data:</code></h3>
-    <p class="mut">Atajos no puede reabrir esas direcciones. Usa esta variante, que funciona igual de bien:</p>
-    <div class="steps">
-      <div class="step"><span class="n">1</span><div>En el atajo, activa <b>Mostrar en la hoja para compartir</b> (ajustes del atajo, icono ⓘ).</div></div>
-      <div class="step"><span class="n">2</span><div>Reemplaza la última acción <b>Abrir URL</b> por <b>Ejecutar JavaScript en la página web</b>, con este código:<br>
-        <small class="mut" style="margin-top:5px"><code>window.NutriScan.recibir(`[Texto]`); completion();</code></small><br>
-        <small class="mut">Donde <b>[Texto]</b> es la variable del paso «Extraer texto», insertada entre los acentos graves.</small></div></div>
-      <div class="step"><span class="n">3</span><div>Con NutriScan abierta en Safari, toca <b>Compartir</b> → el atajo. Tomas la foto y el informe aparece en la misma pestaña.</div></div>
-    </div>
-    <div class="note"><b>Consejo</b>Añade también los atajos a la pantalla de inicio o al botón de acción: puedes analizar una etiqueta sin abrir la app primero.</div>
-    </details>
-    <button class="btn sec" id="setupClose2">Cerrar</button>
+    <button class="btn" id="setupClose">Listo</button>
   </div>
 </div>
 
@@ -1155,27 +1159,7 @@ function renderShot(){
     ? `<div class="shot"><img src="${foto}"><button class="del" id="delShot">✕</button></div>` : '';
   const d=$('delShot'); if(d) d.addEventListener('click',()=>{foto=null;renderShot();});
 }
-/* Atajos de iOS: la app los invoca y ellos devuelven el texto por la URL.
-   El nombre lo pone el usuario, porque iOS exige coincidencia exacta. */
-const ATA = ls.g('ns_atajos', {cam:'nutriscan-camara', gal:'nutriscan-galeria'});
-function runAtajo(nombre){
-  const t=setTimeout(()=>{
-    toast('iOS no encontró el atajo «'+nombre+'». Abre «Configurar los Atajos» y escribe su nombre exacto.',true);
-    $('btnSetup').click();
-  },2500);
-  window.addEventListener('pagehide',()=>clearTimeout(t),{once:true});
-  location.href='shortcuts://run-shortcut?name='+encodeURIComponent(nombre);
-}
-$('btnCam').addEventListener('click',()=>$('fileIn').click());
-$('btnLib').addEventListener('click',()=>$('fileLib').click());
-$('btnAtajos').addEventListener('click',()=>runAtajo(ATA.cam));
-$('btnSetup').addEventListener('click',()=>{
-  $('appUrl').textContent=appURL();
-  $('a_cam').value=ATA.cam; $('a_gal').value=ATA.gal;
-  $('appVer').textContent=APP_V;
-  $('setupOvl').className='ovl'; $('setupOvl').scrollTop=0; $('avz').open=false; window.scrollTo(0,0);
-});
-const APP_V = '11';
+const APP_V = '12';
 $('btnUpd').addEventListener('click', async ()=>{
   toast('Buscando la versión más reciente…');
   try{
@@ -1185,28 +1169,21 @@ $('btnUpd').addEventListener('click', async ()=>{
   }catch(e){}
   location.replace('./index.html?v='+Date.now());
 });
-$('btnSaveAtajos').addEventListener('click',()=>{
-  const c=$('a_cam').value.trim(), g=$('a_gal').value.trim();
-  if(!c||!g) return toast('Ambos nombres son obligatorios',true);
-  ATA.cam=c; ATA.gal=g; ls.s('ns_atajos',ATA);
-  toast('Nombres guardados ✓');
+$('setupClose').addEventListener('click',()=>$('setupOvl').className='ovl hide');
+$('btnSetup').addEventListener('click',()=>{
+  $('appVer').textContent=APP_V;
+  const k=Object.keys(PRODS).length;
+  $('prodCount').textContent = k
+    ? k+' producto'+(k===1?'':'s')+' guardado'+(k===1?'':'s')+' en este teléfono: se reconocen al instante y sin conexión.'
+    : 'Todavía no has guardado ningún producto. Se guardan solos al escanear.';
+  $('setupOvl').className='ovl'; $('setupOvl').scrollTop=0; window.scrollTo(0,0);
 });
-['setupClose','setupClose2'].forEach(id=>
-  $(id).addEventListener('click',()=>$('setupOvl').className='ovl hide'));
+$('btnBorrarProd').addEventListener('click',()=>{
+  Object.keys(PRODS).forEach(k=>delete PRODS[k]);
+  ls.s('ns_prod',PRODS); $('prodCount').textContent='Memoria vaciada.';
+  toast('Memoria de productos vaciada');
+});
 const appURL = () => (location.href.split('#')[0]).split('?')[0];
-$('btnCopyUrl').addEventListener('click',async()=>{
-  const u=appURL();
-  try{ await navigator.clipboard.writeText(u); toast('Dirección copiada ✓'); }
-  catch(e){
-    const ta=document.createElement('textarea'); ta.value=u;
-    ta.style.cssText='position:fixed;top:0;left:0;opacity:0'; document.body.appendChild(ta);
-    ta.select(); ta.setSelectionRange(0,u.length);
-    try{ document.execCommand('copy'); toast('Dirección copiada ✓'); }
-    catch(_){ toast('Selecciona el texto de arriba y cópialo a mano',true); }
-    ta.remove();
-  }
-});
-
 /* ════════ OCR dentro de la app (Tesseract local, sin servicios externos) ════════ */
 
 /* Carga el motor solo la primera vez que se usa. */
@@ -1235,7 +1212,33 @@ async function motorOCR(prog){
   try{ return await tessCargando; } finally { tessCargando=null; }
 }
 
-/* Preprocesa: escala, gris y contraste. Sube mucho el acierto en etiquetas. */
+/* Gris + realce de contraste sobre el propio lienzo. Sube mucho el acierto del OCR. */
+function realzar(cv){
+  const cx=cv.getContext('2d',{willReadFrequently:true});
+  const d=cx.getImageData(0,0,cv.width,cv.height), p=d.data;
+  let sum=0;
+  for(let i=0;i<p.length;i+=4){
+    const g=0.299*p[i]+0.587*p[i+1]+0.114*p[i+2];
+    p[i]=p[i+1]=p[i+2]=g; sum+=g;
+  }
+  const media=sum/(p.length/4), C=1.6;
+  for(let i=0;i<p.length;i+=4){
+    const v=Math.max(0,Math.min(255,(p[i]-media)*C+media));
+    p[i]=p[i+1]=p[i+2]=v;
+  }
+  cx.putImageData(d,0,0);
+  return cv;
+}
+
+function miniatura(fuente){
+  const w=fuente.width||fuente.naturalWidth, h=fuente.height||fuente.naturalHeight;
+  const tw=Math.round(360*Math.min(1,w/h||1)), th=Math.round(tw*h/w);
+  const tv=document.createElement('canvas'); tv.width=tw; tv.height=th;
+  tv.getContext('2d').drawImage(fuente,0,0,tw,th);
+  return tv.toDataURL('image/jpeg',0.65);
+}
+
+/* Lleva la foto a un lienzo de trabajo: escala, realza y saca miniatura. */
 function prepararImagen(file){
   return new Promise((ok,err)=>{
     const rd=new FileReader();
@@ -1248,26 +1251,9 @@ function prepararImagen(file){
         const k=Math.min(MAX/Math.max(w,h), 2);      // amplía si es pequeña, reduce si es enorme
         if(k!==1){ w=Math.round(w*k); h=Math.round(h*k); }
         const cv=document.createElement('canvas'); cv.width=w; cv.height=h;
-        const cx=cv.getContext('2d',{willReadFrequently:true});
-        cx.drawImage(im,0,0,w,h);
-        const d=cx.getImageData(0,0,w,h), p=d.data;
-        let sum=0;
-        for(let i=0;i<p.length;i+=4){
-          const g=0.299*p[i]+0.587*p[i+1]+0.114*p[i+2];
-          p[i]=p[i+1]=p[i+2]=g; sum+=g;
-        }
-        const media=sum/(p.length/4);
-        const C=1.6;                                  // realce de contraste alrededor de la media
-        for(let i=0;i<p.length;i+=4){
-          const v=Math.max(0,Math.min(255,(p[i]-media)*C+media));
-          p[i]=p[i+1]=p[i+2]=v;
-        }
-        cx.putImageData(d,0,0);
-        // miniatura para el historial
-        const tw=Math.round(360*(w/h>1?1:w/h)), th=Math.round(tw*h/w);
-        const tv=document.createElement('canvas'); tv.width=tw; tv.height=th;
-        tv.getContext('2d').drawImage(im,0,0,tw,th);
-        ok({canvas:cv, thumb:tv.toDataURL('image/jpeg',0.65)});
+        cv.getContext('2d',{willReadFrequently:true}).drawImage(im,0,0,w,h);
+        const thumb=miniatura(im);
+        ok({canvas:cv, thumb});                       // sin realzar: el código de barras se lee mejor en crudo
       };
       im.src=rd.result;
     };
@@ -1286,7 +1272,10 @@ function ocrProgreso(txt,pc){
 const ocrFin = () => { $('ocrBox').className='hide'; $('ocrBox').innerHTML=''; };
 
 let ocrOcupado=false;
-['fileIn','fileLib'].forEach(id=>$(id).addEventListener('change', async e=>{
+
+/* Una foto de la fototeca: primero se busca un código de barras (resultado exacto);
+   si no lo hay, se lee la tabla con OCR. */
+$('fileLib').addEventListener('change', async e=>{
   const f=e.target.files&&e.target.files[0]; e.target.value='';
   if(!f || ocrOcupado) return;
   ocrOcupado=true;
@@ -1294,32 +1283,43 @@ let ocrOcupado=false;
     ocrProgreso('Preparando la imagen…',8);
     const {canvas,thumb} = await prepararImagen(f);
     foto=thumb; renderShot();
-    const w = await motorOCR(ocrProgreso);
-    ocrProgreso('Leyendo la etiqueta…',40);
-    const { data } = await w.recognize(canvas);
-    ocrFin();
-    const txt=(data.text||'').trim();
-    if(txt.length<15){
-      toast('No se distinguió texto. Acerca más la cámara a la tabla nutricional y evita reflejos.',true);
-      return;
+    const cod = await leerCodigoEnCanvas(canvas);
+    if(cod){
+      ocrProgreso('Código '+cod+' · buscando el producto…',55);
+      const r = await buscarProducto(cod);
+      ocrFin();
+      if(r){ aplicarProducto(r); return; }
+      toast('El código '+cod+' no está en la base. Leo la tabla nutricional…');
+      ocrProgreso('Leyendo la etiqueta…',40);
     }
-    if(!recibirTexto(txt)) $('inTexto').value=txt;   // deja lo leído para corregirlo a mano
-  }catch(err){
+    const txt = await ocrDeCanvas(realzar(canvas));
     ocrFin();
-    toast('No se pudo leer la imagen: '+(err.message||'error'),true);
-  }finally{ ocrOcupado=false; }
-}));
+    if(txt.length<15){ toast('No se distinguió texto. Acerca más la cámara a la tabla y evita reflejos.',true); return; }
+    codPend = cod || codPend;
+    if(!recibirTexto(txt)) $('inTexto').value=txt;
+  }catch(err){ ocrFin(); toast('No se pudo leer la imagen: '+(err.message||'error'),true); }
+  finally{ ocrOcupado=false; }
+});
 
-/* ── Ingreso automático del texto: desde el Atajo (#t=), al pegar o al abrir ── */
+async function ocrDeCanvas(canvas){
+  const w = await motorOCR(ocrProgreso);
+  const { data } = await w.recognize(canvas);
+  return (data.text||'').trim();
+}
+
+/* ── Ingreso automático del texto: por la URL (#t=), al pegar o al abrir ── */
 function recibirTexto(txt){
   if(!txt || !txt.trim()) return false;
   $('inTexto').value = txt.trim();
   const n = aplicarParse(true);
   if(n>=2){ generarInforme(true); return true; }
-  goto('scan'); toast('Texto recibido pero se reconocieron pocos valores: revísalos abajo', true);
+  goto('scan');
+  toast(codPend
+    ? 'Se leyeron pocos valores. Complétalos abajo: quedarán guardados junto al código '+codPend+' para la próxima vez.'
+    : 'Texto recibido pero se reconocieron pocos valores: revísalos abajo', true);
   return false;
 }
-window.NutriScan = { recibir: recibirTexto };   // para la acción «Ejecutar JavaScript» de Atajos
+window.NutriScan = { recibir: recibirTexto };   // punto de entrada para automatizaciones externas
 
 function leerURL(){
   const raw = (location.hash||'').replace(/^#/,'') || (location.search||'').replace(/^\?/,'');
@@ -1400,6 +1400,306 @@ function renderBase(q){
 }
 let igBaseSel = null;
 
+
+/* ══════════════════════════════════════════════════════════════
+   G2. CÓDIGO DE BARRAS, CÁMARA EN VIVO Y BASE EN LÍNEA
+   El código de barras es la vía fiable: identifica el producto sin
+   adivinar. El OCR queda como respaldo para lo que no tenga código
+   o no esté en la base.
+   ══════════════════════════════════════════════════════════════ */
+
+let ZX=null, zxCargando=null;
+async function motorCodigo(){
+  if(ZX) return ZX;
+  if(!zxCargando) zxCargando = (async()=>{
+    if(!window.ZXing) await cargarScript('./bc/zxing.min.js');
+    const Z=window.ZXing;
+    const fmts=[Z.BarcodeFormat.EAN_13,Z.BarcodeFormat.EAN_8,Z.BarcodeFormat.UPC_A,
+                Z.BarcodeFormat.UPC_E,Z.BarcodeFormat.CODE_128,Z.BarcodeFormat.ITF];
+    const hints=new Map([[Z.DecodeHintType.POSSIBLE_FORMATS,fmts],[Z.DecodeHintType.TRY_HARDER,true]]);
+    const lector=new Z.MultiFormatReader(); lector.setHints(hints);
+    ZX={Z,lector}; return ZX;
+  })();
+  try{ return await zxCargando; } finally { zxCargando=null; }
+}
+
+/* Extrae una región del lienzo como luminancia; ZXing la digiere directo. */
+function grisDe(cv,x,y,w,h,girado){
+  const d=cv.getContext('2d',{willReadFrequently:true}).getImageData(x,y,w,h).data;
+  const g=new Uint8ClampedArray(w*h);
+  if(!girado){
+    for(let i=0,k=0;k<g.length;i+=4,k++) g[k]=(d[i]*299+d[i+1]*587+d[i+2]*114)/1000;
+    return {g,w,h};
+  }
+  /* transpuesta: los códigos verticales se leen igual de bien */
+  for(let yy=0;yy<h;yy++) for(let xx=0;xx<w;xx++){
+    const i=(yy*w+xx)*4;
+    g[xx*h+(h-1-yy)]=(d[i]*299+d[i+1]*587+d[i+2]*114)/1000;
+  }
+  return {g,w:h,h:w};
+}
+
+function decodificar(ZXo,{g,w,h}){
+  try{
+    const src=new ZXo.Z.RGBLuminanceSource(g,w,h);
+    const bmp=new ZXo.Z.BinaryBitmap(new ZXo.Z.HybridBinarizer(src));
+    const r=ZXo.lector.decode(bmp);
+    const t=(r.getText()||'').replace(/\D/g,'');
+    return t.length>=8 ? t : null;
+  }catch(e){ return null; }
+  finally{ ZXo.lector.reset&&ZXo.lector.reset(); }
+}
+
+/* Prueba la banda central (donde apunta la mira), el cuadro entero y ambos girados. */
+async function leerCodigoEnCanvas(cv){
+  const ZXo=await motorCodigo();
+  const W=cv.width, H=cv.height;
+  const banda={x:0,y:Math.round(H*0.28),w:W,h:Math.round(H*0.44)};
+  const zonas=[banda,{x:0,y:0,w:W,h:H}];
+  for(const z of zonas)
+    for(const girado of [false,true]){
+      const c=decodificar(ZXo, grisDe(cv,z.x,z.y,z.w,z.h,girado));
+      if(c) return c;
+    }
+  return null;
+}
+
+/* ── Base de productos ───────────────────────────────────────────
+   1) memoria propia del teléfono  → instantánea y sin conexión
+   2) Open Food Facts              → base pública mundial, sin clave
+   Lo que se aprende queda guardado: la segunda vez ya no necesita red. */
+const PRODS = ls.g('ns_prod', {});
+
+function guardarProducto(r){
+  if(!r || !r.cod) return;
+  PRODS[r.cod]={...r, fuente:'local'};
+  const k=Object.keys(PRODS);
+  if(k.length>400) delete PRODS[k[0]];        // tope sencillo de memoria
+  ls.s('ns_prod',PRODS);
+}
+
+const g2mg = v => v==null? null : Math.round(v*1000*10)/10;
+const g2ug = v => v==null? null : Math.round(v*1e6);
+
+function tipoDeOFF(cats,n){
+  const c=(cats||[]).join(' ');
+  if(/beverage|boisson|bebida|water|juice|soda|drink/.test(c)) return 'bebida';
+  if(/cheese|fromage|queso/.test(c)) return 'queso';
+  if(/\bnuts\b|seeds|frutos-secos|almond|walnut/.test(c)) return 'fruto';
+  if(/\boils\b|olive-oil|butter|margarin|aceite|manteq/.test(c)) return 'grasa';
+  if((n['fat_100g']||0)>=70) return 'grasa';
+  return 'solido';
+}
+
+function deOFF(cod,p){
+  const n=p.nutriments||{};
+  const kcal = n['energy-kcal_100g']!=null ? n['energy-kcal_100g']
+             : (n['energy-kj_100g']!=null ? Math.round(n['energy-kj_100g']/4.184) : null);
+  let sodio = n.sodium_100g!=null ? g2mg(n.sodium_100g)
+            : (n.salt_100g!=null ? g2mg(n.salt_100g/2.5) : null);
+  const nut={
+    kcal, proteina_g:n.proteins_100g, carb_g:n.carbohydrates_100g, azucar_g:n.sugars_100g,
+    fibra_g:n.fiber_100g, grasa_g:n.fat_100g, sat_g:n['saturated-fat_100g'],
+    trans_g:n['trans-fat_100g'], colesterol_mg:g2mg(n.cholesterol_100g), sodio_mg:sodio,
+    potasio_mg:g2mg(n.potassium_100g), calcio_mg:g2mg(n.calcium_100g), hierro_mg:g2mg(n.iron_100g),
+    magnesio_mg:g2mg(n.magnesium_100g), zinc_mg:g2mg(n.zinc_100g), vitc_mg:g2mg(n['vitamin-c_100g']),
+    vita_ug:g2ug(n['vitamin-a_100g']), vitd_ug:g2ug(n['vitamin-d_100g']),
+    cafeina_mg:g2mg(n.caffeine_100g), omega3_g:n['omega-3-fat_100g']
+  };
+  Object.keys(nut).forEach(k=>{ if(nut[k]==null||isNaN(nut[k])) delete nut[k]; });
+
+  const mp=String(p.serving_size||'').match(/(\d+[.,]?\d*)\s*(?:g|ml)/i);
+  const porcG = mp? parseFloat(mp[1].replace(',','.')) : null;
+  const mq=String(p.quantity||'').match(/(\d+[.,]?\d*)\s*(?:g|ml)/i);
+  const total = mq? parseFloat(mq[1].replace(',','.')) : null;
+
+  return {
+    cod, fuente:'off',
+    nombre: (p.product_name_es||p.product_name||p.generic_name_es||'').trim(),
+    marca: (p.brands||'').split(',')[0].trim(),
+    ing: (p.ingredients_text_es||p.ingredients_text||'').trim(),
+    porcG, porcN: (total&&porcG)? Math.round(total/porcG) : null,
+    tipo: tipoDeOFF(p.categories_tags, n), nut,
+    nova: p.nova_group||null,
+    /* Open Food Facts marca «unknown»/«not-applicable» cuando no pudo calcularlo */
+    nsOFF: /^[a-e]$/i.test(p.nutriscore_grade||'') ? p.nutriscore_grade : null,
+    aditivos: (p.additives_tags||[]).length
+  };
+}
+
+const CAMPOS_OFF = ['product_name','product_name_es','generic_name_es','brands','ingredients_text',
+  'ingredients_text_es','nutriments','nova_group','nutriscore_grade','additives_tags',
+  'serving_size','quantity','categories_tags'].join(',');
+
+/* navigator.onLine da falsos negativos, asi que nunca decide: solo informa.
+   La consulta se intenta siempre y es el propio fetch quien falla si no hay red. */
+async function buscarProducto(cod){
+  if(PRODS[cod]) return PRODS[cod];
+  const ctl=new AbortController();
+  const t=setTimeout(()=>ctl.abort(),9000);
+  try{
+    const r=await fetch('https://world.openfoodfacts.org/api/v2/product/'+cod+'.json?fields='+CAMPOS_OFF,
+                        {signal:ctl.signal});
+    pintarRed('ok');
+    if(!r.ok) return null;
+    const j=await r.json();
+    if(j.status!==1 || !j.product) return null;
+    const prod=deOFF(cod,j.product);
+    if(prod.nut.kcal==null && prod.nut.grasa_g==null && prod.nut.carb_g==null) return null;
+    guardarProducto(prod);
+    return prod;
+  }catch(e){ pintarRed('no'); return null; }
+  finally{ clearTimeout(t); }
+}
+
+/* Vuelca el producto en el formulario y genera el informe. */
+function aplicarProducto(r){
+  codPend = r.cod;
+  $('inNombre').value = [r.nombre, r.marca && ('· '+r.marca)].filter(Boolean).join(' ').slice(0,70) || ('Código '+r.cod);
+  $('inBase').value='100';
+  $('inTipo').value=r.tipo||'solido';
+  $('inPorcG').value = r.porcG||'';
+  $('inPorcN').value = r.porcN||'';
+  $('inIng').value = r.ing||'';
+  $('inTexto').value = '';
+  NUTS.forEach(([k])=>{ $('n_'+k).value = r.nut[k]!=null ? r.nut[k] : ''; });
+  igBaseSel=null; novaOFF=r.nova||null; nsOFF=r.nsOFF||null;
+  toast(r.fuente==='local' ? 'Producto reconocido (memoria del teléfono) ✓' : 'Producto encontrado en la base mundial ✓');
+  generarInforme(true);
+}
+let codPend=null, novaOFF=null, nsOFF=null;
+
+/* ── Cámara en vivo ───────────────────────────────────────────── */
+let camStream=null, camModo='cod', camTimer=null, camCv=null, camOcupado=false;
+
+function camDecir(t){ $('camMsg').innerHTML=t; }
+function camVibrar(){ try{ navigator.vibrate && navigator.vibrate(60); }catch(e){} }
+
+async function abrirCam(){
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia)
+    return toast('Este navegador no da acceso a la cámara. Usa «Elegir foto».',true);
+  $('camOvl').className='';
+  camPonerModo('cod');
+  camDecir('Encendiendo la cámara…');
+  try{
+    camStream = await navigator.mediaDevices.getUserMedia({
+      audio:false,
+      video:{ facingMode:{ideal:'environment'}, width:{ideal:1920}, height:{ideal:1080} }
+    });
+  }catch(e){
+    cerrarCam();
+    return toast(e.name==='NotAllowedError'
+      ? 'Diste permiso denegado a la cámara. Actívala en Ajustes ▸ Safari ▸ Cámara.'
+      : 'No se pudo abrir la cámara: '+(e.message||e.name), true);
+  }
+  const v=$('camVid'); v.srcObject=camStream;
+  try{ await v.play(); }catch(e){}
+  camDecir('Apunta al <b>código de barras</b>');
+  camBucle();
+}
+
+function cerrarCam(){
+  clearTimeout(camTimer); camTimer=null;
+  if(camStream){ camStream.getTracks().forEach(t=>t.stop()); camStream=null; }
+  const v=$('camVid'); if(v) v.srcObject=null;
+  $('camOvl').className='hide';
+}
+
+function camPonerModo(m){
+  camModo=m;
+  document.querySelectorAll('#camModo button').forEach(b=>b.className = b.dataset.m===m?'on':'');
+  $('camMira').className = m==='ocr' ? 'mira ocr' : 'mira';
+  $('camDisp').style.display = m==='ocr' ? '' : 'none';
+  $('camAcc').className = m==='ocr' ? 'disparo' : '';
+  camDecir(m==='ocr' ? 'Encuadra la <b>tabla nutricional</b> completa y pulsa «Leer la tabla»'
+                     : 'Apunta al <b>código de barras</b>');
+  if(m==='cod') camBucle();
+}
+
+/* Copia el fotograma actual a un lienzo, a resolución acotada. */
+function camFotograma(max){
+  const v=$('camVid');
+  const vw=v.videoWidth, vh=v.videoHeight;
+  if(!vw||!vh) return null;
+  const k=Math.min(1, (max||1280)/Math.max(vw,vh));
+  const w=Math.round(vw*k), h=Math.round(vh*k);
+  if(!camCv) camCv=document.createElement('canvas');
+  camCv.width=w; camCv.height=h;
+  camCv.getContext('2d',{willReadFrequently:true}).drawImage(v,0,0,w,h);
+  return camCv;
+}
+
+async function camBucle(){
+  clearTimeout(camTimer);
+  if(!camStream || camModo!=='cod' || camOcupado) return;
+  const cv=camFotograma(1280);
+  if(cv){
+    let cod=null;
+    try{ cod = await leerCodigoEnCanvas(cv); }catch(e){}
+    if(cod && camStream && camModo==='cod'){
+      camOcupado=true; camVibrar();
+      camDecir('Código <b>'+cod+'</b> · buscando el producto…');
+      const r = await buscarProducto(cod);
+      camOcupado=false;
+      if(r){ cerrarCam(); aplicarProducto(r); return; }
+      codPend=cod;
+      camDecir('El código <b>'+cod+'</b> no está en la base.<br>Encuadra la tabla nutricional y pulsa «Leer la tabla».');
+      camPonerModo('ocr');
+      return;
+    }
+  }
+  camTimer=setTimeout(camBucle,140);
+}
+
+async function camLeerTabla(){
+  if(camOcupado) return;
+  const cv=camFotograma(2000);
+  if(!cv) return toast('La cámara aún no entrega imagen',true);
+  camOcupado=true; camVibrar();
+  camDecir('Leyendo la etiqueta…');
+  const alta=document.createElement('canvas');
+  alta.width=cv.width; alta.height=cv.height;
+  alta.getContext('2d').drawImage(cv,0,0);
+  cerrarCam();
+  ocrOcupado=true;
+  try{
+    realzar(alta);
+    foto=miniatura(alta); renderShot();
+    ocrProgreso('Leyendo la etiqueta…',30);
+    const txt=await ocrDeCanvas(alta);
+    ocrFin();
+    if(txt.length<15) return toast('No se distinguió texto. Acércate más y evita reflejos.',true);
+    if(!recibirTexto(txt)) $('inTexto').value=txt;
+  }catch(e){ ocrFin(); toast('No se pudo leer: '+(e.message||'error'),true); }
+  finally{ ocrOcupado=false; camOcupado=false; }
+}
+
+$('btnScan').addEventListener('click',abrirCam);
+$('camCerrar').addEventListener('click',cerrarCam);
+$('camDisp').addEventListener('click',camLeerTabla);
+document.querySelectorAll('#camModo button').forEach(b=>
+  b.addEventListener('click',()=>camPonerModo(b.dataset.m)));
+$('btnLib').addEventListener('click',()=>$('fileLib').click());
+$('btnCod').addEventListener('click',async()=>{
+  const c=(prompt('Escribe el código de barras (los números bajo las barras):')||'').replace(/\D/g,'');
+  if(c.length<8) return c && toast('Ese código no parece válido',true);
+  toast('Buscando '+c+'…');
+  const r=await buscarProducto(c);
+  if(r) aplicarProducto(r);
+  else { codPend=c; toast('El código '+c+' no está en la base (o no hay conexión). Escanea la tabla nutricional o llénala a mano.', true); }
+});
+
+/* Aviso de conexión: se pinta con hechos, no con navigator.onLine, que miente.
+   Hasta que haya una consulta real, dice lo único seguro: que funciona sin red. */
+function pintarRed(estado){
+  const e=document.querySelector('.off');
+  if(!e) return;
+  const m={ok:['● EN LÍNEA','var(--ok)'], no:['● SIN CONEXIÓN','var(--warn)'], '':['● FUNCIONA SIN RED','var(--tx3)']};
+  const [t,c]=m[estado||''];
+  e.textContent=t; e.style.color=c;
+}
+pintarRed();
+
 /* ══════════ H. GENERAR INFORME ══════════ */
 function generarInforme(auto){
   const x={};
@@ -1446,10 +1746,16 @@ function generarInforme(auto){
     sistemas: sistemas(x100,ings,tipo==='bebida',n,pPorc),
     adv: advertencias(x100,pPorc,ings,tipo,n,sel),
     alergs: [...new Set(ings.map(i=>i.al).filter(Boolean))],
+    cod: codPend, novaOFF, nsOFF,
     ts: Date.now() };
 
+  /* Aprende: si venía de un código, queda guardado para leerlo sin conexión la próxima vez. */
+  if(codPend) guardarProducto({ cod:codPend, nombre:d.nombre, marca:'',
+    ing:$('inIng').value.trim(), porcG:d.porcG, porcN:d.porcN, tipo,
+    nut:x100, nova:novaOFF, nsOFF });
+
   ls.s(K.last,d); pushHist(d); renderRes(d); goto('res');
-  igBaseSel=null;
+  igBaseSel=null; codPend=null; novaOFF=null; nsOFF=null;
   if(auto) toast('Etiqueta leída y analizada ✓');
 }
 $('btnGo').addEventListener('click',()=>generarInforme(false));
@@ -1501,7 +1807,12 @@ function renderRes(d){
       ${d.cg!=null?`<span class="badge ${d.cg>=20?'b-bd':d.cg>=11?'b-wn':'b-ok'}">CG ${d.cg}</span>`:''}
       <span class="badge ${d.sellos.length>=3?'b-bd':d.sellos.length?'b-wn':'b-ok'}">${d.sellos.length} sello${d.sellos.length===1?'':'s'}</span>
       ${d.alergs.length?`<span class="badge b-wn">⚠ ${d.alergs.join(', ')}</span>`:''}
-    </div></div>`;
+    </div>
+    ${d.cod?`<small class="mut" style="margin-top:9px;display:block">Código de barras <b>${esc(d.cod)}</b>${
+      d.novaOFF||d.nsOFF ? ` · la base mundial lo clasifica como NOVA <b>${d.novaOFF||'—'}</b> y Nutri-Score <b>${(d.nsOFF||'—').toUpperCase()}</b>${
+        (d.novaOFF&&d.novaOFF!==d.nova)||(d.nsOFF&&d.nsOFF.toUpperCase()!==d.grade)
+          ? ', algo distinto de lo calculado aquí porque cada versión del producto declara valores propios' : ', coincide con lo calculado aquí'}` : ''}</small>`:''}
+    </div>`;
 
   /* Advertencias personalizadas */
   if(d.adv.length){
@@ -1786,6 +2097,26 @@ if(location.search.includes('test')){
   A(sis.arterias&&sis.arterias.rie.length>=2,'riesgo arterial por sodio y grasas');
   A(sis.dientes&&sis.dientes.rie.length,'riesgo dental por azúcar');
   R.push('Sistemas');
+  // Mapeo de Open Food Facts → modelo interno
+  const of = deOFF('7801234567890', {
+    product_name_es:'Yogur natural', brands:'Marca X',
+    ingredients_text_es:'leche, fermentos lácteos',
+    serving_size:'125 g', quantity:'500 g', categories_tags:['en:dairies','en:yogurts'],
+    nova_group:3, nutriscore_grade:'unknown', additives_tags:[],
+    nutriments:{'energy-kcal_100g':61,'proteins_100g':3.5,'carbohydrates_100g':4.7,
+      'sugars_100g':4.7,'fat_100g':3.3,'saturated-fat_100g':2.1,'salt_100g':0.13,
+      'calcium_100g':0.12,'vitamin-d_100g':0.0000012}});
+  A(of.nut.kcal===61 && of.nut.proteina_g===3.5,'OFF: macronutrientes');
+  A(of.nut.sodio_mg===52,'OFF: sal 0,13 g → 52 mg de sodio');
+  A(of.nut.calcio_mg===120,'OFF: calcio en gramos → mg');
+  A(of.nut.vitd_ug===1.2 || of.nut.vitd_ug===1,'OFF: vitamina D en gramos → µg');
+  A(of.porcG===125 && of.porcN===4,'OFF: porción y porciones por envase');
+  A(of.nsOFF===null,'OFF: «unknown» no se muestra como Nutri-Score');
+  A(of.tipo==='solido','OFF: tipo de producto');
+  const ob = deOFF('1',{categories_tags:['en:beverages'],nutriments:{'energy-kj_100g':180}});
+  A(ob.tipo==='bebida','OFF: bebida por categoría');
+  A(ob.nut.kcal===43,'OFF: kJ → kcal cuando no hay kcal');
+  R.push('Open Food Facts');
   setTimeout(()=>toast('✅ TODOS LOS TESTS OK — '+R.join(' · ')),400);
 }
 </script>
