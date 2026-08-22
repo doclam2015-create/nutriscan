@@ -31,8 +31,7 @@ header{position:sticky;top:0;z-index:60;background:rgba(13,17,23,.95);
   border-bottom:1px solid var(--line);padding:9px 13px 7px}
 .hrow{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .brand{display:flex;align-items:center;gap:9px;font-weight:800;font-size:19px;letter-spacing:-.4px}
-.logo{width:30px;height:30px;border-radius:9px;background:linear-gradient(140deg,#3b82f6,#22c55e);
-  display:flex;align-items:center;justify-content:center;font-size:16px}
+.logo{width:30px;height:30px;border-radius:9px;display:block;object-fit:cover}
 .off{font-size:10px;color:var(--ok);border:1px solid rgba(34,197,94,.4);background:rgba(34,197,94,.1);
   padding:3px 7px;border-radius:20px;font-weight:700;letter-spacing:.3px}
 nav{display:flex;gap:5px;margin-top:8px}
@@ -224,7 +223,7 @@ details[open] summary{margin-bottom:11px}
 
 <header>
   <div class="hrow">
-    <div class="brand"><span class="logo">🥗</span>NutriScan</div>
+    <div class="brand"><img class="logo" src="./icon-180.png" alt="">NutriScan</div>
     <span class="off">● OFFLINE</span>
   </div>
   <nav>
@@ -1159,7 +1158,7 @@ function renderShot(){
     ? `<div class="shot"><img src="${foto}"><button class="del" id="delShot">✕</button></div>` : '';
   const d=$('delShot'); if(d) d.addEventListener('click',()=>{foto=null;renderShot();});
 }
-const APP_V = '12';
+const APP_V = '13';
 $('btnUpd').addEventListener('click', async ()=>{
   toast('Buscando la versión más reciente…');
   try{
