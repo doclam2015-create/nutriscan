@@ -1,21 +1,22 @@
 #!/usr/bin/env python3
-"""Icono de NutriScan: una hoja recortada sobre barras de codigo.
+"""Icono de NutriScan, a todo color.
 
-La idea es que el icono diga lo que hace la app sin texto: las barras
-son el escaneo, la hoja es el alimento. Se dibuja a 1024 y se reduce,
-que es lo unico que se ve nitido en la retina del telefono.
+Dos objetos y nada mas: el brocoli (el alimento) y la ficha con sus datos
+(el analisis). El de referencia traia tres elementos y un circulo punteado;
+a 60 px, que es el tamano real en la pantalla de inicio, eso se convierte
+en una mancha, asi que se queda lo que se distingue.
 """
 import math
 from PIL import Image, ImageDraw, ImageFilter
 
-S = 1024                      # lienzo maestro
-UBAR = 19.0                   # unidad de barra: S/UBAR
-CX, CY = S / 2, S / 2
-
-FONDO_A = (10, 15, 22)        # casi negro azulado, el de la app
-FONDO_B = (17, 34, 32)        # verde muy apagado hacia abajo
-VERDE_A = (134, 239, 172)     # punta clara
-VERDE_B = (22, 163, 74)       # base profunda
+S = 1024                                   # lienzo maestro
+FONDO_A = (247, 253, 246)                  # crema verdosa
+FONDO_B = (198, 236, 208)                  # menta
+VERDE_OSC = (46, 125, 50)
+VERDE_MED = (76, 175, 80)
+VERDE_CLA = (129, 199, 132)
+TALLO = (124, 179, 66)
+TINTA = (33, 48, 40)
 
 
 def lerp(a, b, t):
@@ -23,120 +24,98 @@ def lerp(a, b, t):
 
 
 def fondo():
-    """Degradado vertical suave, mas un halo verde detras de la hoja."""
     im = Image.new("RGB", (S, S))
     px = im.load()
     for y in range(S):
-        c = lerp(FONDO_A, FONDO_B, (y / S) ** 1.3)
         for x in range(S):
-            px[x, y] = c
-
-    halo = Image.new("L", (S, S), 0)
-    ImageDraw.Draw(halo).ellipse(
-        [CX - S * 0.38, CY - S * 0.38, CX + S * 0.38, CY + S * 0.38], fill=105
-    )
-    halo = halo.filter(ImageFilter.GaussianBlur(S * 0.11))
-    im.paste(Image.new("RGB", (S, S), (16, 92, 60)), (0, 0), halo)
+            # diagonal suave, mas claro arriba-izquierda
+            t = min(1.0, max(0.0, (x / S) * 0.35 + (y / S) * 0.65))
+            px[x, y] = lerp(FONDO_A, FONDO_B, t ** 1.15)
     return im
 
 
-def hoja_mascara(largo, ancho, giro, centro, sup=4):
-    """Hoja = interseccion de dos circunferencias (vesica), girada.
-
-    Cada arco pasa por las dos puntas con flecha W/2, asi que su radio es
-    r = h/2 + L^2/(8h). El circulo se dibuja con su bbox real (2r de lado);
-    usar el ancho de la hoja como bbox daba una elipse achatada y por eso
-    antes salian los lados rectos.
-    """
-    L, W = float(largo), float(ancho)
-    h = W / 2.0
-    r = h / 2.0 + (L * L) / (8.0 * h)
-    lienzo = int(math.hypot(L, W)) + 40
-
-    def arco(signo):
-        m = Image.new("L", (lienzo * sup, lienzo * sup), 0)
-        cx, cy = lienzo / 2.0, lienzo / 2.0
-        # centro del circulo, desplazado al lado contrario del arco
-        oy = cy + signo * (r - h)
-        bb = [(cx - r) * sup, (oy - r) * sup, (cx + r) * sup, (oy + r) * sup]
-        ImageDraw.Draw(m).ellipse(bb, fill=255)
-        return m
-
-    m = Image.composite(arco(+1), Image.new("L", (lienzo * sup, lienzo * sup), 0), arco(-1))
-    m = m.resize((lienzo, lienzo), Image.LANCZOS)          # bordes suaves
-    m = m.rotate(giro, resample=Image.BICUBIC, center=(lienzo / 2, lienzo / 2))
-    out = Image.new("L", (S, S), 0)
-    out.paste(m, (int(centro[0] - lienzo / 2), int(centro[1] - lienzo / 2)))
-    return out
+def sombra(mascara, desplaz=(0, 14), difuso=18, fuerza=70):
+    """Sombra suave a partir de una mascara, para que los objetos despeguen."""
+    s = Image.new("L", (S, S), 0)
+    s.paste(mascara, desplaz)
+    s = s.filter(ImageFilter.GaussianBlur(difuso))
+    return Image.eval(s, lambda v: int(v * fuerza / 255))
 
 
-def barras(giro=0):
-    """Barras de anchos irregulares; giradas hacen de nervaduras."""
-    D = int(S * 1.6)
-    im = Image.new("L", (D, D), 0)
+def brocoli(im):
+    """Ramillete: circulos superpuestos arriba, tallo con dos ramas abajo."""
+    cx, cy = 330, 430
+    mask = Image.new("L", (S, S), 0)
+    md = ImageDraw.Draw(mask)
+
+    # tallo y ramas, primero para que las flores lo tapen
+    tronco = [(cx - 26, cy + 40), (cx + 26, cy + 40), (cx + 22, cy + 250), (cx - 22, cy + 250)]
+    md.polygon(tronco, fill=255)
+    md.line([cx, cy + 150, cx - 120, cy + 40], fill=255, width=40)
+    md.line([cx, cy + 170, cx + 122, cy + 55], fill=255, width=40)
+
+    flores = [(cx, cy - 120, 132), (cx - 140, cy - 40, 108), (cx + 140, cy - 40, 108),
+              (cx - 72, cy - 150, 96), (cx + 74, cy - 148, 96), (cx, cy - 10, 104)]
+    for fx, fy, r in flores:
+        md.ellipse([fx - r, fy - r, fx + r, fy + r], fill=255)
+
+    im.paste((0, 0, 0), (0, 0), sombra(mask, (6, 16), 20, 62))
+
+    # tallo
+    tallo = Image.new("L", (S, S), 0)
+    td = ImageDraw.Draw(tallo)
+    td.polygon(tronco, fill=255)
+    td.line([cx, cy + 150, cx - 120, cy + 40], fill=255, width=40)
+    td.line([cx, cy + 170, cx + 122, cy + 55], fill=255, width=40)
+    im.paste(TALLO, (0, 0), tallo)
+
+    # flores, de la mas oscura al brillo
+    for i, (fx, fy, r) in enumerate(flores):
+        cap = Image.new("L", (S, S), 0)
+        ImageDraw.Draw(cap).ellipse([fx - r, fy - r, fx + r, fy + r], fill=255)
+        im.paste(VERDE_MED if i % 2 else VERDE_OSC, (0, 0), cap)
+        bri = Image.new("L", (S, S), 0)
+        ImageDraw.Draw(bri).ellipse(
+            [fx - r * 0.55, fy - r * 0.8, fx + r * 0.15, fy - r * 0.2], fill=255)
+        im.paste(VERDE_CLA, (0, 0), Image.eval(bri.filter(ImageFilter.GaussianBlur(14)),
+                                               lambda v: int(v * 0.55)))
+    return im
+
+
+def ficha(im):
+    """Ficha blanca con la miniatura del alimento y sus renglones de datos."""
+    x0, y0, x1, y1 = 470, 300, 940, 720
+    r = 46
+    m = Image.new("L", (S, S), 0)
+    ImageDraw.Draw(m).rounded_rectangle([x0, y0, x1, y1], radius=r, fill=255)
+    im.paste((0, 0, 0), (0, 0), sombra(m, (8, 18), 20, 78))
+    im.paste((255, 255, 255), (0, 0), m)
+
     d = ImageDraw.Draw(im)
-    anchos = [3, 1, 2, 1, 4, 1, 2, 3, 1, 1, 3, 2, 1, 4, 1, 2, 1, 3, 2, 1,
-              1, 3, 1, 2, 4, 1, 2, 1, 3, 1, 2, 2, 1, 3, 1, 4, 2, 1, 1, 3]
-    u = S / UBAR
-    x, i, tinta = 0.0, 0, True
-    while x < D:
-        w = anchos[i % len(anchos)] * u
-        if tinta:
-            d.rectangle([x, 0, x + w, D], fill=255)
-        x += w
-        tinta = not tinta
-        i += 1
-    if giro:
-        im = im.rotate(giro, resample=Image.BICUBIC, center=(D / 2, D / 2))
-    return im.crop(((D - S) // 2, (D - S) // 2, (D - S) // 2 + S, (D - S) // 2 + S))
+    # miniatura del producto
+    d.rounded_rectangle([x0 + 44, y0 + 60, x0 + 168, y0 + 184], radius=26, fill=(226, 243, 228))
+    d.ellipse([x0 + 74, y0 + 84, x0 + 138, y0 + 148], fill=VERDE_MED)
+    d.ellipse([x0 + 62, y0 + 112, x0 + 106, y0 + 156], fill=VERDE_OSC)
 
+    # renglones: dos grises y dos con el semaforo del analisis
+    renglones = [(0.00, 210, (176, 190, 183)), (0.20, 150, (176, 190, 183))]
+    for i, (dy, ancho, col) in enumerate(renglones):
+        yy = y0 + 78 + i * 62
+        d.rounded_rectangle([x0 + 208, yy, x0 + 208 + ancho, yy + 26], radius=13, fill=col)
 
-def degradado_verde():
-    im = Image.new("RGB", (S, S))
-    px = im.load()
-    for y in range(S):
-        for x in range(S):
-            # diagonal: claro arriba-derecha, profundo abajo-izquierda
-            t = ((x / S) * 0.45 + (1 - y / S) * 0.55)
-            px[x, y] = lerp(VERDE_B, VERDE_A, min(1, max(0, t)))
+    # barras de resultado, el «semaforo» que da la app
+    barras = [(VERDE_MED, 232), ((255, 179, 0), 176), ((229, 57, 53), 120)]
+    for i, (col, ancho) in enumerate(barras):
+        yy = y0 + 240 + i * 58
+        d.rounded_rectangle([x0 + 44, yy, x0 + 44 + ancho, yy + 34], radius=17, fill=col)
+        d.ellipse([x0 + 300, yy + 2, x0 + 330, yy + 32], fill=col)
     return im
 
 
 def construir():
     im = fondo()
-
-    largo, ancho, giro = S * 0.80, S * 0.42, -40
-    hoja = hoja_mascara(largo, ancho, giro, (CX, CY + S * 0.012))
-
-    g = math.radians(giro)
-    dx, dy = math.cos(g) * largo / 2, -math.sin(g) * largo / 2
-
-    # el nervio central parte la hoja: se resta una banda fina girada
-    nervio = Image.new("L", (S, S), 0)
-    nd = ImageDraw.Draw(nervio)
-    nd.line([CX - dx, CY + S * 0.012 - dy, CX + dx, CY + S * 0.012 + dy],
-            fill=255, width=int(S * 0.017))
-    hoja = Image.composite(Image.new("L", (S, S), 0), hoja, nervio)
-
-    # tallo: sin el, la hoja se lee como un balon
-    tallo = Image.new("L", (S, S), 0)
-    td = ImageDraw.Draw(tallo)
-    px, py = CX - dx, CY + S * 0.012 - dy          # punta de abajo-izquierda
-    td.line([px, py, px - math.cos(g) * S * 0.15, py + math.sin(g) * S * 0.15],
-            fill=255, width=int(S * 0.055))
-    td.ellipse([px - S * .027, py - S * .027, px + S * .027, py + S * .027], fill=255)
-
-    # hoja rellena de barras, mas el tallo macizo
-    relleno = Image.composite(barras(giro), Image.new("L", (S, S), 0), hoja)
-    relleno = Image.composite(Image.new("L", (S, S), 255), relleno, tallo)
-    im.paste(degradado_verde(), (0, 0), relleno)
-
-    # brillo tenue en el borde superior de la hoja, para que no se vea plana
-    borde = hoja.filter(ImageFilter.MaxFilter(9))
-    borde = Image.composite(borde, Image.new("L", (S, S), 0),
-                            Image.eval(hoja, lambda v: 255 - v))
-    im.paste(Image.new("RGB", (S, S), (190, 255, 215)),
-             (0, 0), Image.eval(borde, lambda v: int(v * 0.16)))
+    im = brocoli(im)
+    im = ficha(im)
     return im
 
 
@@ -144,5 +123,4 @@ if __name__ == "__main__":
     base = construir()
     base.resize((512, 512), Image.LANCZOS).save("../icon-512.png")
     base.resize((180, 180), Image.LANCZOS).save("../icon-180.png")
-    base.resize((512, 512), Image.LANCZOS).save("../icono-preview.png")
     print("icon-180.png e icon-512.png regenerados")

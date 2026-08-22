@@ -192,6 +192,12 @@ tr:last-child td{border-bottom:none}
 #camCerrar{flex:1;min-height:52px;border-radius:13px;border:1px solid var(--line);
   background:var(--card2);color:var(--tx2);font-size:15px;font-weight:600}
 #camAcc.disparo #camCerrar{flex:none;width:104px}
+.edt{width:64px;padding:6px 7px;min-height:0;font-size:14px;text-align:right;border-radius:9px;
+  background:var(--bg2);border:1px solid var(--line);color:var(--tx);-webkit-appearance:none}
+.edt.malo{border-color:var(--bad);background:rgba(239,68,68,.12);color:#fca5a5}
+td.num i{font-style:normal;color:var(--tx3);font-size:11px;margin-left:3px}
+.tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.tablewrap table{min-width:330px}
 .ovl{position:fixed;inset:0;background:rgba(6,9,13,.94);z-index:200;display:flex;
   align-items:center;justify-content:center;padding:22px;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .toast{position:fixed;left:13px;right:13px;bottom:calc(18px + var(--sb));z-index:300;
@@ -905,6 +911,21 @@ function parseTexto(txt){
   // si varias filas traen dos números, la primera columna es la de 100 g/ml.
   const dosColumnas = (t.match(/^[^\n\d]{3,40}[\s:.]*\d+[.,]?\d*\s+\d+[.,]?\d*\s*$/gm)||[]).length;
   out._por100 = /\b100\s*(?:g|ml|gr)\b/i.test(t) || dosColumnas>=3;
+  /* Las dos columnas se verifican entre si: la de la porcion tiene que ser
+     la de 100 g multiplicada por el tamano de la porcion. Donde no cuadra,
+     el OCR leyo mal ese numero y la app lo dice en vez de callarlo. */
+  out._filas = [];
+  t.split('\n').forEach(li=>{
+    /* el nombre va codicioso: si es perezoso corta «Sodio» en «Sod» */
+    const m = li.match(/^\s*([A-Za-zÁÉÍÓÚáéíóúÑñ][^\d\n]{2,38})\s(\d+[.,]?\d*)\s+(\d+[.,]?\d*)\s*$/);
+    if(!m) return;
+    /* «Sodio (mg)» -> «Sodio»: fuera la unidad entre parentesis y la puntuacion */
+    const et=m[1].replace(/\s*\([^)]*\)?\s*$/,'').replace(/[\s:.,-]+$/,'').trim(),
+          v1=parseFloat(m[2].replace(',','.')), v2=parseFloat(m[3].replace(',','.'));
+    if(isNaN(v1)||isNaN(v2)||/^100\b/.test(et)) return;
+    out._filas.push({et, v1, v2});
+  });
+
   // Ingredientes
   const ig = t.match(/ingredientes?\s*[:\-]?\s*([\s\S]{5,900})/i);
   if(ig){
@@ -1012,6 +1033,68 @@ const BASE = [
  ['Té sin azúcar',1,0,0.3,0,0,0,0,3,'bebida',0],
  ['Café negro sin azúcar',2,0.3,0,0,0,0,0,2,'bebida',0]
 ];
+
+
+/* ══════════ F0. VEROSIMILITUD ══════════
+   Ningun dato merece confianza por venir de una base publica o de un OCR:
+   manda la fisica del alimento. Estas comprobaciones atrapan errores de
+   unidad y de lectura antes de que contaminen todo el informe. */
+function revisar(x, tipo){
+  const av=[], v=k=> x[k]==null||isNaN(x[k]) ? null : +x[k];
+  const prot=v('proteina_g')||0, carb=v('carb_g')||0, gra=v('grasa_g')||0,
+        fib=v('fibra_g')||0, kcal=v('kcal');
+
+  /* nada puede pesar mas de 100 g dentro de 100 g */
+  [['proteina_g','Las proteínas'],['carb_g','Los carbohidratos'],['grasa_g','Las grasas'],
+   ['azucar_g','Los azúcares'],['fibra_g','La fibra'],['sat_g','Las grasas saturadas']]
+   .forEach(([k,n])=>{ if(v(k)>100) av.push({k, m:`${n} no pueden ser ${v(k)} g dentro de 100 g.`}); });
+
+  const suma=prot+carb+gra;
+  if(suma>102) av.push({k:'carb_g',
+    m:`Proteínas, carbohidratos y grasas suman ${suma.toFixed(1)} g en 100 g de producto. Alguno está mal.`});
+
+  /* jerarquias que la etiqueta nunca puede romper */
+  if(v('azucar_g')!=null && carb>0 && v('azucar_g') > carb+0.6)
+    av.push({k:'azucar_g', m:`Los azúcares (${v('azucar_g')} g) no pueden superar a los carbohidratos (${carb} g).`});
+  if(v('sat_g')!=null && v('grasa_g')!=null && v('sat_g') > gra+0.3)
+    av.push({k:'sat_g', m:`Las saturadas (${v('sat_g')} g) no pueden superar a las grasas totales (${gra} g).`});
+
+  /* Atwater: la energia declarada tiene que cuadrar con los macronutrientes */
+  if(kcal!=null && (prot||carb||gra)){
+    const est = 4*prot + 4*Math.max(0,carb-fib) + 2*fib + 9*gra;
+    if(est>8 && Math.abs(kcal-est) > Math.max(45, est*0.45))
+      av.push({k:'kcal', m:`La energía declarada (${kcal} kcal) no cuadra con los macronutrientes, que dan unas ${Math.round(est)} kcal en 100 g.`});
+  }
+
+  /* sodio: la sal pura tiene 39.000 mg por 100 g. Por encima de eso es
+     imposible; y en un alimento con calorías, pasar de 5.000 mg casi
+     siempre es un valor cargado en gramos y leído como miligramos. */
+  const na=v('sodio_mg');
+  if(na!=null){
+    const condimento = kcal!=null && kcal<25 && suma<6;    // sal, caldo deshidratado
+    if(na>39000)
+      av.push({k:'sodio_mg', m:`Sodio ${na} mg por 100 g: supera al de la sal pura (39.000 mg). Es un error de unidad.`});
+    else if(na>5000 && !condimento)
+      av.push({k:'sodio_mg', m:`Sodio ${na} mg por 100 g equivale a ${(na*2.5/1000).toFixed(1)} g de sal dentro de 100 g de producto. Inverosímil para este alimento: corrígelo abajo.`});
+  }
+  return av;
+}
+
+/* Contraste entre las dos columnas de la etiqueta chilena. */
+function revisarColumnas(filas, porcG){
+  if(!filas || filas.length<3 || !(porcG>0)) return [];
+  const r = porcG/100;
+  const malas = filas.filter(f=>{
+    if(!(f.v1>0) || !(f.v2>0)) return false;
+    const obs = f.v2/f.v1;
+    return Math.abs(obs-r) > Math.max(0.18*r, 0.12);      // holgura por redondeos del envase
+  });
+  /* si casi todas fallan, lo dudoso es el tamano de la porcion, no las filas */
+  if(malas.length >= filas.length-1)
+    return [{k:'_porc', m:`Las dos columnas de la etiqueta no guardan la proporción de una porción de ${porcG} g. Revisa el tamaño de la porción.`}];
+  return malas.map(f=>({k:'_col',
+    m:`«${f.et}»: la columna de la porción (${f.v2}) no es ${r.toFixed(2)} veces la de 100 g (${f.v1}). Uno de los dos números se leyó mal.`}));
+}
 
 /* ══════════ F. MOTOR DE PUNTUACIÓN ══════════ */
 const pts=(v,t)=>{let s=0;for(const[l,p]of t)if(v>l)s=p;return s;};
@@ -1158,7 +1241,7 @@ function renderShot(){
     ? `<div class="shot"><img src="${foto}"><button class="del" id="delShot">✕</button></div>` : '';
   const d=$('delShot'); if(d) d.addEventListener('click',()=>{foto=null;renderShot();});
 }
-const APP_V = '13';
+const APP_V = '14';
 $('btnUpd').addEventListener('click', async ()=>{
   toast('Buscando la versión más reciente…');
   try{
@@ -1309,6 +1392,7 @@ async function ocrDeCanvas(canvas){
 /* ── Ingreso automático del texto: por la URL (#t=), al pegar o al abrir ── */
 function recibirTexto(txt){
   if(!txt || !txt.trim()) return false;
+  origenDato='camara';
   $('inTexto').value = txt.trim();
   const n = aplicarParse(true);
   if(n>=2){ generarInforme(true); return true; }
@@ -1345,6 +1429,7 @@ function aplicarParse(silencioso){
   if(r._porcG) $('inPorcG').value=r._porcG;
   if(r._porcN) $('inPorcN').value=r._porcN;
   if(r._ing)   $('inIng').value=r._ing;
+  filasOCR = r._filas||[];
   $('inBase').value = r._por100 ? '100' : (r._porcG ? 'porc' : '100');
   if(/100\s*ml|\d\s*ml\b|bebida|jugo|n[ée]ctar|refresco/i.test(t)) $('inTipo').value='bebida';
   if(!$('inNombre').value.trim()){
@@ -1494,8 +1579,18 @@ function deOFF(cod,p){
   const n=p.nutriments||{};
   const kcal = n['energy-kcal_100g']!=null ? n['energy-kcal_100g']
              : (n['energy-kj_100g']!=null ? Math.round(n['energy-kj_100g']/4.184) : null);
-  let sodio = n.sodium_100g!=null ? g2mg(n.sodium_100g)
-            : (n.salt_100g!=null ? g2mg(n.salt_100g/2.5) : null);
+  /* La base trae sodio y sal por separado y a veces se contradicen, porque
+     cualquiera puede cargarlos. Como sal = sodio x 2,5, si no cuadran nos
+     quedamos con el que resulta fisicamente posible. */
+  let naG = n.sodium_100g!=null ? n.sodium_100g : (n.salt_100g!=null ? n.salt_100g/2.5 : null);
+  if(n.sodium_100g!=null && n.salt_100g!=null){
+    const porSal = n.salt_100g/2.5;
+    if(Math.abs(n.sodium_100g - porSal) > Math.max(0.08, porSal*0.35)){
+      const posibles=[n.sodium_100g, porSal].filter(x=>x>=0&&x<=5);
+      naG = posibles.length ? Math.min(...posibles) : Math.min(n.sodium_100g, porSal);
+    }
+  }
+  let sodio = naG!=null ? g2mg(naG) : null;
   const nut={
     kcal, proteina_g:n.proteins_100g, carb_g:n.carbohydrates_100g, azucar_g:n.sugars_100g,
     fibra_g:n.fiber_100g, grasa_g:n.fat_100g, sat_g:n['saturated-fat_100g'],
@@ -1563,10 +1658,11 @@ function aplicarProducto(r){
   $('inTexto').value = '';
   NUTS.forEach(([k])=>{ $('n_'+k).value = r.nut[k]!=null ? r.nut[k] : ''; });
   igBaseSel=null; novaOFF=r.nova||null; nsOFF=r.nsOFF||null;
+  origenDato = r.fuente==='local' ? 'memoria' : 'barras';
   toast(r.fuente==='local' ? 'Producto reconocido (memoria del teléfono) ✓' : 'Producto encontrado en la base mundial ✓');
   generarInforme(true);
 }
-let codPend=null, novaOFF=null, nsOFF=null;
+let codPend=null, novaOFF=null, nsOFF=null, origenDato='manual', filasOCR=[];
 
 /* ── Cámara en vivo ───────────────────────────────────────────── */
 let camStream=null, camModo='cod', camTimer=null, camCv=null, camOcupado=false;
@@ -1748,6 +1844,9 @@ function generarInforme(auto){
     adv: advertencias(x100,pPorc,ings,tipo,n,sel),
     alergs: [...new Set(ings.map(i=>i.al).filter(Boolean))],
     cod: codPend, novaOFF, nsOFF, porcDecl,
+    avisos: revisar(x100, tipo).concat(origenDato==='camara'? revisarColumnas(filasOCR, porcDecl?porcG:null) : []),
+    origen: origenDato, textoOCR: $('inTexto').value.trim().slice(0,1200),
+    ingTexto: $('inIng').value.trim(),
     ts: Date.now() };
 
   /* Aprende: si venía de un código, queda guardado para leerlo sin conexión la próxima vez. */
@@ -1816,6 +1915,17 @@ function renderRes(d){
         (d.novaOFF&&d.novaOFF!==d.nova)||(d.nsOFF&&d.nsOFF.toUpperCase()!==d.grade)
           ? ', algo distinto de lo calculado aquí porque cada versión del producto declara valores propios' : ', coincide con lo calculado aquí'}` : ''}</small>`:''}
     </div>`;
+
+  /* Datos que no cuadran: se avisa antes que nada, porque invalidan el resto */
+  if(d.avisos && d.avisos.length){
+    h+=`<div class="card" style="border-color:#8a3d3d">
+      <h2>⚠️ Revisa estos valores</h2>
+      <small class="mut" style="margin-bottom:11px">${d.origen==='barras'
+        ? 'Estos datos vienen de la base mundial, que cualquiera puede editar y a veces trae errores.'
+        : d.origen==='camara' ? 'Estos datos los leyó la cámara y pueden estar mal reconocidos.'
+        : 'Estos valores no son coherentes entre sí.'} Corrígelos en la tabla de abajo y el informe se rehace entero.</small>
+      ${d.avisos.map(a=>`<div class="note bad">${esc(a.m)}</div>`).join('')}</div>`;
+  }
 
   /* Advertencias personalizadas */
   if(d.adv.length){
@@ -1949,16 +2059,37 @@ function renderRes(d){
 
   /* TABLA COMPLETA */
   const rows=NUTS.filter(([k])=>x[k]!=null);
-  h+=`<div class="card"><h2>Tabla nutricional</h2><table>
+  h+=`<div class="card"><h2>Tabla nutricional</h2><div class="tablewrap"><table>
     <tr><th>Nutriente</th><th class="num">100 ${U}</th><th class="num">Porción</th><th class="num">% día</th></tr>
     ${rows.map(([k,l,u])=>{
       const meta={kcal:n.kcal,proteina_g:n.prot,carb_g:n.carb,azucar_g:n.azucar,fibra_g:n.fibra,
         grasa_g:n.grasa,sat_g:n.sat,sodio_mg:n.sodio,colesterol_mg:n.colesterol,calcio_mg:n.ca,
         hierro_mg:n.fe,potasio_mg:n.k,magnesio_mg:n.mg,zinc_mg:n.zn,vitc_mg:n.vc,vita_ug:n.va,vitd_ug:n.vd}[k];
       const pc = meta? Math.round(p[k]/meta*100)+' %' : '—';
-      return `<tr><td>${l}</td><td class="num">${x[k]} ${u}</td><td class="num">${p[k]} ${u}</td><td class="num">${pc}</td></tr>`;
-    }).join('')}</table>
-    <small class="mut" style="margin-top:8px">La columna «% día» usa <b>tus</b> requerimientos, no los del 2000 kcal genérico de la etiqueta.</small></div>`;
+      const malo = (d.avisos||[]).some(a=>a.k===k);
+      return `<tr><td>${l}</td>
+        <td class="num"><input class="edt${malo?' malo':''}" data-k="${k}" type="number" inputmode="decimal" step="any" value="${x[k]}"><i>${u}</i></td>
+        <td class="num">${p[k]} ${u}</td><td class="num">${pc}</td></tr>`;
+    }).join('')}</table></div>
+    <small class="mut" style="margin-top:8px">La columna «% día» usa <b>tus</b> requerimientos, no los del 2000 kcal genérico de la etiqueta.</small>
+    <div class="sep"></div>
+    <h3>Corregir lo leído</h3>
+    <small class="mut">Escribe encima de <b>cualquier</b> valor de la columna «100 ${U}» —los del envase, no los de la porción— y pulsa recalcular. Se rehacen el puntaje, los sellos, el índice glucémico, los órganos, las advertencias y todos los porcentajes.</small>
+    <div class="g2" style="margin-top:11px">
+      <label class="f"><span>Porción (${U})</span><input type="number" inputmode="decimal" step="any" id="edtPorcG" value="${d.porcDecl===false?'':d.porcG}" placeholder="100"></label>
+      <label class="f"><span>Porciones por envase</span><input type="number" inputmode="decimal" step="any" id="edtPorcN" value="${d.porcN||''}" placeholder="1"></label>
+    </div>
+    <label class="f"><span>Ingredientes</span><textarea id="edtIng" style="min-height:74px">${esc(d.ingTexto||d.ings.map(i=>i.nombre).join(', '))}</textarea></label>
+    <button class="btn" id="btnRecalc">🔄 Recalcular el informe</button>
+    ${d.cod?`<small class="mut" style="margin-top:8px">Lo que corrijas queda guardado junto al código <b>${esc(d.cod)}</b>: la próxima vez que escanees este producto saldrán tus valores, no los de la base.</small>`:''}
+    </div>`;
+
+  /* Lo que leyó la cámara, tal cual, para poder cotejarlo con el envase */
+  if(d.textoOCR && (d.origen==='camara'||d.origen==='corregido')){
+    h+=`<div class="card"><details><summary>Ver el texto que leyó la cámara</summary>
+      <pre style="white-space:pre-wrap;font-size:11.5px;color:var(--tx2);margin:10px 0 0">${esc(d.textoOCR)}</pre>
+      </details></div>`;
+  }
 
   /* ENLACES ACOTADOS */
   const q=encodeURIComponent(d.nombre);
@@ -1982,6 +2113,23 @@ function renderRes(d){
     const o=b.classList.toggle('open'); bd.className='bd'+(o?'':' hide');
   }));
   const bn=$('btnNew'); if(bn) bn.addEventListener('click',()=>goto('scan'));
+
+  const br=$('btnRecalc');
+  if(br) br.addEventListener('click',()=>{
+    /* la tabla esta por 100 g/ml, asi que el formulario pasa a esa base */
+    $('resBox').querySelectorAll('.edt').forEach(i=>{ $('n_'+i.dataset.k).value = i.value.trim(); });
+    $('inBase').value='100';
+    $('inTipo').value=d.tipo;
+    $('inNombre').value=d.nombre;
+    $('inPorcG').value=$('edtPorcG').value.trim();
+    $('inPorcN').value=$('edtPorcN').value.trim();
+    $('inIng').value=$('edtIng').value.trim();
+    codPend=d.cod||null; novaOFF=d.novaOFF||null; nsOFF=d.nsOFF||null;
+    origenDato='corregido';
+    generarInforme(false);
+    toast('Informe rehecho con tus valores ✓');
+    window.scrollTo(0,0);
+  });
 }
 
 /* ══════════ J. HISTORIAL Y BALANCE DEL DÍA ══════════ */
@@ -2131,6 +2279,32 @@ if(location.search.includes('test')){
   A(analizarIngrediente('high fructose corn syrup').up===1,'alias en: HFCS sigue marcando ultraprocesado');
   R.push('Idiomas');
   R.push('Open Food Facts');
+  // Verosimilitud: el caso real de los porotos granados, con el sodio en gramos
+  const mal = revisar({kcal:63,proteina_g:3.7,carb_g:11.1,azucar_g:0.9,grasa_g:0.4,sat_g:0.1,sodio_mg:10000},'solido');
+  A(mal.some(a=>a.k==='sodio_mg'),'detecta sodio de 10.000 mg por 100 g');
+  A(revisar({kcal:63,proteina_g:3.7,carb_g:11.1,azucar_g:0.9,grasa_g:0.4,sodio_mg:250},'solido').length===0,'no molesta con la etiqueta correcta');
+  A(revisar({kcal:0,proteina_g:0,carb_g:0,grasa_g:0,sodio_mg:39000},'solido').length===0,'la sal de mesa no se marca como error');
+  A(revisar({kcal:400,proteina_g:8,carb_g:60,azucar_g:75,grasa_g:14},'solido').some(a=>a.k==='azucar_g'),'azúcares por encima de los carbohidratos');
+  A(revisar({kcal:500,proteina_g:5,carb_g:20,grasa_g:10,sat_g:22},'solido').some(a=>a.k==='sat_g'),'saturadas por encima de las grasas totales');
+  A(revisar({kcal:80,proteina_g:20,carb_g:60,grasa_g:30},'solido').some(a=>a.k==='kcal'),'energía que no cuadra con los macronutrientes');
+  A(revisar({kcal:900,proteina_g:0,carb_g:0,grasa_g:100},'grasa').length===0,'el aceite puro es coherente');
+  A(revisar({proteina_g:140},'solido').some(a=>a.k==='proteina_g'),'140 g de proteína en 100 g es imposible');
+  // Contraste sodio/sal cuando la base se contradice
+  const c1 = deOFF('1',{nutriments:{'energy-kcal_100g':63,'sodium_100g':10,'salt_100g':0.625}});
+  A(c1.nut.sodio_mg===250,'sodio absurdo descartado en favor de la sal coherente');
+  const c2 = deOFF('2',{nutriments:{'energy-kcal_100g':63,'sodium_100g':0.25,'salt_100g':0.625}});
+  A(c2.nut.sodio_mg===250,'sodio y sal coherentes: se respeta el sodio');
+  // Contraste entre las dos columnas de la etiqueta real de porotos granados
+  const et = parseTexto('INFORMACIÓN NUTRICIONAL\nPorción : 1 envase (380 g)\nPorciones por envase : 1\n100 g 1 Porción\nEnergía (kcal) 63 239\nProteínas (g) 3,7 14,1\nGrasa Total (g) 0,4 1,5\nH. de C. Disp. (g) 11,1 42,2\nAzúcares Totales (g) 0,9 3,4\nSodio (mg) 250 950');
+  A(et.sodio_mg===250 && et.kcal===63 && et._porcG===380,'etiqueta real: valores de la columna de 100 g');
+  A(et._filas.length>=5,'etiqueta real: se capturan las dos columnas');
+  A(revisarColumnas(et._filas,380).length===0,'columnas coherentes: no inventa avisos');
+  const mal2 = parseTexto('100 g 1 Porción\nEnergía (kcal) 63 239\nProteínas (g) 3,7 14,1\nGrasa Total (g) 0,4 1,5\nH. de C. Disp. (g) 11,1 42,2\nSodio (mg) 250 95');
+  A(revisarColumnas(mal2._filas,380).some(a=>/«Sodio»/.test(a.m)),'detecta la fila cuyo número de porción no cuadra, con el nombre completo');
+  A(mal2._filas.map(f=>f.et).join('|')==='Energía|Proteínas|Grasa Total|H. de C. Disp|Sodio','nombres de fila limpios y completos');
+  A(revisarColumnas(et._filas,30).some(a=>a.k==='_porc'),'si todas fallan, culpa al tamaño de porción');
+  R.push('Columnas');
+  R.push('Verosimilitud');
   setTimeout(()=>toast('✅ TODOS LOS TESTS OK — '+R.join(' · ')),400);
 }
 </script>
