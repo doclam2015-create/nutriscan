@@ -582,19 +582,19 @@ function renderNeeds(){
    q: qué es · f: función · o: órganos/sistemas · up: marcador ultraprocesado */
 const N = 'ninguno', B='bajo', M='medio', A='alto';
 const DIC = [
- {k:['harina de trigo','harina trigo','trigo','harina'],n:'Harina de trigo',t:'base',r:B,c:null,
+ {k:['harina de trigo','harina trigo','trigo','harina','farine de ble','wheat flour','farinha de trigo','ble'],n:'Harina de trigo',t:'base',r:B,c:null,
   q:'Grano de trigo molido. Si es refinada perdió el salvado y el germen, con ellos la mayor parte de la fibra, el magnesio y las vitaminas del grupo B.',
   f:'Da estructura y volumen a la masa.',o:['digestivo'],al:'gluten'},
- {k:['harina integral','trigo integral','integral'],n:'Harina integral',t:'base',r:N,c:null,
+ {k:['harina integral','trigo integral','integral','farine de ble complet','wholemeal','whole wheat','wholegrain','integrale'],n:'Harina integral',t:'base',r:N,c:null,
   q:'Harina que conserva el grano completo, con salvado y germen.',
   f:'Estructura, aporta fibra y minerales.',o:['digestivo','corazon','metabolico'],al:'gluten'},
- {k:['azucar','sacarosa','azucar de cana','azucar rubia','azucar blanca'],n:'Azúcar (sacarosa)',t:'azucar',r:M,c:null,
+ {k:['azucar','sacarosa','azucar de cana','azucar rubia','azucar blanca','sucre','sugar','acucar'],n:'Azúcar (sacarosa)',t:'azucar',r:M,c:null,
   q:'Azúcar de mesa. Aporta 4 kcal por gramo y ningún micronutriente: son calorías vacías.',
   f:'Endulza, da color al hornear y conserva.',o:['pancreas','higado','dientes','metabolico']},
- {k:['jarabe de maiz','alta fructosa','jmaf','sirope de maiz','jarabe de fructosa','fructosa'],n:'Jarabe de maíz alta fructosa',t:'azucar',r:A,c:null,up:1,
+ {k:['jarabe de maiz','alta fructosa','jmaf','sirope de maiz','jarabe de fructosa','fructosa','high fructose corn syrup','sirop de mais','corn syrup','hfcs'],n:'Jarabe de maíz alta fructosa',t:'azucar',r:A,c:null,up:1,
   q:'Endulzante líquido industrial muy rico en fructosa, que el hígado metaboliza directamente.',
   f:'Endulza más barato que el azúcar y da textura.',o:['higado','pancreas','metabolico']},
- {k:['jarabe de glucosa','glucosa','dextrosa','maltosa','jarabe'],n:'Jarabe de glucosa',t:'azucar',r:M,c:null,up:1,
+ {k:['jarabe de glucosa','glucosa','dextrosa','maltosa','jarabe','sirop de glucose','glucose syrup','glucose','xarope de glicose'],n:'Jarabe de glucosa',t:'azucar',r:M,c:null,up:1,
   q:'Azúcar líquida de absorción muy rápida obtenida del almidón.',
   f:'Endulza, evita cristalización y da textura.',o:['pancreas','metabolico']},
  {k:['maltodextrina'],n:'Maltodextrina',t:'azucar',r:M,c:null,up:1,
@@ -603,31 +603,31 @@ const DIC = [
  {k:['miel'],n:'Miel',t:'azucar',r:B,c:null,
   q:'Azúcar natural de las abejas con trazas de antioxidantes. Para el organismo sigue siendo azúcar libre.',
   f:'Endulza y aporta humedad.',o:['pancreas','metabolico']},
- {k:['aceite de palma','grasa de palma','palma','palmiste'],n:'Aceite de palma',t:'grasa',r:M,c:null,up:1,
+ {k:['aceite de palma','grasa de palma','palma','palmiste','huile de palme','palm oil','palme','oleo de palma'],n:'Aceite de palma',t:'grasa',r:M,c:null,up:1,
   q:'Grasa vegetal sólida a temperatura ambiente, con cerca de 50 % de grasa saturada (ácido palmítico).',
   f:'Aporta textura crujiente y larga vida útil, es barata.',o:['corazon','arterias','higado']},
- {k:['aceite de girasol','girasol','aceite de maravilla','maravilla'],n:'Aceite de girasol',t:'grasa',r:B,c:null,
+ {k:['aceite de girasol','girasol','aceite de maravilla','maravilla','huile de tournesol','sunflower oil','tournesol'],n:'Aceite de girasol',t:'grasa',r:B,c:null,
   q:'Aceite vegetal rico en ácido linoleico (omega-6) y vitamina E.',
   f:'Grasa para freír o dar textura.',o:['corazon']},
- {k:['aceite de oliva','oliva'],n:'Aceite de oliva',t:'grasa',r:N,c:null,
+ {k:['aceite de oliva','oliva','huile d olive','olive oil','azeite'],n:'Aceite de oliva',t:'grasa',r:N,c:null,
   q:'Aceite rico en ácido oleico y polifenoles; base de la dieta mediterránea.',
   f:'Grasa de cocción y sabor.',o:['corazon','arterias','cerebro']},
- {k:['hidrogenad','parcialmente hidrogenado','grasa trans','trans'],n:'Grasa parcialmente hidrogenada',t:'grasa',r:A,c:null,up:1,
+ {k:['hidrogenad','parcialmente hidrogenado','grasa trans','trans','hydrogenee','hydrogenated','hidrogenada'],n:'Grasa parcialmente hidrogenada',t:'grasa',r:A,c:null,up:1,
   q:'Aceite endurecido industrialmente: es la principal fuente de grasas trans. La OMS pide eliminarlas de la dieta; no hay nivel seguro.',
   f:'Da solidez, textura y vida útil muy larga.',o:['corazon','arterias','higado']},
  {k:['manteca','grasa animal','sebo','grasa de cerdo'],n:'Manteca / grasa animal',t:'grasa',r:M,c:null,
   q:'Grasa de origen animal con alto contenido de saturadas y colesterol.',
   f:'Textura, sabor y hojaldrado.',o:['corazon','arterias']},
- {k:['leche','leche entera','leche en polvo','solidos lacteos','suero de leche','lactosuero'],n:'Leche / derivados lácteos',t:'base',r:N,c:null,
+ {k:['leche','leche entera','leche en polvo','solidos lacteos','suero de leche','lactosuero','lait','milk','leite','lactoserum','whey','petit lait','skimmed milk','lactose'],n:'Leche / derivados lácteos',t:'base',r:N,c:null,
   q:'Aporta proteína de alto valor biológico, calcio, fósforo y vitamina B12.',
   f:'Sabor, cremosidad y valor nutricional.',o:['huesos','musculo'],al:'lactosa'},
  {k:['proteina aislada','aislado de proteina','concentrado de proteina','caseinato','proteina de soya texturizada'],n:'Proteína aislada',t:'base',r:B,c:null,up:1,
   q:'Proteína extraída y purificada industrialmente, fuera de su matriz alimentaria original.',
   f:'Sube el contenido proteico y da textura.',o:['musculo']},
- {k:['almidon modificado','almidon de maiz modificado','almidon'],n:'Almidón modificado',t:'espesante',r:B,c:'INS 1400-1450',up:1,
+ {k:['almidon modificado','almidon de maiz modificado','almidon','amidon','starch','amido','fecule'],n:'Almidón modificado',t:'espesante',r:B,c:'INS 1400-1450',up:1,
   q:'Almidón tratado química o físicamente para resistir calor y acidez.',
   f:'Espesa y estabiliza.',o:['pancreas']},
- {k:['sal','cloruro de sodio','sal de mar','sal yodada'],n:'Sal (cloruro de sodio)',t:'base',r:M,c:null,
+ {k:['sal','cloruro de sodio','sal de mar','sal yodada','sel','salt'],n:'Sal (cloruro de sodio)',t:'base',r:M,c:null,
   q:'1 g de sal aporta unos 400 mg de sodio. El exceso sostenido eleva la presión arterial y sobrecarga el riñón.',
   f:'Sabor y conservación.',o:['riñon','arterias','corazon']},
  {k:['glutamato','glutamato monosodico','msg','621','potenciador del sabor','extracto de levadura','inosinato','guanilato','ribonucleotidos'],n:'Potenciador del sabor (glutamato y similares)',t:'aditivo',r:M,c:'INS 621/627/631',up:1,
@@ -654,19 +654,19 @@ const DIC = [
  {k:['rojo 40','allura','129','rojo allura','amarillo ocaso','110','carmoisina','122','ponceau','124'],n:'Colorantes azoicos (rojo 40, amarillo ocaso…)',t:'colorante',r:M,c:'INS 110/122/124/129',up:1,
   q:'Colorantes sintéticos del grupo azo. La misma advertencia europea sobre atención en niños aplica a estos colorantes.',
   f:'Color llamativo y estable.',o:['cerebro']},
- {k:['caramelo','150','color caramelo'],n:'Color caramelo',t:'colorante',r:B,c:'INS 150a-d',up:1,
+ {k:['caramelo','150','color caramelo','colorant caramel','caramel color','sockerkulor'],n:'Color caramelo',t:'colorante',r:B,c:'INS 150a-d',up:1,
   q:'Colorante pardo. Las variantes 150c y 150d contienen 4-MEI, vigilado por las agencias sanitarias.',
   f:'Da color oscuro a bebidas cola y salsas.',o:[]},
  {k:['carmin','120','cochinilla'],n:'Carmín de cochinilla',t:'colorante',r:B,c:'INS 120',
   q:'Colorante rojo natural obtenido de un insecto. Puede causar alergia en personas sensibles.',
   f:'Color rojo natural.',o:[]},
- {k:['lecitina','322','lecitina de soya','lecitina de girasol'],n:'Lecitina',t:'aditivo',r:N,c:'INS 322',
+ {k:['lecitina','322','lecitina de soya','lecitina de girasol','lecithine','lecithin','lecitina de soja'],n:'Lecitina',t:'aditivo',r:N,c:'INS 322',
   q:'Emulsionante natural extraído de la soya o el girasol; también está en el huevo.',
   f:'Une agua y grasa para que la mezcla no se separe.',o:[],al:'soya'},
- {k:['mono y digliceridos','471','esteres de','472','poliglicerol','475','polisorbato','433','carboximetilcelulosa','466'],n:'Emulsionantes industriales',t:'aditivo',r:M,c:'INS 471/472/433/466',up:1,
+ {k:['mono y digliceridos','471','esteres de','472','poliglicerol','475','polisorbato','433','carboximetilcelulosa','466','emulsifiant','emulsifier','emulsionante','mono et diglycerides','diglycerides'],n:'Emulsionantes industriales',t:'aditivo',r:M,c:'INS 471/472/433/466',up:1,
   q:'Mantienen unidas grasa y agua. Estudios recientes sugieren que algunos (polisorbato 80, carboximetilcelulosa) podrían alterar la microbiota intestinal; la evidencia en humanos aún es preliminar.',
   f:'Textura homogénea y cremosa.',o:['microbiota','digestivo']},
- {k:['goma xantana','xantana','415','goma guar','412','carragenina','407','goma arabiga','414','pectina','440','goma tara','goma garrofin'],n:'Gomas y espesantes',t:'espesante',r:B,c:'INS 407-466',
+ {k:['goma xantana','xantana','415','goma guar','412','carragenina','407','goma arabiga','414','pectina','440','goma tara','goma garrofin','gomme','gum','epaississant','thickener','espessante','carraghenane','carrageenan'],n:'Gomas y espesantes',t:'espesante',r:B,c:'INS 407-466',
   q:'Fibras que dan cuerpo a la mezcla. La carragenina (INS 407) se discute por posible irritación intestinal en personas con colon irritable.',
   f:'Espesan, gelifican y estabilizan.',o:['digestivo','microbiota']},
  {k:['aspartamo','951'],n:'Aspartamo',t:'edulcorante',r:M,c:'INS 951',up:1,
@@ -687,16 +687,16 @@ const DIC = [
  {k:['sorbitol','420','maltitol','965','xilitol','967','manitol','421','eritritol','968','poliol'],n:'Polioles (sorbitol, maltitol, xilitol…)',t:'edulcorante',r:B,c:'INS 420-968',
   q:'Alcoholes de azúcar con aproximadamente la mitad de las calorías. Sobre 20 g al día suelen causar gases y diarrea osmótica.',
   f:'Endulzan y dan volumen sin azúcar.',o:['digestivo']},
- {k:['saborizante','aroma','aroma artificial','saborizante identico al natural','esencia'],n:'Saborizantes y aromas',t:'saborizante',r:B,c:null,up:1,
+ {k:['saborizante','aroma','aroma artificial','saborizante identico al natural','esencia','arome','aromes','flavouring','flavoring','natural flavour','aromatizante'],n:'Saborizantes y aromas',t:'saborizante',r:B,c:null,up:1,
   q:'Mezclas de decenas de compuestos que imitan un sabor. Su presencia es el marcador más fiable de ultraprocesamiento.',
   f:'Crean o refuerzan el sabor perdido en el proceso.',o:[]},
- {k:['cafeina'],n:'Cafeína',t:'otro',r:M,c:null,
+ {k:['cafeina','caffeine','cafeine'],n:'Cafeína',t:'otro',r:M,c:null,
   q:'Estimulante del sistema nervioso central. Límite recomendado: 400 mg/día en adultos, 200 mg en embarazo, y se desaconseja en menores de 12 años.',
   f:'Estimula y aporta amargor.',o:['cerebro','corazon']},
- {k:['acido fosforico','338','fosfato','450','451','452','polifosfato'],n:'Fosfatos y ácido fosfórico',t:'aditivo',r:M,c:'INS 338/450-452',up:1,
+ {k:['acido fosforico','338','fosfato','450','451','452','polifosfato','acide phosphorique','phosphoric acid','phosphate'],n:'Fosfatos y ácido fosfórico',t:'aditivo',r:M,c:'INS 338/450-452',up:1,
   q:'Acidulantes y retenedores de agua. El exceso de fósforo inorgánico compite con el calcio y es especialmente riesgoso en enfermedad renal.',
   f:'Acidifican, dan textura y retienen agua.',o:['riñon','huesos']},
- {k:['acido citrico','330','citrato','331'],n:'Ácido cítrico',t:'aditivo',r:N,c:'INS 330',
+ {k:['acido citrico','330','citrato','331','acide citrique','citric acid'],n:'Ácido cítrico',t:'aditivo',r:N,c:'INS 330',
   q:'Acidulante presente de forma natural en los cítricos; el industrial se obtiene por fermentación.',
   f:'Da acidez y conserva.',o:['dientes']},
  {k:['acido ascorbico','300','vitamina c','ascorbato'],n:'Ácido ascórbico (vitamina C)',t:'vitamina',r:N,c:'INS 300',
@@ -705,11 +705,11 @@ const DIC = [
  {k:['tocoferol','307','vitamina e'],n:'Tocoferoles (vitamina E)',t:'vitamina',r:N,c:'INS 306-309',
   q:'Vitamina E natural usada como antioxidante de las grasas.',
   f:'Evita el enranciamiento.',o:['corazon','piel']},
- {k:['bicarbonato','500','polvo de hornear','leudante','levadura quimica','pirofosfato'],n:'Leudantes',t:'aditivo',r:B,c:'INS 500/450',
+ {k:['bicarbonato','500','polvo de hornear','leudante','levadura quimica','pirofosfato','poudre a lever','poudres a lever','raising agent','carbonates d ammonium','carbonates de sodium','baking soda','fermento quimico'],n:'Leudantes',t:'aditivo',r:B,c:'INS 500/450',
   q:'Liberan gas para que la masa suba. Aportan sodio.',f:'Hacen esponjosa la masa.',o:['riñon']},
- {k:['levadura'],n:'Levadura',t:'base',r:N,c:null,
+ {k:['levadura','levure','yeast'],n:'Levadura',t:'base',r:N,c:null,
   q:'Hongo que fermenta la masa y aporta vitaminas del grupo B.',f:'Fermenta y da volumen.',o:['digestivo']},
- {k:['cacao','chocolate','licor de cacao','manteca de cacao'],n:'Cacao',t:'base',r:N,c:null,
+ {k:['cacao','chocolate','licor de cacao','manteca de cacao','cocoa','cacao maigre','poudre de cacao'],n:'Cacao',t:'base',r:N,c:null,
   q:'Rico en flavonoides y magnesio. El beneficio depende del porcentaje de cacao real frente al azúcar añadido.',
   f:'Sabor, color y grasa.',o:['corazon','cerebro']},
  {k:['avena'],n:'Avena',t:'base',r:N,c:null,
@@ -718,17 +718,17 @@ const DIC = [
  {k:['arroz','harina de arroz'],n:'Arroz',t:'base',r:B,c:null,
   q:'Cereal sin gluten. El arroz blanco tiene índice glucémico alto; el integral, mucho más fibra.',
   f:'Base energética.',o:['pancreas']},
- {k:['soya','soja','proteina de soya'],n:'Soya',t:'base',r:N,c:null,
+ {k:['soya','soja','proteina de soya','soy'],n:'Soya',t:'base',r:N,c:null,
   q:'Legumbre con proteína completa e isoflavonas.',f:'Proteína y textura.',o:['musculo','corazon'],al:'soya'},
- {k:['huevo','clara','yema','albumina'],n:'Huevo',t:'base',r:N,c:null,
+ {k:['huevo','clara','yema','albumina','oeuf','œuf','egg','ovo'],n:'Huevo',t:'base',r:N,c:null,
   q:'Proteína de referencia, con colina, luteína y vitamina D.',f:'Estructura, emulsión y color.',o:['musculo','cerebro','ojos'],al:'huevo'},
- {k:['mani','cacahuate','almendra','nuez','avellana','castana','pistacho','semilla','chia','linaza','sesamo','ajonjoli'],n:'Frutos secos y semillas',t:'base',r:N,c:null,
+ {k:['mani','cacahuate','almendra','nuez','avellana','castana','pistacho','semilla','chia','linaza','sesamo','ajonjoli','noisette','amande','noix','hazelnut','almond','peanut','arachide'],n:'Frutos secos y semillas',t:'base',r:N,c:null,
   q:'Grasas insaturadas, fibra, magnesio y vitamina E. Alérgeno frecuente y de reacciones graves.',
   f:'Sabor, textura y valor nutricional.',o:['corazon','cerebro'],al:'frutos secos'},
- {k:['fibra','inulina','fructooligosacarido','fos','polidextrosa'],n:'Fibra añadida (inulina, FOS)',t:'base',r:N,c:null,
+ {k:['fibra','inulina','fructooligosacarido','fos','polidextrosa','fibre','fiber'],n:'Fibra añadida (inulina, FOS)',t:'base',r:N,c:null,
   q:'Fibras prebióticas que alimentan a las bacterias buenas del colon. En exceso producen gases.',
   f:'Suben el contenido de fibra y dan cuerpo.',o:['microbiota','digestivo']},
- {k:['agua'],n:'Agua',t:'base',r:N,c:null,q:'Agua potable o purificada.',f:'Disuelve y da volumen.',o:[]},
+ {k:['agua','eau','water'],n:'Agua',t:'base',r:N,c:null,q:'Agua potable o purificada.',f:'Disuelve y da volumen.',o:[]},
  {k:['gluten','gluten de trigo'],n:'Gluten',t:'base',r:B,c:null,
   q:'Proteína del trigo, la cebada y el centeno. Solo es dañina en celiaquía, alergia al trigo o sensibilidad no celíaca.',
   f:'Elasticidad de la masa.',o:['digestivo'],al:'gluten'},
@@ -1719,7 +1719,8 @@ function generarInforme(auto){
   } else x100={...x};
 
   const ings = $('inIng').value.replace(/\s*\n\s*/g,' ').split(/[,;]|\)\s*,/).map(s=>s.replace(/[()]/g,'').trim())
-    .filter(s=>s.length>1).slice(0,45).map(analizarIngrediente);
+    .filter(s=>s.length>1 && !/^[\d.,\s%]+$/.test(s))     // «8 %» es un porcentaje partido, no un ingrediente
+    .slice(0,45).map(analizarIngrediente);
 
   // Estimación de fruta/verdura para el score
   const fv = ings.filter(i=>/fruta|verdura|legumbre|frutos secos|semilla/i.test(i.n)).length
@@ -1905,7 +1906,9 @@ function renderRes(d){
 
   /* INGREDIENTES */
   if(d.ings.length){
+    const desc = d.ings.filter(i=>i.t==='otro').length;
     h+=`<div class="card"><h2>Ingredientes explicados (${d.ings.length})</h2>
+      ${desc/d.ings.length>0.4 ? `<div class="note"><b>Lista poco reconocida</b>De ${d.ings.length} ingredientes, ${desc} no están en el diccionario —suele pasar cuando la lista viene en otro idioma o el OCR la leyó mal—. El nivel de procesamiento (NOVA ${d.nova}) puede estar subestimado: revisa la lista original del envase.</div>` : ''}
       ${d.ings.map((i,k)=>`<div class="ing" data-i="${k}">
         <div class="hd"><span class="dot" style="background:${RC[i.r]||'#64748b'}"></span>
           <b>${esc(i.nombre)}</b>${i.c?`<span class="cod">${esc(i.c)}</span>`:''}<span class="arrow">›</span></div>
@@ -2119,6 +2122,15 @@ if(location.search.includes('test')){
   const ob = deOFF('1',{categories_tags:['en:beverages'],nutriments:{'energy-kj_100g':180}});
   A(ob.tipo==='bebida','OFF: bebida por categoría');
   A(ob.nut.kcal===43,'OFF: kJ → kcal cuando no hay kcal');
+  A(analizarIngrediente('sucre').n==='Azúcar (sacarosa)','alias fr: sucre');
+  A(analizarIngrediente('huile de palme').n==='Aceite de palma','alias fr: huile de palme');
+  A(analizarIngrediente('sirop de glucose').n==='Jarabe de glucosa','alias fr: sirop de glucose');
+  A(analizarIngrediente('émulsifiant (lécithines de soja)').n!=='émulsifiant (lécithines de soja)','alias fr: emulsifiant');
+  A(analizarIngrediente('arômes').n==='Saborizantes y aromas','alias fr: arômes');
+  A(analizarIngrediente('palm oil').n==='Aceite de palma','alias en: palm oil');
+  A(analizarIngrediente('wheat flour').n==='Harina de trigo','alias en: wheat flour');
+  A(analizarIngrediente('high fructose corn syrup').up===1,'alias en: HFCS sigue marcando ultraprocesado');
+  R.push('Idiomas');
   R.push('Open Food Facts');
   setTimeout(()=>toast('✅ TODOS LOS TESTS OK — '+R.join(' · ')),400);
 }
