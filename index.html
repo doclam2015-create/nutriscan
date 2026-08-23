@@ -914,29 +914,29 @@ function sistemas(x, ings, beb, n, pPorc){
 
 /* ══════════ D. PARSER DE TEXTO DE ETIQUETA ══════════ */
 const NUTPAT = [
-  ['kcal',        /(?:energ[íi]a|calor[íi]as?|energy|valor\s*energ)[^0-9\-]{0,40}?(\d+[.,]?\d*)\s*(?:kcal|cal\b)/i],
+  ['kcal',        /(?:energ[íi]a|calor[íi]as?|energy|valor\s*energ)[^0-9\-\n]{0,40}?(\d+[.,]?\d*)\s*(?:kcal|cal\b)/i],
   ['kcal_kj',     /(\d+[.,]?\d*)\s*kj/i],
   ['kcal_alt',    /(?:energ[íi]a|calor[íi]as?|energy)[^0-9\n]{0,25}(\d+[.,]?\d*)/i],  // «Energía (kcal) 60»
-  ['proteina_g',  /prote[íi]nas?[^0-9\-]{0,25}?(\d+[.,]?\d*)/i],
-  ['carb_g',      /(?:carbohidratos?|hidratos\s*de\s*carbono|h\.?\s*de\s*c\.?(?:\s*disp\.?)?|carbohydrate)[^0-9\-]{0,30}?(\d+[.,]?\d*)/i],
-  ['azucar_g',    /az[úu]car(?:es)?(?:\s*totales)?[^0-9\-]{0,25}?(\d+[.,]?\d*)/i],
-  ['fibra_g',     /fibra(?:\s*(?:diet[ée]tica|alimentaria))?[^0-9\-]{0,25}?(\d+[.,]?\d*)/i],
-  ['grasa_g',     /grasas?\s*(?:totales?)?[^0-9\-]{0,25}?(\d+[.,]?\d*)/i],
-  ['sat_g',       /(?:grasas?\s*)?saturadas?[^0-9\-]{0,25}?(\d+[.,]?\d*)/i],
-  ['trans_g',     /(?:grasas?\s*)?trans[^0-9\-]{0,25}?(\d+[.,]?\d*)/i],
-  ['mono_g',      /monoinsaturadas?[^0-9\-]{0,25}?(\d+[.,]?\d*)/i],
-  ['poli_g',      /poliinsaturadas?[^0-9\-]{0,25}?(\d+[.,]?\d*)/i],
-  ['colesterol_mg',/colesterol[^0-9\-]{0,25}?(\d+[.,]?\d*)/i],
-  ['sodio_mg',    /sodio[^0-9\-]{0,25}?(\d+[.,]?\d*)\s*(mg|g)?/i],
-  ['potasio_mg',  /potasio[^0-9\-]{0,25}?(\d+[.,]?\d*)/i],
-  ['calcio_mg',   /calcio[^0-9\-]{0,25}?(\d+[.,]?\d*)/i],
-  ['hierro_mg',   /hierro[^0-9\-]{0,25}?(\d+[.,]?\d*)/i],
-  ['magnesio_mg', /magnesio[^0-9\-]{0,25}?(\d+[.,]?\d*)/i],
-  ['zinc_mg',     /zinc[^0-9\-]{0,25}?(\d+[.,]?\d*)/i],
-  ['vitc_mg',     /vitamina\s*c[^0-9\-]{0,25}?(\d+[.,]?\d*)/i],
-  ['vita_ug',     /vitamina\s*a[^0-9\-]{0,25}?(\d+[.,]?\d*)/i],
-  ['vitd_ug',     /vitamina\s*d[^0-9\-]{0,25}?(\d+[.,]?\d*)/i],
-  ['cafeina_mg',  /cafe[íi]na[^0-9\-]{0,25}?(\d+[.,]?\d*)/i]
+  ['proteina_g',  /prote[íi]nas?[^0-9\-\n]{0,25}?(\d+[.,]?\d*)/i],
+  ['carb_g',      /(?:carbohidratos?|hidratos\s*de\s*carbono|h\.?\s*de\s*c\.?(?:\s*disp\.?)?|carbohydrate)[^0-9\-\n]{0,30}?(\d+[.,]?\d*)/i],
+  ['azucar_g',    /az[úu]car(?:es)?(?:\s*totales)?[^0-9\-\n]{0,25}?(\d+[.,]?\d*)/i],
+  ['fibra_g',     /fibra(?:\s*(?:diet[ée]tica|alimentaria))?[^0-9\-\n]{0,25}?(\d+[.,]?\d*)/i],
+  ['grasa_g',     /grasas?\s*(?:totales?)?[^0-9\-\n]{0,25}?(\d+[.,]?\d*)/i],
+  ['sat_g',       /(?:grasas?\s*)?saturadas?[^0-9\-\n]{0,25}?(\d+[.,]?\d*)/i],
+  ['trans_g',     /(?:grasas?\s*)?trans[^0-9\-\n]{0,25}?(\d+[.,]?\d*)/i],
+  ['mono_g',      /mono\s*-?\s*insat(?:urad)?[a-z]*\.?[^0-9\-\n]{0,25}?(\d+[.,]?\d*)/i],
+  ['poli_g',      /poli\s*-?\s*insat(?:urad)?[a-z]*\.?[^0-9\-\n]{0,25}?(\d+[.,]?\d*)/i],
+  ['colesterol_mg',/colesterol[^0-9\-\n]{0,25}?(\d+[.,]?\d*)/i],
+  ['sodio_mg',    /sodio[^0-9\-\n]{0,25}?(\d+[.,]?\d*)\s*(mg|g)?/i],
+  ['potasio_mg',  /potasio[^0-9\-\n]{0,25}?(\d+[.,]?\d*)/i],
+  ['calcio_mg',   /calcio[^0-9\-\n]{0,25}?(\d+[.,]?\d*)/i],
+  ['hierro_mg',   /hierro[^0-9\-\n]{0,25}?(\d+[.,]?\d*)/i],
+  ['magnesio_mg', /magnesio[^0-9\-\n]{0,25}?(\d+[.,]?\d*)/i],
+  ['zinc_mg',     /zinc[^0-9\-\n]{0,25}?(\d+[.,]?\d*)/i],
+  ['vitc_mg',     /vitamina\s*c[^0-9\-\n]{0,25}?(\d+[.,]?\d*)/i],
+  ['vita_ug',     /vitamina\s*a[^0-9\-\n]{0,25}?(\d+[.,]?\d*)/i],
+  ['vitd_ug',     /vitamina\s*d[^0-9\-\n]{0,25}?(\d+[.,]?\d*)/i],
+  ['cafeina_mg',  /cafe[íi]na[^0-9\-\n]{0,25}?(\d+[.,]?\d*)/i]
 ];
 function parseTexto(txt){
   const t = txt.replace(/ /g,' ');
@@ -953,7 +953,7 @@ function parseTexto(txt){
   }
   // Sal → sodio (1 g sal = 400 mg Na)
   if(out.sodio_mg==null){
-    const s=t.match(/\bsal\b[^0-9\-]{0,20}?(\d+[.,]?\d*)\s*g/i);
+    const s=t.match(/\bsal\b[^0-9\-\n]{0,20}?(\d+[.,]?\d*)\s*g/i);
     if(s) out.sodio_mg=Math.round(parseFloat(s[1].replace(',','.'))*400);
   }
   // Porción
@@ -1298,7 +1298,8 @@ function advertencias(x, pPorc, ings, tipo, n, sel){
 const NUTS = [
   ['kcal','Energía','kcal'],['proteina_g','Proteínas','g'],['carb_g','Carbohidratos','g'],
   ['azucar_g','Azúcares','g'],['fibra_g','Fibra','g'],['grasa_g','Grasas totales','g'],
-  ['sat_g','Saturadas','g'],['trans_g','Trans','g'],['colesterol_mg','Colesterol','mg'],
+  ['sat_g','Saturadas','g'],['mono_g','Monoinsaturadas','g'],['poli_g','Poliinsaturadas','g'],
+  ['trans_g','Trans','g'],['colesterol_mg','Colesterol','mg'],
   ['sodio_mg','Sodio','mg'],['potasio_mg','Potasio','mg'],['calcio_mg','Calcio','mg'],
   ['hierro_mg','Hierro','mg'],['magnesio_mg','Magnesio','mg'],['zinc_mg','Zinc','mg'],
   ['vitc_mg','Vitamina C','mg'],['vita_ug','Vitamina A','µg'],['vitd_ug','Vitamina D','µg'],
@@ -1313,7 +1314,7 @@ function renderShot(){
     ? `<div class="shot"><img src="${foto}"><button class="del" id="delShot">✕</button></div>` : '';
   const d=$('delShot'); if(d) d.addEventListener('click',()=>{foto=null;renderShot();});
 }
-const APP_V = '16';
+const APP_V = '17';
 $('btnUpd').addEventListener('click', async ()=>{
   toast('Buscando la versión más reciente…');
   try{
@@ -1648,6 +1649,8 @@ $('fileLib').addEventListener('change', async e=>{
     ocrProgreso('Preparando la imagen…',8);
     const {canvas,thumb} = await prepararImagen(f);
     foto=thumb; renderShot();
+    ocrProgreso('Buscando el código de barras en la foto…',14);
+    await new Promise(r=>setTimeout(r,30));        // deja pintar la barra antes del barrido
     const cod = await leerCodigoEnCanvas(canvas);
     if(cod){
       ocrProgreso('Código '+cod+' · buscando el producto…',55);
@@ -1779,8 +1782,10 @@ async function motorCodigo(){
   if(!zxCargando) zxCargando = (async()=>{
     if(!window.ZXing) await cargarScript('./bc/zxing.min.js');
     const Z=window.ZXing;
+    /* Sin ITF: no lleva digito verificador y es la principal fuente de
+       lecturas falsas cuando el codigo esta inclinado o con brillo. */
     const fmts=[Z.BarcodeFormat.EAN_13,Z.BarcodeFormat.EAN_8,Z.BarcodeFormat.UPC_A,
-                Z.BarcodeFormat.UPC_E,Z.BarcodeFormat.CODE_128,Z.BarcodeFormat.ITF];
+                Z.BarcodeFormat.UPC_E,Z.BarcodeFormat.CODE_128];
     const hints=new Map([[Z.DecodeHintType.POSSIBLE_FORMATS,fmts],[Z.DecodeHintType.TRY_HARDER,true]]);
     const lector=new Z.MultiFormatReader(); lector.setHints(hints);
     ZX={Z,lector}; return ZX;
@@ -1789,7 +1794,17 @@ async function motorCodigo(){
 }
 
 /* Extrae una región del lienzo como luminancia; ZXing la digiere directo. */
-function grisDe(cv,x,y,w,h,girado){
+function grisDe(cv,x,y,w,h,girado,zoom){
+  /* Un codigo pequeño dentro de una foto grande llega a ZXing con las barras
+     de uno o dos pixeles y no hay binarizador que lo salve: se amplia antes. */
+  if(zoom && zoom>1){
+    const z=document.createElement('canvas');
+    z.width=Math.round(w*zoom); z.height=Math.round(h*zoom);
+    const zc=z.getContext('2d',{willReadFrequently:true});
+    zc.imageSmoothingEnabled=true; zc.imageSmoothingQuality='high';
+    zc.drawImage(cv, x,y,w,h, 0,0,z.width,z.height);
+    return grisDe(z, 0,0, z.width,z.height, girado);
+  }
   const d=cv.getContext('2d',{willReadFrequently:true}).getImageData(x,y,w,h).data;
   const g=new Uint8ClampedArray(w*h);
   if(!girado){
@@ -1804,29 +1819,75 @@ function grisDe(cv,x,y,w,h,girado){
   return {g,w:h,h:w};
 }
 
+/* Digito verificador de EAN/UPC: el ultimo digito se calcula a partir de los
+   anteriores. Descarta el ruido que ZXing a veces da por bueno. */
+function digitoOK(c){
+  const n=c.length;
+  if(n!==8 && n!==12 && n!==13) return false;
+  const d=c.split('').map(Number), m=n-1;
+  let suma=0;
+  for(let i=0;i<m;i++) suma += d[i] * (((m-1-i)%2===0) ? 3 : 1);
+  return (10 - suma%10)%10 === d[m];
+}
+
 function decodificar(ZXo,{g,w,h}){
   try{
     const src=new ZXo.Z.RGBLuminanceSource(g,w,h);
     const bmp=new ZXo.Z.BinaryBitmap(new ZXo.Z.HybridBinarizer(src));
     const r=ZXo.lector.decode(bmp);
     const t=(r.getText()||'').replace(/\D/g,'');
-    return t.length>=8 ? t : null;
+    return (t.length>=8 && digitoOK(t)) ? t : null;
   }catch(e){ return null; }
   finally{ ZXo.lector.reset&&ZXo.lector.reset(); }
 }
 
-/* Prueba la banda central (donde apunta la mira), el cuadro entero y ambos girados. */
-async function leerCodigoEnCanvas(cv){
+/* Prueba la banda central (donde apunta la mira), el cuadro entero y ambos girados.
+   `rapido` = solo esas dos zonas, para el bucle en vivo de la camara, que
+   corre cada 140 ms y no puede permitirse mas. */
+async function leerCodigoEnCanvas(cv, rapido){
   const ZXo=await motorCodigo();
   const W=cv.width, H=cv.height;
   const banda={x:0,y:Math.round(H*0.28),w:W,h:Math.round(H*0.44)};
   const zonas=[banda,{x:0,y:0,w:W,h:H}];
-  for(const z of zonas)
-    for(const girado of [false,true]){
-      const c=decodificar(ZXo, grisDe(cv,z.x,z.y,z.w,z.h,girado));
-      if(c) return c;
+
+  /* En una foto quieta el codigo suele ocupar una esquina y quedar diminuto
+     frente al resto del envase: barrido en cuadros con solape para que las
+     barras lleguen a ZXing con resolucion suficiente. */
+  if(!rapido){
+    const N=3, sol=0.5;                      // 3x3 con medio cuadro de solape
+    const tw=Math.round(W/N*(1+sol)), th=Math.round(H/N*(1+sol));
+    for(let i=0;i<N;i++) for(let j=0;j<N;j++){
+      const x=Math.min(W-tw, Math.round(i*W/N)), y=Math.min(H-th, Math.round(j*H/N));
+      if(x>=0 && y>=0 && tw>40 && th>40) zonas.push({x,y,w:tw,h:th});
     }
-  return null;
+  }
+
+  if(rapido){
+    for(const z of zonas)
+      for(const girado of [false,true]){
+        const c=decodificar(ZXo, grisDe(cv,z.x,z.y,z.w,z.h,girado));
+        if(c) return c;
+      }
+    return null;
+  }
+
+  /* En foto quieta no se acepta la primera lectura: se recogen todas y se
+     exige acuerdo. Un codigo torcido o con brillo puede decodificar como un
+     EAN-8 valido pero falso —el digito verificador no lo detecta— y buscar
+     el producto equivocado es peor que no encontrarlo. Un EAN-13/UPC visto
+     una vez si vale: tiene bastantes digitos como para que el azar no lo
+     produzca. */
+  const votos=new Map();
+  for(const z of zonas)
+    for(const girado of [false,true])
+      for(const zoom of [1,2]){
+        const c=decodificar(ZXo, grisDe(cv,z.x,z.y,z.w,z.h,girado,zoom));
+        if(c) votos.set(c,(votos.get(c)||0)+1);
+      }
+  if(!votos.size) return null;
+  const orden=[...votos.entries()].sort((a,b)=> b[1]-a[1] || b[0].length-a[0].length);
+  const [cod,n]=orden[0];
+  return (n>=2 || cod.length>=12) ? cod : null;
 }
 
 /* ── Base de productos ───────────────────────────────────────────
@@ -2049,7 +2110,7 @@ async function camBucle(){
   const cv=camFotograma(1280);
   if(cv){
     let cod=null;
-    try{ cod = await leerCodigoEnCanvas(cv); }catch(e){}
+    try{ cod = await leerCodigoEnCanvas(cv, true); }catch(e){}
     if(cod && camStream && camModo==='cod'){
       camOcupado=true; camVibrar();
       camDecir('Código <b>'+cod+'</b> · buscando el producto…');
@@ -2660,6 +2721,29 @@ if(location.search.includes('test')){
   A(revisar({kcal:60,proteina_g:2,carb_g:8,grasa_g:22},'bebida').some(a=>a.k==='grasa_g'),'bebida con mucha grasa: se avisa');
   A(revisar({kcal:350,proteina_g:1.5,carb_g:20,grasa_g:28},'queso').some(a=>a.k==='proteina_g'),'queso con muy poca proteína: se avisa');
   A(revisar({kcal:350,proteina_g:22,carb_g:2,grasa_g:28},'queso').length===0,'queso normal: sin avisos');
+  /* Codigo de barras: el digito verificador descarta lecturas rotas */
+  A(digitoOK('7804515006532'),'EAN-13 real: valido');
+  A(digitoOK('5000112637922'),'EAN-13 Coca-Cola: valido');
+  A(!digitoOK('7804515006533'),'EAN-13 con el ultimo digito cambiado: rechazado');
+  A(!digitoOK('1234567890123'),'EAN-13 inventado: rechazado');
+  A(!digitoOK('123456'),'demasiado corto: rechazado');
+  R.push('Código de barras');
+
+  /* Parser: cada nutriente toma el numero de SU fila, nunca el de otra */
+  (function(){
+    const t='Energia (kcal)\t557\t167\nColesterol (mg)\nSodio (mg)\t1\t0,3';
+    const r=parseTexto(t);
+    A(r.kcal===557,'energia leida de su fila');
+    A(r.colesterol_mg===undefined,'colesterol sin valor no roba el de otra fila');
+    A(r.sodio_mg===1,'sodio leido de su fila');
+  })();
+  (function(){
+    const r=parseTexto('Grasa Monoinsat. (g)\t23,3\t7,0\nGrasa Poliinsat. (g)\t13,5\t4,1');
+    A(r.mono_g===23.3,'monoinsaturada abreviada');
+    A(r.poli_g===13.5,'poliinsaturada abreviada');
+  })();
+  R.push('Filas de la etiqueta');
+
   R.push('Verosimilitud');
   setTimeout(()=>toast('✅ TODOS LOS TESTS OK — '+R.join(' · ')),400);
 }
