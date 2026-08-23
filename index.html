@@ -201,6 +201,27 @@ td.num i{font-style:normal;color:var(--tx3);font-size:11px;margin-left:3px}
 .tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
 .tablewrap table{min-width:330px}
 
+/* ── Fotos del producto: envase y contenido ── */
+#fotosBox{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+#fotosBox .hueco{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  min-height:118px;border:1px dashed var(--line);border-radius:13px;background:var(--card2);
+  color:var(--tx2);font-size:22px;padding:10px;text-align:center}
+#fotosBox .hueco b{font-size:13px;color:var(--tx2)}
+#fotosBox .hueco small{font-size:10.5px;color:var(--tx3)}
+#fotosBox .shot2{position:relative;border-radius:13px;overflow:hidden;background:var(--card2);min-height:118px}
+#fotosBox .shot2 img{width:100%;height:118px;object-fit:cover;display:block}
+#fotosBox .shot2 .et{position:absolute;left:7px;bottom:7px;background:rgba(0,0,0,.62);color:#fff;
+  font-size:10.5px;font-weight:700;padding:3px 7px;border-radius:7px}
+#fotosBox .shot2 .del{position:absolute;top:6px;right:6px;width:30px;height:30px;border-radius:9px;
+  border:0;background:rgba(0,0,0,.62);color:#fca5a5;font-size:14px;padding:0}
+/* fotos dentro del informe y del historial */
+.fotoPar{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:10px}
+.fotoPar figure{margin:0;position:relative;border-radius:12px;overflow:hidden;background:var(--card2)}
+.fotoPar img{width:100%;height:132px;object-fit:cover;display:block}
+.fotoPar figcaption{position:absolute;left:6px;bottom:6px;background:rgba(0,0,0,.62);color:#fff;
+  font-size:10.5px;font-weight:700;padding:3px 7px;border-radius:7px}
+#lupaImg{max-height:74vh;object-fit:contain}
+
 /* ── Recorte de la foto antes de leer la tabla ── */
 #cropOvl{position:fixed;inset:0;z-index:410;background:#000;display:flex;flex-direction:column}
 #cropOvl.hide{display:none}
@@ -277,6 +298,11 @@ details[open] summary{margin-bottom:11px}
     <button class="btn sec sm" id="btnNuevo" style="margin-top:9px">🧹 Empezar de cero (borrar lo escrito)</button>
     <small class="mut" style="margin-top:10px">Apunta al <b>código de barras</b>: el producto se identifica solo y el informe es exacto. Si no tiene código o no está en la base, la app lee la <b>tabla nutricional</b> con la cámara.</small>
     <div id="shotBox" style="margin-top:11px"></div>
+    <div class="sep"></div>
+    <h3 style="margin-bottom:4px">Fotos del producto</h3>
+    <small class="mut" style="margin-bottom:10px">Guarda cómo es por fuera y por dentro. Quedan en el teléfono junto al análisis y se ven en el informe y en el historial.</small>
+    <div id="fotosBox"></div>
+    <input type="file" id="fileFoto" accept="image/*" class="hide">
     <input type="file" id="fileLib" accept="image/*" class="hide">
     <div id="ocrBox" class="hide"></div>
   </div>
@@ -298,7 +324,7 @@ details[open] summary{margin-bottom:11px}
   <div class="card">
     <h2>Valores nutricionales</h2>
     <div class="row" style="margin-bottom:12px">
-      <button class="btn sec sm" id="btnBase">📚 Buscar en base local (94 alimentos)</button>
+      <button class="btn sec sm" id="btnBase">📚 Buscar en base local (321 alimentos)</button>
     </div>
     <label class="f"><span>Los valores están expresados por…</span>
       <select id="inBase">
@@ -382,6 +408,13 @@ details[open] summary{margin-bottom:11px}
 </main>
 
 <!-- Ayuda y ajustes -->
+<div class="ovl hide" id="lupaOvl">
+  <div style="width:100%;max-width:640px;display:flex;flex-direction:column;gap:11px">
+    <img id="lupaImg" alt="" style="width:100%;border-radius:14px;background:#000">
+    <button class="btn sec" id="lupaCerrar">Cerrar</button>
+  </div>
+</div>
+
 <div id="cropOvl" class="hide">
   <div id="cropWrap">
     <img id="cropImg" alt="">
@@ -431,7 +464,15 @@ details[open] summary{margin-bottom:11px}
 
     <div class="sep"></div>
     <h3>Conexión</h3>
-    <p class="mut">Con internet consulta <b>Open Food Facts</b>, una base pública y gratuita de más de tres millones de productos, y —cuando corriges algo a mano— la contrasta contigo para avisarte si difieren mucho. No existe una API pública oficial chilena (MINSAL/ISP) con la que comparar; Open Food Facts es la única fuente automática disponible, y no siempre acierta. Sin internet funciona igual con la lectura de etiquetas, la base local de 94 alimentos y los productos que ya guardaste. Ninguna de estas conexiones usa clave ni cuenta tuya.</p>
+    <p class="mut">Con internet consulta <b>Open Food Facts</b>, una base pública y gratuita de más de tres millones de productos, y —cuando corriges algo a mano— la contrasta contigo para avisarte si difieren mucho. No existe una API pública oficial chilena (MINSAL/ISP) con la que comparar; Open Food Facts es la única fuente automática disponible, y no siempre acierta. Sin internet funciona igual con la lectura de etiquetas, la base local de 321 alimentos (con preparaciones caseras chilenas) y los productos que ya guardaste. Ninguna de estas conexiones usa clave ni cuenta tuya.</p>
+
+    <div class="sep"></div>
+    <h3>Base local de alimentos</h3>
+    <p class="mut"><b>321 alimentos</b> con sus valores por 100 g: frutas, verduras, legumbres, cereales, carnes, pescados y mariscos de acá, lácteos, frutos secos, bebidas, repostería, snacks, condimentos y preparaciones caseras chilenas (cazuela, charquicán, pastel de choclo, sopaipilla, humita, completo, churrasco…). Funciona <b>sin internet y sin ninguna clave</b>: es la fuente más fiable de la app, porque no depende de que alguien haya cargado el producto en una base pública.</p>
+
+    <div class="sep"></div>
+    <h3>Fotos del producto</h3>
+    <p class="mut">Cada análisis puede llevar dos fotos: el <b>envase</b> y el <b>contenido</b>. Se guardan en el teléfono aparte del resto (en un almacén más grande, para que no desplacen tu historial) y aparecen en el informe. Al quitar un producto del historial, sus fotos se van con él.</p>
 
     <div class="sep"></div>
     <h3>Memoria de productos</h3>
@@ -464,7 +505,7 @@ details[open] summary{margin-bottom:11px}
 <!-- Buscador base local -->
 <div class="ovl hide" id="baseOvl">
   <div class="card" style="width:100%;max-width:460px;margin:0">
-    <h2>Base local de alimentos</h2>
+    <h2>Base local de alimentos (321)</h2>
     <div class="srch"><input type="text" id="baseQ" placeholder="Buscar: pan, leche, palta, bebida…" autocomplete="off"></div>
     <div class="res" id="baseRes"></div>
     <button class="btn sec" id="baseClose" style="margin-top:11px">Cerrar</button>
@@ -1111,7 +1152,237 @@ const BASE = [
  ['Tofu',76,8,1.9,0.6,0.3,4.8,0.7,7,'solido',15],
  ['Hummus',166,7.9,14,0.3,6,9.6,1.4,379,'solido',6],
  ['Té sin azúcar',1,0,0.3,0,0,0,0,3,'bebida',0],
- ['Café negro sin azúcar',2,0.3,0,0,0,0,0,2,'bebida',0]
+ ['Café negro sin azúcar',2,0.3,0,0,0,0,0,2,'bebida',0],
+ /* ── ampliación: frutas, verduras, legumbres, cereales, carnes, pescados
+    y mariscos de acá, lácteos, frutos secos, bebidas, preparaciones caseras
+    chilenas, repostería, snacks y condimentos ── */
+ ['Kiwi',61,1.1,14.7,9,3,0.5,0,3,'solido',50],
+ ['Piña',50,0.5,13,10,1.4,0.1,0,1,'solido',59],
+ ['Melón',34,0.8,8.2,8,0.9,0.2,0,16,'solido',65],
+ ['Mango',60,0.8,15,13.7,1.6,0.4,0.1,1,'solido',51],
+ ['Cereza',63,1.1,16,13,2.1,0.2,0,0,'solido',22],
+ ['Ciruela',46,0.7,11.4,10,1.4,0.3,0,0,'solido',40],
+ ['Damasco',48,1.4,11,9,2,0.4,0,1,'solido',34],
+ ['Higo fresco',74,0.8,19,16,2.9,0.3,0.1,1,'solido',61],
+ ['Arándanos',57,0.7,14.5,10,2.4,0.3,0,1,'solido',53],
+ ['Frambuesa',52,1.2,11.9,4.4,6.5,0.7,0,1,'solido',32],
+ ['Mora',43,1.4,9.6,4.9,5.3,0.5,0,1,'solido',25],
+ ['Limón',29,1.1,9.3,2.5,2.8,0.3,0,2,'solido',20],
+ ['Mandarina',53,0.8,13.3,10.6,1.8,0.3,0,2,'solido',47],
+ ['Pomelo',42,0.8,10.7,6.9,1.6,0.1,0,0,'solido',25],
+ ['Granada',83,1.7,18.7,13.7,4,1.2,0.1,3,'solido',35],
+ ['Chirimoya',75,1.6,17.7,12.9,3,0.7,0,7,'solido',54],
+ ['Papaya',43,0.5,10.8,7.8,1.7,0.3,0,8,'solido',60],
+ ['Caqui / persimón',70,0.6,18.6,12.5,3.6,0.2,0,1,'solido',50],
+ ['Maracuyá',97,2.2,23.4,11.2,10.4,0.7,0.1,28,'solido',30],
+ ['Membrillo',57,0.4,15.3,12,1.9,0.1,0,4,'solido',35],
+ ['Níspero',47,0.4,12.1,9,1.7,0.2,0,1,'solido',55],
+ ['Pasas',299,3.1,79.2,59.2,3.7,0.5,0.1,11,'solido',64],
+ ['Ciruela seca',240,2.2,63.9,38.1,7.1,0.4,0,2,'solido',29],
+ ['Huesillo (durazno seco)',239,3.6,61.3,44.6,8.2,0.8,0.1,7,'solido',35],
+ ['Dátil',282,2.5,75,63,8,0.4,0,2,'solido',42],
+ ['Higo seco',249,3.3,63.9,47.9,9.8,0.9,0.1,10,'solido',61],
+ ['Coco fresco',354,3.3,15.2,6.2,9,33.5,29.7,20,'fruto',45],
+ ['Aceituna',145,1,3.8,0.5,3.3,15.3,2,1560,'solido',0],
+ ['Apio',16,0.7,3,1.3,1.6,0.2,0,80,'solido',15],
+ ['Pepino',15,0.7,3.6,1.7,0.5,0.1,0,2,'solido',15],
+ ['Pimentón rojo',31,1,6,4.2,2.1,0.3,0,4,'solido',15],
+ ['Berenjena',25,1,5.9,3.5,3,0.2,0,2,'solido',15],
+ ['Zapallo italiano',17,1.2,3.1,2.5,1,0.3,0.1,8,'solido',15],
+ ['Coliflor',25,1.9,5,1.9,2,0.3,0.1,30,'solido',15],
+ ['Repollo',25,1.3,5.8,3.2,2.5,0.1,0,18,'solido',10],
+ ['Acelga',19,1.8,3.7,1.1,1.6,0.2,0,213,'solido',15],
+ ['Betarraga',43,1.6,9.6,6.8,2.8,0.2,0,78,'solido',64],
+ ['Rabanito',16,0.7,3.4,1.9,1.6,0.1,0,39,'solido',15],
+ ['Alcachofa',47,3.3,10.5,1,5.4,0.2,0,94,'solido',20],
+ ['Espárrago',20,2.2,3.9,1.9,2.1,0.1,0,2,'solido',15],
+ ['Arvejas',81,5.4,14.5,5.7,5.7,0.4,0.1,5,'solido',48],
+ ['Poroto verde',31,1.8,7,3.3,3.4,0.1,0,6,'solido',32],
+ ['Champiñón',22,3.1,3.3,2,1,0.3,0,5,'solido',15],
+ ['Ajo',149,6.4,33.1,1,2.1,0.5,0.1,17,'solido',30],
+ ['Puerro',61,1.5,14.2,3.9,1.8,0.3,0,20,'solido',15],
+ ['Palmito en conserva',28,2.2,4.6,0,1.8,0.6,0.1,426,'solido',20],
+ ['Camote / batata cocido',90,2,20.7,6.5,3.3,0.2,0.1,36,'solido',63],
+ ['Kale',49,4.3,8.8,2.3,3.6,0.9,0.1,38,'solido',15],
+ ['Rúcula',25,2.6,3.7,2,1.6,0.7,0.1,27,'solido',15],
+ ['Berro',11,2.3,1.3,0.2,0.5,0.1,0,41,'solido',15],
+ ['Cilantro',23,2.1,3.7,0.9,2.8,0.5,0,46,'solido',15],
+ ['Perejil',36,3,6.3,0.9,3.3,0.8,0.1,56,'solido',15],
+ ['Nabo',28,0.9,6.4,3.8,1.8,0.1,0,67,'solido',30],
+ ['Zapallo camote cocido',26,1,6.5,2.8,1.1,0.1,0,1,'solido',75],
+ ['Choclo desgranado cocido',96,3.4,21,4.5,2.4,1.5,0.2,15,'solido',52],
+ ['Espinaca cocida',23,3,3.8,0.4,2.4,0.3,0,70,'solido',15],
+ ['Arvejas partidas cocidas',118,8.3,21.1,2.9,8.3,0.4,0.1,2,'solido',32],
+ ['Habas cocidas',110,7.6,19.6,1.8,5.4,0.4,0.1,5,'solido',40],
+ ['Poroto negro cocido',132,8.9,23.7,0.3,8.7,0.5,0.1,2,'solido',30],
+ ['Poroto rojo cocido',127,8.7,22.8,0.3,6.4,0.5,0.1,2,'solido',29],
+ ['Soya cocida',173,16.6,9.9,3,6,9,1.3,1,'solido',16],
+ ['Lupino cocido',119,15.6,9.9,0,2.8,2.9,0.3,4,'solido',15],
+ ['Pan hallulla',290,8.5,54,2.5,2.4,4,1.5,520,'solido',70],
+ ['Pan amasado',275,8,53,2,2.5,3.5,1.2,480,'solido',70],
+ ['Pan pita',275,9.1,55.7,1.2,2.2,1.2,0.2,536,'solido',57],
+ ['Pan de completo',280,8.5,52,4.5,2.3,4.2,1.4,470,'solido',72],
+ ['Tortilla de trigo',312,8.2,51,2.5,3,8.5,3,600,'solido',30],
+ ['Tortilla de maíz',218,5.7,44.6,0.9,6.3,2.8,0.4,45,'solido',52],
+ ['Cuscús cocido',112,3.8,23.2,0.1,1.4,0.2,0,5,'solido',65],
+ ['Mote de trigo cocido',125,4.2,26.5,0.5,3.5,0.6,0.1,3,'solido',55],
+ ['Sémola cocida',78,2.7,16.2,0.1,0.9,0.2,0,1,'solido',66],
+ ['Polenta cocida',85,2,18.5,0.2,1,0.4,0.1,2,'solido',68],
+ ['Harina de trigo blanca',364,10.3,76.3,0.3,2.7,1,0.2,2,'solido',70],
+ ['Harina integral',340,13.2,72,0.4,10.7,2.5,0.4,2,'solido',55],
+ ['Maicena',381,0.3,91.3,0,0.9,0.1,0,9,'solido',85],
+ ['Fideos integrales cocidos',124,5.3,26.5,0.8,3.9,0.5,0.1,4,'solido',42],
+ ['Ñoquis de papa',157,3.7,32,1,2,1.5,0.4,340,'solido',68],
+ ['Granola',471,10,64,20,7,18,3,30,'solido',55],
+ ['Muesli sin azúcar',363,10,66,10,7.7,5.9,1,20,'solido',49],
+ ['Salvado de avena',246,17.3,66.2,1.4,15.4,7,1.3,4,'solido',55],
+ ['Pavo (pechuga) cocido',135,30,0,0,0,1.7,0.5,60,'solido',0],
+ ['Cordero magro cocido',258,25,0,0,0,17,7.5,72,'solido',0],
+ ['Conejo cocido',173,33,0,0,0,3.5,1,47,'solido',0],
+ ['Hígado de vacuno cocido',175,26.5,5.1,0,0,4.9,1.6,69,'solido',0],
+ ['Carne molida de vacuno cocida',250,26,0,0,0,16,6.3,72,'solido',0],
+ ['Asado de tira cocido',295,25,0,0,0,21,8.8,60,'solido',0],
+ ['Lomo liso cocido',212,29,0,0,0,10,4,55,'solido',0],
+ ['Posta rosada cocida',190,30,0,0,0,7.5,2.8,55,'solido',0],
+ ['Costillar de cerdo cocido',361,24,0,0,0,29,10.5,80,'solido',0],
+ ['Tocino frito',541,37,1.4,0,0,42,14,1717,'solido',0],
+ ['Chuleta de cerdo cocida',231,27,0,0,0,13,4.7,62,'solido',0],
+ ['Longaniza',320,15,3,1,0,28,10.5,1100,'solido',0],
+ ['Prieta / morcilla',379,14.6,1.3,0,0,35,13.4,680,'solido',0],
+ ['Pollo con piel cocido',239,27,0,0,0,14,3.8,82,'solido',0],
+ ['Ala de pollo cocida',290,27,0,0,0,19.5,5.5,85,'solido',0],
+ ['Trutro de pollo cocido',209,26,0,0,0,11,3,88,'solido',0],
+ ['Pavo molido cocido',203,27,0,0,0,10.4,2.7,78,'solido',0],
+ ['Chorizo',455,24,1.9,0.6,0,38,14,1235,'solido',0],
+ ['Paté',319,14,3,0,0,28,10,700,'solido',0],
+ ['Reineta',90,18.5,0,0,0,1.5,0.4,80,'solido',0],
+ ['Congrio',82,17.6,0,0,0,0.9,0.2,72,'solido',0],
+ ['Jurel',158,20,0,0,0,8.5,2.1,82,'solido',0],
+ ['Jurel en conserva',167,20.5,0,0,0,9.2,2.4,400,'solido',0],
+ ['Sardina en conserva',208,24.6,0,0,0,11.5,1.5,505,'solido',0],
+ ['Anchoa en conserva',210,29,0,0,0,9.7,2.2,3670,'solido',0],
+ ['Trucha',148,20.8,0,0,0,6.6,1.6,51,'solido',0],
+ ['Corvina',105,20.8,0,0,0,2.2,0.5,76,'solido',0],
+ ['Lenguado',86,18.8,0,0,0,1.2,0.3,81,'solido',0],
+ ['Machas',86,14.7,3.6,0,0,1.4,0.3,290,'solido',0],
+ ['Choritos cocidos',172,23.8,7.4,0,0,4.5,0.9,369,'solido',0],
+ ['Ostiones',111,20.5,5.4,0,0,0.8,0.2,392,'solido',0],
+ ['Camarón cocido',99,24,0.2,0,0,0.3,0.1,111,'solido',0],
+ ['Jaiba',97,19.4,0,0,0,1.5,0.2,395,'solido',0],
+ ['Pulpo cocido',164,29.8,4.4,0,0,2.1,0.5,460,'solido',0],
+ ['Calamar',92,15.6,3.1,0,0,1.4,0.4,44,'solido',0],
+ ['Almeja',148,25.5,5.1,0,0,2,0.2,1202,'solido',0],
+ ['Cochayuyo',119,10.5,52,0,45,0.5,0.1,900,'solido',15],
+ ['Salmón ahumado',117,18.3,0,0,0,4.3,0.9,1880,'solido',0],
+ ['Leche semidescremada',47,3.3,4.8,4.8,0,1.6,1,44,'bebida',30],
+ ['Leche sin lactosa',42,3.3,4.8,4.8,0,1,0.6,45,'bebida',30],
+ ['Leche en polvo entera',496,26.3,38.4,38.4,0,26.7,16.7,371,'solido',30],
+ ['Crema de leche',340,2.1,2.8,2.8,0,36,22.5,38,'grasa',0],
+ ['Yogur descremado sin azúcar',41,4.3,5.6,5.6,0,0.2,0.1,52,'bebida',25],
+ ['Kéfir',41,3.8,4.5,4.5,0,1,0.7,40,'bebida',25],
+ ['Queso mantecoso',357,24,2,1,0,28,17.5,700,'queso',0],
+ ['Queso chanco',345,23,1.5,1,0,27,17,750,'queso',0],
+ ['Queso parmesano',431,38,4.1,0.9,0,29,19,1600,'queso',0],
+ ['Queso mozzarella',300,22,2.2,1,0,22,13,627,'queso',0],
+ ['Queso crema',342,6,4.1,3.8,0,34,20,314,'queso',0],
+ ['Ricotta',174,11.3,3,0.3,0,13,8.3,84,'queso',0],
+ ['Queso azul',353,21.4,2.3,0.5,0,28.7,18.7,1395,'queso',0],
+ ['Leche de almendras sin azúcar',15,0.6,0.3,0,0.3,1.2,0.1,60,'bebida',25],
+ ['Leche de soya sin azúcar',33,2.9,1.8,0.9,0.4,1.6,0.2,51,'bebida',34],
+ ['Leche de avena',47,0.8,7.6,4,0.8,1.5,0.2,50,'bebida',60],
+ ['Leche de coco (bebida)',23,0.2,2.7,2.5,0,1.5,1.3,35,'bebida',40],
+ ['Avellanas',628,15,16.7,4.3,9.7,61,4.5,0,'fruto',15],
+ ['Pistachos',562,20.2,27.2,7.7,10.6,45.3,5.9,1,'fruto',15],
+ ['Castañas cocidas',131,2,27.8,5.6,2.6,1.4,0.3,27,'solido',54],
+ ['Semillas de maravilla',584,20.8,20,2.6,8.6,51.5,4.5,9,'fruto',15],
+ ['Semillas de zapallo',559,30.2,10.7,1.4,6,49,8.7,7,'fruto',15],
+ ['Linaza',534,18.3,28.9,1.6,27.3,42.2,3.7,30,'fruto',15],
+ ['Sésamo',573,17.7,23.4,0.3,11.8,49.7,7,11,'fruto',15],
+ ['Mantequilla de maní',588,25.1,20,9.2,6,50.4,10.3,459,'fruto',14],
+ ['Maní sin sal',567,25.8,16.1,4.7,8.5,49.2,6.3,18,'fruto',14],
+ ['Aceite de canola',884,0,0,0,0,100,7.4,0,'grasa',0],
+ ['Aceite de coco',862,0,0,0,0,100,87,0,'grasa',0],
+ ['Aceite de maravilla',884,0,0,0,0,100,10.3,0,'grasa',0],
+ ['Manteca de cerdo',902,0,0,0,0,100,39,0,'grasa',0],
+ ['Vino tinto',85,0.1,2.6,0.6,0,0,0,4,'bebida',0],
+ ['Vino blanco',82,0.1,2.6,1,0,0,0,5,'bebida',0],
+ ['Pisco',231,0,0,0,0,0,0,1,'bebida',0],
+ ['Agua mineral con gas',0,0,0,0,0,0,0,10,'bebida',0],
+ ['Bebida isotónica',26,0,6.4,6.4,0,0,0,41,'bebida',78],
+ ['Té helado azucarado',30,0,7.5,7.5,0,0,0,8,'bebida',65],
+ ['Jugo de manzana envasado',46,0.1,11.3,9.6,0.2,0.1,0,4,'bebida',41],
+ ['Limonada azucarada',40,0,10.4,10,0,0,0,4,'bebida',65],
+ ['Mate / hierba mate',2,0.2,0.3,0,0,0,0,5,'bebida',0],
+ ['Chocolate caliente con leche',90,3.5,12.5,11,0.8,2.8,1.7,55,'bebida',51],
+ ['Néctar sin azúcar añadida',22,0.2,5,4.5,0.3,0,0,5,'bebida',40],
+ ['Café con leche sin azúcar',30,2,3,3,0,1,0.6,30,'bebida',25],
+ ['Cazuela de vacuno',78,6.5,7.5,1.2,1.2,2.4,0.9,320,'solido',50],
+ ['Cazuela de ave',70,6.8,6.9,1,1.1,1.8,0.5,310,'solido',50],
+ ['Pastel de choclo',156,6.5,18,5.5,1.8,6.5,2.6,380,'solido',60],
+ ['Charquicán',110,5.5,14,2.5,2.5,3.5,1.2,340,'solido',58],
+ ['Porotos granados',132,6.5,20,2.5,5.5,2.8,0.6,300,'solido',35],
+ ['Humita',178,4.5,22,5,2.2,8,3.5,420,'solido',55],
+ ['Sopaipilla',320,5.5,40,1,1.8,15,4.5,450,'solido',70],
+ ['Sopaipilla pasada',345,4.5,52,20,1.6,13.5,4,380,'solido',75],
+ ['Milcao',235,3,35,1.5,2.5,9,3,400,'solido',70],
+ ['Chapalele',210,4,38,1,2,4.5,1.5,350,'solido',68],
+ ['Caldillo de congrio',85,9.5,5,1.5,0.8,2.8,0.7,380,'solido',30],
+ ['Ceviche',105,15,5,1.5,0.5,2.5,0.4,320,'solido',20],
+ ['Ensalada chilena',30,0.8,4.5,3,1.2,1.2,0.2,180,'solido',15],
+ ['Pebre',45,1,5,2.5,1.5,2.5,0.4,320,'solido',15],
+ ['Machas a la parmesana',165,12,4,0.5,0,11,6,480,'solido',10],
+ ['Chorrillana',245,11,18,1,1.8,14,5,520,'solido',65],
+ ['Churrasco (sándwich)',265,14,28,2.5,1.8,10.5,3.8,560,'solido',68],
+ ['Barros Luco',290,16,27,2.5,1.6,13,6.5,640,'solido',68],
+ ['Chacarero',235,13,29,3.5,2.8,7.5,2.5,520,'solido',65],
+ ['Ave palta (sándwich)',255,11,26,2,2.5,12,2.5,480,'solido',65],
+ ['Italiano (completo)',275,9,25,4,2,15,5,650,'solido',70],
+ ['Papas mayo',220,2.5,22,1.2,2,14,2.2,320,'solido',70],
+ ['Arroz con pollo',145,9,18,0.8,0.8,4,1.1,340,'solido',62],
+ ['Tallarines con salsa de tomate',125,4.2,22,3.5,1.8,2.5,0.6,290,'solido',50],
+ ['Lasaña',165,9,15,3,1.2,7.5,3.5,420,'solido',52],
+ ['Puré de papas casero',88,2,14,1.5,1.3,2.8,1.6,280,'solido',80],
+ ['Tortilla de verduras',120,7,5,2,1.5,8,2,290,'solido',25],
+ ['Budín de verduras',105,5.5,9,3,2,5,2,310,'solido',35],
+ ['Porotos con riendas',145,7,23,2,6,3,0.9,350,'solido',40],
+ ['Charqui',410,60,2,0,0,17,7,2200,'solido',0],
+ ['Alfajor',420,4.5,62,38,1.5,17,9,180,'solido',65],
+ ['Berlín con crema',395,6,45,18,1.5,21,8,280,'solido',72],
+ ['Kuchen de frutas',295,4.5,38,20,1.8,14,7,180,'solido',60],
+ ['Calzones rotos',425,5.5,52,15,1.5,22,6,220,'solido',70],
+ ['Cuchuflí',455,4,60,32,1.2,22,12,150,'solido',68],
+ ['Mote con huesillo',95,0.8,23,19,1.2,0.1,0,8,'bebida',62],
+ ['Leche asada',145,5,20,18,0,5,2.6,80,'solido',50],
+ ['Arroz con leche',120,3.2,20,12,0.4,3,1.8,60,'solido',65],
+ ['Flan',145,4.5,22,20,0,4.5,2.4,75,'solido',55],
+ ['Brazo de reina',330,5,50,32,1.2,12,6,160,'solido',65],
+ ['Torta de crema',360,4.5,42,28,1,19,10,190,'solido',62],
+ ['Galletas champaña',395,7,80,32,1.5,5,1.5,120,'solido',70],
+ ['Panqueque con manjar',290,6,42,22,1.2,11,5,180,'solido',68],
+ ['Suspiro / merengue',390,4,94,90,0,0,0,50,'solido',75],
+ ['Chocolate blanco',539,5.9,59,59,0.2,32,19,90,'solido',44],
+ ['Chocolate amargo 85 %',598,10,22,10,12,50,30,20,'solido',22],
+ ['Ramitas / palitos salados',480,7,58,3,2.5,24,10,1100,'solido',70],
+ ['Cheese puffs',540,6,55,3,1.5,33,6,900,'solido',74],
+ ['Palomitas sin mantequilla',387,12.9,77.9,0.9,14.5,4.5,0.6,8,'solido',65],
+ ['Palomitas con mantequilla',500,9,58,1,10,27,12,880,'solido',72],
+ ['Tortilla chips / nachos',489,7,63,1.5,4.8,23,3.5,570,'solido',63],
+ ['Barra de chocolate con maní',495,10,52,42,3,27,12,180,'solido',55],
+ ['Gelatina preparada',62,1.2,14,14,0,0,0,75,'solido',60],
+ ['Yogur con cereal',110,3.5,18,14,0.8,2.5,1.5,60,'solido',55],
+ ['Papas fritas de restaurante',312,3.4,41,0.3,3.8,15,2.3,210,'solido',70],
+ ['Salchicha de pavo',180,14,3,1,0,12,3.5,900,'solido',0],
+ ['Pan de pascua',345,4.5,58,32,2,11,4,220,'solido',60],
+ ['Queque simple',370,5,52,28,1,16,6,300,'solido',65],
+ ['Mostaza',66,3.7,5.8,1,3.3,3.3,0.2,1135,'solido',35],
+ ['Vinagre',18,0,0.9,0.4,0,0,0,5,'bebida',0],
+ ['Ají / salsa picante',21,0.9,4.6,2,1.5,0.3,0,2200,'solido',15],
+ ['Merkén',282,12,50,5,28,8,1.2,60,'solido',20],
+ ['Orégano seco',265,9,68.9,4.1,42.5,4.3,1.6,25,'solido',20],
+ ['Salsa de tomate cocida',29,1.3,7,4.5,1.5,0.2,0,320,'solido',35],
+ ['Crema ácida',198,2.4,4.6,3.5,0,19,11,80,'grasa',0],
+ ['Aderezo césar',470,2,5,3,0,50,8,1050,'grasa',0],
+ ['Salsa BBQ',172,0.8,41,33,0.7,0.6,0.1,1027,'solido',55]
 ];
 
 
@@ -1337,7 +1608,95 @@ function renderShot(){
     ? `<div class="shot"><img src="${foto}"><button class="del" id="delShot">✕</button></div>` : '';
   const d=$('delShot'); if(d) d.addEventListener('click',()=>{foto=null;renderShot();});
 }
-const APP_V = '18';
+
+/* ══════════ Fotos del producto (envase y contenido) ══════════
+   Van en IndexedDB y no en localStorage: dos fotos por producto llenarian
+   los 5 MB del almacen del historial en pocos escaneos y se perderia todo
+   lo demas. Aqui caben cientos sin apretar. */
+const FOTODB = (()=>{
+  let db=null;
+  const abrir = () => db ? Promise.resolve(db) : new Promise((ok,err)=>{
+    const r=indexedDB.open('nutriscan-fotos',1);
+    r.onupgradeneeded=()=>{ if(!r.result.objectStoreNames.contains('f')) r.result.createObjectStore('f'); };
+    r.onsuccess=()=>{ db=r.result; ok(db); };
+    r.onerror=()=>err(r.error);
+  });
+  const tx = async (modo,fn) => {
+    const d=await abrir();
+    return new Promise((ok,err)=>{
+      const t=d.transaction('f',modo), pet=fn(t.objectStore('f'));
+      t.oncomplete=()=>ok(pet && pet.result);
+      t.onerror=()=>err(t.error);
+    });
+  };
+  return {
+    async put(id,v){ try{ await tx('readwrite',st=>st.put(v,id)); }catch(e){} },
+    async get(id){ try{ return await tx('readonly',st=>st.get(id)); }catch(e){ return null; } },
+    async del(id){ try{ await tx('readwrite',st=>st.delete(id)); }catch(e){} },
+    async ids(){ try{ return await tx('readonly',st=>st.getAllKeys()) || []; }catch(e){ return []; } }
+  };
+})();
+
+let fotoEnvase=null, fotoContenido=null;
+
+/* Reduce a lo justo para verse bien en el telefono sin ocupar de mas. */
+function fotoDeArchivo(file, max){
+  return new Promise((ok,err)=>{
+    const rd=new FileReader();
+    rd.onerror=()=>err(new Error('No se pudo leer la imagen'));
+    rd.onload=()=>{
+      const im=new Image();
+      im.onerror=()=>err(new Error('Imagen no válida'));
+      im.onload=()=>{
+        const k=Math.min(1,(max||1100)/Math.max(im.width,im.height));
+        const cv=document.createElement('canvas');
+        cv.width=Math.round(im.width*k); cv.height=Math.round(im.height*k);
+        cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);
+        ok(cv.toDataURL('image/jpeg',0.75));
+      };
+      im.src=rd.result;
+    };
+    rd.readAsDataURL(file);
+  });
+}
+
+function renderFotos(){
+  const ranura = (val,quien,etq,icono) => val
+    ? `<div class="shot2"><img src="${val}" data-ver="${quien}"><button class="del" data-borra="${quien}">✕</button>
+       <span class="et">${etq}</span></div>`
+    : `<button class="hueco" data-pide="${quien}">${icono}<b>${etq}</b><small>Toca para añadir</small></button>`;
+  $('fotosBox').innerHTML =
+    ranura(fotoEnvase,'envase','Envase','📦') + ranura(fotoContenido,'contenido','Contenido','🍽️');
+  $('fotosBox').querySelectorAll('[data-pide]').forEach(b=>b.addEventListener('click',()=>{
+    fotoPidiendo=b.dataset.pide; $('fileFoto').click();
+  }));
+  $('fotosBox').querySelectorAll('[data-borra]').forEach(b=>b.addEventListener('click',e=>{
+    e.stopPropagation();
+    if(b.dataset.borra==='envase') fotoEnvase=null; else fotoContenido=null;
+    renderFotos();
+  }));
+  $('fotosBox').querySelectorAll('[data-ver]').forEach(i=>i.addEventListener('click',()=>verFoto(i.src)));
+}
+let fotoPidiendo=null;
+$('fileFoto').addEventListener('change', async e=>{
+  const f=e.target.files&&e.target.files[0]; e.target.value='';
+  if(!f || !fotoPidiendo) return;
+  try{
+    const d=await fotoDeArchivo(f,1100);
+    if(fotoPidiendo==='envase') fotoEnvase=d; else fotoContenido=d;
+    renderFotos();
+    toast(fotoPidiendo==='envase'?'Foto del envase añadida':'Foto del contenido añadida');
+  }catch(err){ toast('No se pudo usar esa imagen',true); }
+  finally{ fotoPidiendo=null; }
+});
+
+/* Ver una foto a pantalla completa */
+function verFoto(src){
+  $('lupaImg').src=src; $('lupaOvl').className='';
+}
+$('lupaCerrar').addEventListener('click',()=>{ $('lupaOvl').className='hide'; $('lupaImg').src=''; });
+$('lupaOvl').addEventListener('click',e=>{ if(e.target.id==='lupaOvl'){ $('lupaOvl').className='hide'; $('lupaImg').src=''; } });
+const APP_V = '19';
 $('btnUpd').addEventListener('click', async ()=>{
   toast('Buscando la versión más reciente…');
   try{
@@ -2097,6 +2456,7 @@ function limpiarFormulario(){
   NUTS.forEach(([k])=>{ $('n_'+k).value=''; });
   $('inBase').value='100'; $('inTipo').value='solido';
   foto=null; renderShot();
+  fotoEnvase=null; fotoContenido=null; renderFotos();
   codPend=null; novaOFF=null; nsOFF=null; origenDato='manual';
   filasOCR=[]; motorOrigen=null; igBaseSel=null;
   $('ocrBox').className='hide'; $('ocrBox').innerHTML='';
@@ -2295,6 +2655,10 @@ function generarInforme(auto){
     textoOCR: $('inTexto').value.trim().slice(0,1200),
     ingTexto: $('inIng').value.trim(),
     ts: Date.now() };
+  /* Las fotos van aparte, en IndexedDB, referidas por este id. */
+  d.fotoId = (codPend ? 'c'+codPend : 'p'+d.ts);
+  if(fotoEnvase || fotoContenido) FOTODB.put(d.fotoId, {envase:fotoEnvase, contenido:fotoContenido});
+  else FOTODB.del(d.fotoId);
 
   /* Aprende: si venía de un código, queda guardado para leerlo sin conexión la próxima vez. */
   if(codPend) guardarProducto({ cod:codPend, nombre:d.nombre, marca:'',
@@ -2344,6 +2708,18 @@ function cardComparacionOFF(cmp){
     ${cmp.filas.map(f=>`<div class="note ${f.difPct>=40?'bad':''}">«<b>${esc(f.l)}</b>» — tú: ${f.mio} ${f.u} · Open Food Facts: ${f.suyo} ${f.u} (${f.difPct} % de diferencia)</div>`).join('')}
     </div>`;
 }
+/* Pinta las fotos del producto en el informe, si las tiene guardadas. */
+async function pintarFotosRes(d){
+  const caja=$('fotosRes'); if(!caja || !d || !d.fotoId) return;
+  const f=await FOTODB.get(d.fotoId);
+  if(!f || (!f.envase && !f.contenido)){ caja.innerHTML=''; return; }
+  caja.innerHTML=`<div class="card"><h2>📷 Fotos del producto</h2><div class="fotoPar">
+    ${f.envase?`<figure><img src="${f.envase}" alt="Envase"><figcaption>Envase</figcaption></figure>`:''}
+    ${f.contenido?`<figure><img src="${f.contenido}" alt="Contenido"><figcaption>Contenido</figcaption></figure>`:''}
+  </div></div>`;
+  caja.querySelectorAll('img').forEach(i=>i.addEventListener('click',()=>verFoto(i.src)));
+}
+
 function renderRes(d){
   if(!d){ $('resBox').innerHTML='<div class="card"><p class="mut">Aún no hay informe. Ve a <b>Analizar</b>.</p></div>'; return; }
   const x=d.x100, p=d.pPorc, n=d.needs, C=sc(d.score), circ=2*Math.PI*45, U=d.tipo==='bebida'?'ml':'g';
@@ -2381,7 +2757,8 @@ function renderRes(d){
     ${d.motor?`<small class="mut" style="margin-top:5px;display:block">Etiqueta leída ${d.motor==='linea'?'en línea (motor de nube, más preciso)':'con el lector local del teléfono'}.${
       d.avisoMotor?' '+esc(d.avisoMotor)+' Por eso la lectura puede ser menos exacta: revisa los valores abajo.':''}</small>`:''}
     </div>
-    <div id="cmpOFF"></div>`;
+    <div id="cmpOFF"></div>
+    <div id="fotosRes"></div>`;
 
   /* Datos que no cuadran: se avisa antes que nada, porque invalidan el resto */
   if(d.avisos && d.avisos.length){
@@ -2575,6 +2952,7 @@ function renderRes(d){
     <button class="btn sec" id="btnNew">📷 Analizar otro producto</button>`;
 
   $('resBox').innerHTML=h;
+  pintarFotosRes(d);                       // llegan cuando IndexedDB responda
   $('resBox').querySelectorAll('.ing .hd').forEach(hd=>hd.addEventListener('click',()=>{
     const b=hd.parentElement, bd=b.querySelector('.bd');
     const o=b.classList.toggle('open'); bd.className='bd'+(o?'':' hide');
@@ -2602,7 +2980,7 @@ function renderRes(d){
 /* ══════════ J. HISTORIAL Y BALANCE DEL DÍA ══════════ */
 function pushHist(d){
   const h=ls.g(K.hist,[]);
-  h.unshift({ts:d.ts,nombre:d.nombre,score:d.score,grade:d.grade,nova:d.nova,
+  h.unshift({ts:d.ts,nombre:d.nombre,score:d.score,grade:d.grade,nova:d.nova,fotoId:d.fotoId,
     sellos:d.sellos.length,foto:d.foto,kcal:d.pPorc.kcal||0,azucar:d.pPorc.azucar_g||0,
     sodio:d.pPorc.sodio_mg||0,sat:d.pPorc.sat_g||0,full:d});
   ls.s(K.hist,h.slice(0,50));
@@ -2625,6 +3003,9 @@ function renderHist(){
     ev.stopPropagation();
     const i=+b.dataset.del, lista=ls.g(K.hist,[]), quitado=lista[i];
     lista.splice(i,1); ls.s(K.hist,lista);
+    /* sus fotos se van con el, salvo que otro registro las comparta */
+    if(quitado && quitado.fotoId && !lista.some(x=>x.fotoId===quitado.fotoId))
+      FOTODB.del(quitado.fotoId);
     renderHist(); renderDia();
     toast('«'+(quitado&&quitado.nombre||'Producto')+'» quitado del historial');
   }));
@@ -2643,10 +3024,13 @@ function renderDia(){
     ${bar('Grasas saturadas',+t.sat.toFixed(1),'g',n.sat,true)}
     ${bar('Sodio',Math.round(t.sodio),'mg',n.sodio,true)}`;
 }
-$('btnClrHist').addEventListener('click',()=>{ ls.s(K.hist,[]); renderHist(); renderDia(); toast('Historial borrado'); });
+$('btnClrHist').addEventListener('click',async()=>{
+  for(const it of ls.g(K.hist,[])) if(it.fotoId) await FOTODB.del(it.fotoId);
+  ls.s(K.hist,[]); renderHist(); renderDia(); toast('Historial borrado');
+});
 
 /* ══════════ Init ══════════ */
-renderShot(); loadPerf(); renderNeeds(); renderRes(ls.g(K.last,null)); leerURL();
+renderShot(); renderFotos(); loadPerf(); renderNeeds(); renderRes(ls.g(K.last,null)); leerURL();
 
 /* Service worker: deja la app usable sin el servidor encendido y sin conexión */
 if('serviceWorker' in navigator){
