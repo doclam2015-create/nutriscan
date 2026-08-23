@@ -938,8 +938,31 @@ const NUTPAT = [
   ['vitd_ug',     /vitamina\s*d[^0-9\-\n]{0,25}?(\d+[.,]?\d*)/i],
   ['cafeina_mg',  /cafe[íi]na[^0-9\-\n]{0,25}?(\d+[.,]?\d*)/i]
 ];
+/* Una foto cabeza abajo se lee entera, pero al reves: las filas salen en
+   orden inverso y los numeros van ANTES del nombre
+   («0,3  1  Sodio (mg)» en vez de «Sodio (mg)  1  0,3»).
+   Se endereza el texto en vez de volver a escanear: es instantaneo, no
+   gasta otra consulta y no depende de que el motor detecte la rotacion. */
+function enderezar(txt){
+  const lineas = txt.split(/\r?\n/).filter(l=>l.trim());
+  const num = /^\s*-?\d+[.,]?\d*\s*$/;
+  const campos = l => l.split(/\t|\s{2,}/).map(c=>c.trim()).filter(Boolean);
+  let alReves=0, normal=0;
+  for(const l of lineas){
+    const c=campos(l);
+    if(c.length<2) continue;
+    const primeroNum=num.test(c[0]), ultimoNum=num.test(c[c.length-1]);
+    if(primeroNum && !ultimoNum) alReves++;
+    else if(!primeroNum && ultimoNum) normal++;
+  }
+  if(alReves < 3 || alReves <= normal) return txt;      // sin señal clara: no se toca
+  return lineas.reverse().map(l=>{
+    const c=campos(l);
+    return c.length>1 ? c.reverse().join('\t') : l.trim();
+  }).join('\n');
+}
 function parseTexto(txt){
-  const t = txt.replace(/ /g,' ');
+  const t = enderezar(txt).replace(/ /g,' ');
   const out = {};
   for(const [k,re] of NUTPAT){
     const m = t.match(re);
@@ -1314,7 +1337,7 @@ function renderShot(){
     ? `<div class="shot"><img src="${foto}"><button class="del" id="delShot">✕</button></div>` : '';
   const d=$('delShot'); if(d) d.addEventListener('click',()=>{foto=null;renderShot();});
 }
-const APP_V = '17';
+const APP_V = '18';
 $('btnUpd').addEventListener('click', async ()=>{
   toast('Buscando la versión más reciente…');
   try{
@@ -1657,7 +1680,9 @@ $('fileLib').addEventListener('change', async e=>{
       const r = await buscarProducto(cod);
       ocrFin();
       if(r){ aplicarProducto(r); return; }
-      toast('El código '+cod+' no está en la base. Leo la tabla nutricional…');
+      toast(ultimoOFFVacio && ultimoOFFVacio.cod===cod
+        ? 'Código '+cod+' leído ✓ — está en la base pero sin datos nutricionales. Leo la tabla…'
+        : 'Código '+cod+' leído ✓ — no está en la base. Leo la tabla nutricional…');
       ocrProgreso('Leyendo la etiqueta…',40);
     }
     ocrFin();
@@ -1844,32 +1869,40 @@ function decodificar(ZXo,{g,w,h}){
 /* Prueba la banda central (donde apunta la mira), el cuadro entero y ambos girados.
    `rapido` = solo esas dos zonas, para el bucle en vivo de la camara, que
    corre cada 140 ms y no puede permitirse mas. */
-async function leerCodigoEnCanvas(cv, rapido){
+async function leerCodigoEnCanvas(cv, rapido, turno){
   const ZXo=await motorCodigo();
   const W=cv.width, H=cv.height;
   const banda={x:0,y:Math.round(H*0.28),w:W,h:Math.round(H*0.44)};
   const zonas=[banda,{x:0,y:0,w:W,h:H}];
 
+  /* Cuadros 3x3 con solape: el codigo casi nunca cae justo en la mira. */
+  const N=3, sol=0.5;
+  const tw=Math.round(W/N*(1+sol)), th=Math.round(H/N*(1+sol));
+  const cuadro = idx => ({
+    x: Math.max(0, Math.min(W-tw, Math.round((idx%N)*W/N))),
+    y: Math.max(0, Math.min(H-th, Math.round(Math.floor(idx/N)*H/N))),
+    w: tw, h: th
+  });
+
   /* En una foto quieta el codigo suele ocupar una esquina y quedar diminuto
      frente al resto del envase: barrido en cuadros con solape para que las
      barras lleguen a ZXing con resolucion suficiente. */
-  if(!rapido){
-    const N=3, sol=0.5;                      // 3x3 con medio cuadro de solape
-    const tw=Math.round(W/N*(1+sol)), th=Math.round(H/N*(1+sol));
-    for(let i=0;i<N;i++) for(let j=0;j<N;j++){
-      const x=Math.min(W-tw, Math.round(i*W/N)), y=Math.min(H-th, Math.round(j*H/N));
-      if(x>=0 && y>=0 && tw>40 && th>40) zonas.push({x,y,w:tw,h:th});
-    }
-  }
-
+  /* En vivo no se puede barrer los 9 cuadros en cada fotograma sin perder
+     fluidez, pero si UNO distinto cada vez: en menos de un segundo y medio
+     el barrido completo ya paso por toda la imagen, y cada fotograma sigue
+     costando lo mismo que antes. */
   if(rapido){
-    for(const z of zonas)
+    const z9 = cuadro((turno||0) % (N*N));
+    for(const z of [banda, z9, {x:0,y:0,w:W,h:H}])
       for(const girado of [false,true]){
-        const c=decodificar(ZXo, grisDe(cv,z.x,z.y,z.w,z.h,girado));
+        const zoom = (z===z9 && z.w<W*0.9) ? 2 : 1;
+        const c=decodificar(ZXo, grisDe(cv,z.x,z.y,z.w,z.h,girado,zoom));
         if(c) return c;
       }
     return null;
   }
+
+  for(let i=0;i<N*N;i++){ const z=cuadro(i); if(z.w>40 && z.h>40) zonas.push(z); }
 
   /* En foto quieta no se acepta la primera lectura: se recogen todas y se
      exige acuerdo. Un codigo torcido o con brillo puede decodificar como un
@@ -1884,6 +1917,25 @@ async function leerCodigoEnCanvas(cv, rapido){
         const c=decodificar(ZXo, grisDe(cv,z.x,z.y,z.w,z.h,girado,zoom));
         if(c) votos.set(c,(votos.get(c)||0)+1);
       }
+  /* Una foto a pulso casi nunca sale recta, y ZXing lee por lineas
+     horizontales: unos pocos grados bastan para que no enganche. Si no
+     salio nada, se reintenta con la imagen girada un poco. */
+  if(!votos.size){
+    for(const ang of [-8,8,-15,15]){
+      const g=document.createElement('canvas');
+      g.width=W; g.height=H;
+      const gc=g.getContext('2d');
+      gc.translate(W/2,H/2); gc.rotate(ang*Math.PI/180); gc.translate(-W/2,-H/2);
+      gc.drawImage(cv,0,0);
+      for(const z of [banda,{x:0,y:0,w:W,h:H}])
+        for(const zoom of [1,2]){
+          const c=decodificar(ZXo, grisDe(g,z.x,z.y,z.w,z.h,false,zoom));
+          if(c) votos.set(c,(votos.get(c)||0)+1);
+        }
+      if(votos.size) break;
+    }
+  }
+
   if(!votos.size) return null;
   const orden=[...votos.entries()].sort((a,b)=> b[1]-a[1] || b[0].length-a[0].length);
   const [cod,n]=orden[0];
@@ -1969,6 +2021,7 @@ const CAMPOS_OFF = ['product_name','product_name_es','generic_name_es','brands',
 
 /* navigator.onLine da falsos negativos, asi que nunca decide: solo informa.
    La consulta se intenta siempre y es el propio fetch quien falla si no hay red. */
+let ultimoOFFVacio = null;      // el codigo existe, pero sin tabla nutricional
 async function fetchOFF(cod){
   const ctl=new AbortController();
   const t=setTimeout(()=>ctl.abort(),9000);
@@ -1980,7 +2033,14 @@ async function fetchOFF(cod){
     const j=await r.json();
     if(j.status!==1 || !j.product) return null;
     const prod=deOFF(cod,j.product);
-    if(prod.nut.kcal==null && prod.nut.grasa_g==null && prod.nut.carb_g==null) return null;
+    /* Muchisimos productos existen en la base pero con la tabla nutricional
+       en blanco: nadie la ha cargado. Antes eso se informaba como «no esta
+       en la base», que es falso y hace pensar que no se leyo el codigo. */
+    if(prod.nut.kcal==null && prod.nut.grasa_g==null && prod.nut.carb_g==null){
+      ultimoOFFVacio = {cod, nombre: prod.nombre||prod.marca||'', cantidad: j.product.quantity||''};
+      return null;
+    }
+    ultimoOFFVacio = null;
     return prod;
   }catch(e){ pintarRed('no'); return null; }
   finally{ clearTimeout(t); }
@@ -2044,7 +2104,7 @@ function limpiarFormulario(){
 $('btnNuevo').addEventListener('click',()=>{ limpiarFormulario(); goto('scan'); toast('Formulario en blanco'); });
 
 /* ── Cámara en vivo ───────────────────────────────────────────── */
-let camStream=null, camModo='cod', camTimer=null, camCv=null, camOcupado=false;
+let camStream=null, camModo='cod', camTimer=null, camCv=null, camOcupado=false, camTurno=0;
 
 function camDecir(t){ $('camMsg').innerHTML=t; }
 function camVibrar(){ try{ navigator.vibrate && navigator.vibrate(60); }catch(e){} }
@@ -2107,10 +2167,10 @@ function camFotograma(max){
 async function camBucle(){
   clearTimeout(camTimer);
   if(!camStream || camModo!=='cod' || camOcupado) return;
-  const cv=camFotograma(1280);
+  const cv=camFotograma(1600);
   if(cv){
     let cod=null;
-    try{ cod = await leerCodigoEnCanvas(cv, true); }catch(e){}
+    try{ cod = await leerCodigoEnCanvas(cv, true, camTurno++); }catch(e){}
     if(cod && camStream && camModo==='cod'){
       camOcupado=true; camVibrar();
       camDecir('Código <b>'+cod+'</b> · buscando el producto…');
@@ -2118,7 +2178,9 @@ async function camBucle(){
       camOcupado=false;
       if(r){ cerrarCam(); aplicarProducto(r); return; }
       codPend=cod;
-      camDecir('El código <b>'+cod+'</b> no está en la base.<br>Encuadra la tabla nutricional y pulsa «Leer la tabla».');
+      camDecir(ultimoOFFVacio && ultimoOFFVacio.cod===cod
+        ? 'Código <b>'+cod+'</b> leído ✓<br>Está en la base mundial, pero <b>sin tabla nutricional</b> cargada.<br>Encuadra la tabla y pulsa «Leer la tabla»: quedará guardada para siempre.'
+        : 'Código <b>'+cod+'</b> leído ✓<br>No está en la base mundial.<br>Encuadra la tabla nutricional y pulsa «Leer la tabla».');
       camPonerModo('ocr');
       return;
     }
@@ -2163,7 +2225,9 @@ $('btnCod').addEventListener('click',async()=>{
   toast('Buscando '+c+'…');
   const r=await buscarProducto(c);
   if(r) aplicarProducto(r);
-  else { codPend=c; toast('El código '+c+' no está en la base (o no hay conexión). Escanea la tabla nutricional o llénala a mano.', true); }
+  else { codPend=c; toast(ultimoOFFVacio && ultimoOFFVacio.cod===c
+    ? 'El código '+c+' existe en la base pero sin tabla nutricional. Escanéala o llénala a mano: quedará guardada.'
+    : 'El código '+c+' no está en la base (o no hay conexión). Escanea la tabla nutricional o llénala a mano.', true); }
 });
 
 /* Aviso de conexión: se pinta con hechos, no con navigator.onLine, que miente.
@@ -2728,6 +2792,24 @@ if(location.search.includes('test')){
   A(!digitoOK('1234567890123'),'EAN-13 inventado: rechazado');
   A(!digitoOK('123456'),'demasiado corto: rechazado');
   R.push('Código de barras');
+
+  /* Etiqueta fotografiada cabeza abajo: el OCR la lee entera pero al reves */
+  (function(){
+    const alReves = ['0,3\t1\tSodio (mg)','6,5\t11,6\tAzúcares totales (g)',
+      '8,4\t28\tH. de C. disp. (g)','12,7\t42,2\tGrasa total (g)',
+      '6,2\t20,6\tProteínas (g)','167\t557\tEnergía (kcal)',
+      '1 porción\t100 g','Porción: 1/4 taza (30 g)'].join('\n');
+    const r = parseTexto(alReves);
+    A(r.kcal===557,'cabeza abajo: energia');
+    A(r.grasa_g===42.2,'cabeza abajo: toma la columna de 100 g, no la de la porcion');
+    A(r.sodio_mg===1,'cabeza abajo: sodio');
+    A(r._porcG===30,'cabeza abajo: tamaño de porcion');
+    const normal = 'Energía (kcal)\t557\t167\nProteínas (g)\t20,6\t6,2\nSodio (mg)\t1\t0,3';
+    const n = parseTexto(normal);
+    A(n.kcal===557 && n.sodio_mg===1,'texto derecho: no se toca');
+    A(enderezar('Sodio (mg)\t1\t0,3')==='Sodio (mg)\t1\t0,3','sin señal clara: no se toca');
+  })();
+  R.push('Etiqueta al revés');
 
   /* Parser: cada nutriente toma el numero de SU fila, nunca el de otra */
   (function(){
