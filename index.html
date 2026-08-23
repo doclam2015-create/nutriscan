@@ -153,6 +153,8 @@ tr:last-child td{border-bottom:none}
 .hitem .ph{width:46px;height:46px;border-radius:9px;flex:none;background:var(--card2);
   display:flex;align-items:center;justify-content:center;font-size:20px}
 .hitem .m{flex:1;min-width:0}
+.hitem .hdel{flex:none;width:44px;height:44px;border-radius:11px;border:1px solid var(--line);
+  background:var(--card2);color:#fca5a5;font-size:15px;line-height:1;padding:0}
 .hitem .m b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hitem .m span{font-size:11px;color:var(--tx3)}
 .hitem .s{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;
@@ -272,6 +274,7 @@ details[open] summary{margin-bottom:11px}
       <button class="btn sec" id="btnLib">🖼️ Elegir foto</button>
       <button class="btn sec" id="btnCod">⌨️ Escribir el código</button>
     </div>
+    <button class="btn sec sm" id="btnNuevo" style="margin-top:9px">🧹 Empezar de cero (borrar lo escrito)</button>
     <small class="mut" style="margin-top:10px">Apunta al <b>código de barras</b>: el producto se identifica solo y el informe es exacto. Si no tiene código o no está en la base, la app lee la <b>tabla nutricional</b> con la cámara.</small>
     <div id="shotBox" style="margin-top:11px"></div>
     <input type="file" id="fileLib" accept="image/*" class="hide">
@@ -1310,7 +1313,7 @@ function renderShot(){
     ? `<div class="shot"><img src="${foto}"><button class="del" id="delShot">✕</button></div>` : '';
   const d=$('delShot'); if(d) d.addEventListener('click',()=>{foto=null;renderShot();});
 }
-const APP_V = '15';
+const APP_V = '16';
 $('btnUpd').addEventListener('click', async ()=>{
   toast('Buscando la versión más reciente…');
   try{
@@ -1461,39 +1464,84 @@ function prepararImagen(file){
    pedirla. Sin clave propia, igual se intenta con la publica: cuando no
    este saturada, funciona igual de bien. */
 const ocrKey = () => (ls.g('ns_ocrkey','')||'').trim() || 'helloworld';
+
+/* La letra de una tabla nutricional es diminuta. Si el recorte llega con poco
+   ancho, ningun motor la resuelve: se amplia antes de mandarla. */
+function ampliar(cv, minAncho){
+  if(cv.width >= minAncho) return cv;
+  const k = Math.min(3, minAncho/cv.width);
+  const out = document.createElement('canvas');
+  out.width = Math.round(cv.width*k); out.height = Math.round(cv.height*k);
+  const cx = out.getContext('2d');
+  cx.imageSmoothingEnabled = true; cx.imageSmoothingQuality = 'high';
+  cx.drawImage(cv, 0, 0, out.width, out.height);
+  return out;
+}
+
+let ocrNubeError = null;                  // ultimo motivo de fallo, para poder decirlo
 async function ocrEnLinea(canvas, prog){
+  ocrNubeError = null;
   try{
-    prog && prog('Probando lectura en línea (más precisa)…', 20);
-    const jpg = canvas.toDataURL('image/jpeg', 0.82);
+    prog && prog('Leyendo en línea (motor más preciso)…', 20);
+    /* Sin realzar: el motor de nube trabaja mejor con la foto natural.
+       El realce de contraste es una muleta del lector local. */
+    const jpg = ampliar(canvas, 1400).toDataURL('image/jpeg', 0.92);
     const fd = new FormData();
     fd.append('apikey', ocrKey());
     fd.append('language', 'spa');
     fd.append('OCREngine', '2');
     fd.append('scale', 'true');
     fd.append('isTable', 'true');
+    fd.append('detectOrientation', 'true');
     fd.append('base64Image', jpg);
     const ctl = new AbortController();
-    const t = setTimeout(()=>ctl.abort(), 12000);
+    const t = setTimeout(()=>ctl.abort(), 20000);
     let r;
     try{ r = await fetch('https://api.ocr.space/parse/image', {method:'POST', body:fd, signal:ctl.signal}); }
     finally{ clearTimeout(t); }
-    if(!r.ok) return null;
+    if(!r.ok){
+      const cuerpo = await r.text().catch(()=>'');
+      const propia = ocrKey()!=='helloworld';
+      ocrNubeError =
+        (r.status===401 || r.status===403)
+          ? (propia ? 'Tu clave de OCR.space fue rechazada: revísala en Ajustes.'
+                    : 'La clave pública compartida fue rechazada; registra la tuya en Ajustes.')
+        : /E551|throttl|overload/i.test(cuerpo) || r.status===503
+          ? (propia ? 'El servicio en línea está saturado ahora mismo.'
+                    : 'La clave pública está saturada; registra la tuya gratis en Ajustes.')
+        : 'El servicio en línea respondió con un error ('+r.status+').';
+      return null;
+    }
     const j = await r.json();
-    if(j.IsErroredOnProcessing) return null;
+    if(j.IsErroredOnProcessing){
+      const m = [].concat(j.ErrorMessage||[]).join(' ');
+      ocrNubeError = /apikey|api key|invalid/i.test(m)
+        ? 'Tu clave de OCR.space no fue aceptada: revísala en Ajustes.'
+        : (m.slice(0,120) || 'El servicio en línea no pudo procesar la imagen.');
+      return null;
+    }
     const txt = (j.ParsedResults && j.ParsedResults[0] && j.ParsedResults[0].ParsedText || '').trim();
-    return txt.length>=15 ? txt : null;
-  }catch(e){ return null; }               // sin red, timeout o cupo agotado: silencioso
+    if(txt.length<15){ ocrNubeError='El servicio en línea no distinguió texto en el recorte.'; return null; }
+    return txt;
+  }catch(e){
+    ocrNubeError = e.name==='AbortError'
+      ? 'El servicio en línea tardó demasiado en responder.'
+      : 'No hay conexión con el servicio en línea.';
+    return null;
+  }
 }
 
-/* Prueba primero la nube (rapida y mas precisa); si no responde, usa el motor local.
-   motorTxt() queda registrado en el resultado para que el informe diga cual se uso. */
-let ultimoMotorOCR = null;
+/* Prueba primero la nube con la imagen natural; si no responde, realza el
+   contraste —que es lo que necesita el lector local— y lee sin conexion. */
+let ultimoMotorOCR = null, ultimoAvisoOCR = null;
 async function leerTabla(canvas, prog){
+  ultimoAvisoOCR = null;
   const enLinea = await ocrEnLinea(canvas, prog);
   if(enLinea){ ultimoMotorOCR='linea'; return enLinea; }
-  prog && prog('Sin conexión o cupo agotado: uso el lector local…', 30);
+  ultimoAvisoOCR = ocrNubeError;
+  prog && prog((ocrNubeError||'')+' Uso el lector local…', 30);
   const w = await motorOCR(prog);
-  const { data } = await w.recognize(canvas);
+  const { data } = await w.recognize(realzar(ampliar(canvas, 1600)));
   ultimoMotorOCR='local';
   return (data.text||'').trim();
 }
@@ -1595,6 +1643,7 @@ $('fileLib').addEventListener('change', async e=>{
   const f=e.target.files&&e.target.files[0]; e.target.value='';
   if(!f || ocrOcupado) return;
   ocrOcupado=true;
+  limpiarFormulario();                       // el producto anterior no debe mezclarse
   try{
     ocrProgreso('Preparando la imagen…',8);
     const {canvas,thumb} = await prepararImagen(f);
@@ -1611,7 +1660,7 @@ $('fileLib').addEventListener('change', async e=>{
     ocrFin();
     const recorte = await recortar(canvas);
     ocrProgreso('Leyendo la etiqueta…',20);
-    const txt = await leerTabla(realzar(recorte), ocrProgreso);
+    const txt = await leerTabla(recorte, ocrProgreso);
     ocrFin();
     if(txt.length<15){ toast('No se distinguió texto. Acerca más la cámara a la tabla y evita reflejos.',true); return; }
     codPend = cod || codPend;
@@ -1919,6 +1968,20 @@ function aplicarProducto(r){
 }
 let codPend=null, novaOFF=null, nsOFF=null, origenDato='manual', filasOCR=[], motorOrigen=null;
 
+/* Deja el formulario en blanco. Sin esto, el producto anterior se queda en los
+   campos y sus valores se mezclan con los del nuevo: si la etiqueta nueva no
+   declara un nutriente, hereda el del anterior y el informe sale falseado. */
+function limpiarFormulario(){
+  ['inNombre','inTexto','inIng','inPorcG','inPorcN'].forEach(id=>$(id).value='');
+  NUTS.forEach(([k])=>{ $('n_'+k).value=''; });
+  $('inBase').value='100'; $('inTipo').value='solido';
+  foto=null; renderShot();
+  codPend=null; novaOFF=null; nsOFF=null; origenDato='manual';
+  filasOCR=[]; motorOrigen=null; igBaseSel=null;
+  $('ocrBox').className='hide'; $('ocrBox').innerHTML='';
+}
+$('btnNuevo').addEventListener('click',()=>{ limpiarFormulario(); goto('scan'); toast('Formulario en blanco'); });
+
 /* ── Cámara en vivo ───────────────────────────────────────────── */
 let camStream=null, camModo='cod', camTimer=null, camCv=null, camOcupado=false;
 
@@ -1928,6 +1991,7 @@ function camVibrar(){ try{ navigator.vibrate && navigator.vibrate(60); }catch(e)
 async function abrirCam(){
   if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia)
     return toast('Este navegador no da acceso a la cámara. Usa «Elegir foto».',true);
+  limpiarFormulario();                       // el producto anterior no debe mezclarse
   $('camOvl').className='';
   camPonerModo('cod');
   camDecir('Encendiendo la cámara…');
@@ -2015,7 +2079,6 @@ async function camLeerTabla(){
   try{
     foto=miniatura(alta); renderShot();
     const recorte = await recortar(alta);
-    realzar(recorte);
     ocrProgreso('Leyendo la etiqueta…',20);
     const txt = await leerTabla(recorte, ocrProgreso);
     ocrFin();
@@ -2035,6 +2098,7 @@ $('btnLib').addEventListener('click',()=>$('fileLib').click());
 $('btnCod').addEventListener('click',async()=>{
   const c=(prompt('Escribe el código de barras (los números bajo las barras):')||'').replace(/\D/g,'');
   if(c.length<8) return c && toast('Ese código no parece válido',true);
+  limpiarFormulario();                       // el producto anterior no debe mezclarse
   toast('Buscando '+c+'…');
   const r=await buscarProducto(c);
   if(r) aplicarProducto(r);
@@ -2102,7 +2166,8 @@ function generarInforme(auto){
     alergs: [...new Set(ings.map(i=>i.al).filter(Boolean))],
     cod: codPend, novaOFF, nsOFF, porcDecl,
     avisos: revisar(x100, tipo).concat(origenDato==='camara'? revisarColumnas(filasOCR, porcDecl?porcG:null) : []),
-    origen: origenDato, motor: motorOrigen, textoOCR: $('inTexto').value.trim().slice(0,1200),
+    origen: origenDato, motor: motorOrigen, avisoMotor: motorOrigen==='local'?ultimoAvisoOCR:null,
+    textoOCR: $('inTexto').value.trim().slice(0,1200),
     ingTexto: $('inIng').value.trim(),
     ts: Date.now() };
 
@@ -2188,7 +2253,8 @@ function renderRes(d){
       d.novaOFF||d.nsOFF ? ` · la base mundial lo clasifica como NOVA <b>${d.novaOFF||'—'}</b> y Nutri-Score <b>${(d.nsOFF||'—').toUpperCase()}</b>${
         (d.novaOFF&&d.novaOFF!==d.nova)||(d.nsOFF&&d.nsOFF.toUpperCase()!==d.grade)
           ? ', algo distinto de lo calculado aquí porque cada versión del producto declara valores propios' : ', coincide con lo calculado aquí'}` : ''}</small>`:''}
-    ${d.motor?`<small class="mut" style="margin-top:5px;display:block">Etiqueta leída ${d.motor==='linea'?'en línea (motor de nube, más preciso)':'con el lector local del teléfono'}.</small>`:''}
+    ${d.motor?`<small class="mut" style="margin-top:5px;display:block">Etiqueta leída ${d.motor==='linea'?'en línea (motor de nube, más preciso)':'con el lector local del teléfono'}.${
+      d.avisoMotor?' '+esc(d.avisoMotor)+' Por eso la lectura puede ser menos exacta: revisa los valores abajo.':''}</small>`:''}
     </div>
     <div id="cmpOFF"></div>`;
 
@@ -2423,10 +2489,19 @@ function renderHist(){
       ${it.foto?`<img src="${it.foto}">`:'<div class="ph">🥫</div>'}
       <div class="m"><b>${esc(it.nombre)}</b>
         <span>NOVA ${it.nova} · ${it.sellos} sello${it.sellos===1?'':'s'} · ${new Date(it.ts).toLocaleDateString('es-CL')} ${new Date(it.ts).toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'})}</span></div>
-      <div class="s" style="background:${sc(it.score)}">${it.score}</div></div>`).join('')
+      <div class="s" style="background:${sc(it.score)}">${it.score}</div>
+      <button class="hdel" data-del="${i}" title="Quitar del historial">✕</button></div>`).join('')
     : '<p class="mut">Todavía no has analizado ningún producto.</p>';
   $('histList').querySelectorAll('.hitem').forEach(e=>e.addEventListener('click',()=>{
     renderRes(h[+e.dataset.h].full); goto('res');
+  }));
+  /* Borrar uno solo: el balance del día se recalcula sin ese producto. */
+  $('histList').querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',ev=>{
+    ev.stopPropagation();
+    const i=+b.dataset.del, lista=ls.g(K.hist,[]), quitado=lista[i];
+    lista.splice(i,1); ls.s(K.hist,lista);
+    renderHist(); renderDia();
+    toast('«'+(quitado&&quitado.nombre||'Producto')+'» quitado del historial');
   }));
 }
 function renderDia(){
