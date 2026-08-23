@@ -198,6 +198,26 @@ tr:last-child td{border-bottom:none}
 td.num i{font-style:normal;color:var(--tx3);font-size:11px;margin-left:3px}
 .tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
 .tablewrap table{min-width:330px}
+
+/* ── Recorte de la foto antes de leer la tabla ── */
+#cropOvl{position:fixed;inset:0;z-index:410;background:#000;display:flex;flex-direction:column}
+#cropOvl.hide{display:none}
+#cropWrap{position:relative;flex:1;display:flex;align-items:center;justify-content:center;
+  overflow:hidden;touch-action:none;background:#0a0a0a}
+#cropImg{max-width:100%;max-height:100%;display:block;user-select:none;-webkit-user-drag:none;pointer-events:none}
+#cropRect{position:absolute;border:2px solid var(--ac);background:rgba(59,130,246,.14);touch-action:none;
+  box-shadow:0 0 0 2000px rgba(0,0,0,.55)}
+#cropRect .h{position:absolute;width:30px;height:30px;margin:-15px;touch-action:none}
+#cropRect .h:before{content:'';position:absolute;inset:9px;background:#fff;border-radius:3px;
+  box-shadow:0 1px 4px rgba(0,0,0,.5)}
+#cropRect .nw{left:0;top:0}#cropRect .ne{right:0;top:0;margin-right:-15px}
+#cropRect .sw{left:0;bottom:0;margin-bottom:-15px}#cropRect .se{right:0;bottom:0;margin-right:-15px;margin-bottom:-15px}
+#cropMsg{position:absolute;left:0;right:0;top:14px;text-align:center;color:#fff;font-size:14px;font-weight:600;
+  text-shadow:0 1px 4px #000;padding:0 18px;pointer-events:none}
+#cropBar{background:#0d1117;padding:13px 15px calc(13px + env(safe-area-inset-bottom));
+  border-top:1px solid var(--line);display:flex;gap:9px}
+#cropBar button{flex:1;min-height:50px;border-radius:13px;font-size:14px;font-weight:700}
+#cropBar .sec{background:var(--card2);border:1px solid var(--line);color:var(--tx2)}
 .ovl{position:fixed;inset:0;background:rgba(6,9,13,.94);z-index:200;display:flex;
   align-items:center;justify-content:center;padding:22px;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .toast{position:fixed;left:13px;right:13px;bottom:calc(18px + var(--sb));z-index:300;
@@ -359,6 +379,18 @@ details[open] summary{margin-bottom:11px}
 </main>
 
 <!-- Ayuda y ajustes -->
+<div id="cropOvl" class="hide">
+  <div id="cropWrap">
+    <img id="cropImg" alt="">
+    <div id="cropMsg">Ajusta el recuadro a la <b>tabla nutricional</b></div>
+    <div id="cropRect"><i class="h nw"></i><i class="h ne"></i><i class="h sw"></i><i class="h se"></i></div>
+  </div>
+  <div id="cropBar">
+    <button class="sec" id="cropTodo">Usar la foto completa</button>
+    <button class="btn" id="cropOk" style="margin-top:0">✂️ Usar este recorte</button>
+  </div>
+</div>
+
 <div id="camOvl" class="hide">
   <div id="camWrap">
     <video id="camVid" playsinline muted autoplay></video>
@@ -380,19 +412,28 @@ details[open] summary{margin-bottom:11px}
   <div class="card" style="width:100%;max-width:520px;margin:0">
     <h2>Cómo usarla</h2>
     <div class="steps">
-      <div class="step"><span class="n">1</span><div>Toca <b>Abrir la cámara</b> y apunta al <b>código de barras</b> del envase. En cuanto lo reconoce, el informe sale solo.</div></div>
-      <div class="step"><span class="n">2</span><div>Si el producto no está en la base, la app cambia sola a <b>Tabla nutricional</b>: encuadra la tabla y pulsa <b>Leer la tabla</b>.</div></div>
-      <div class="step"><span class="n">3</span><div>Lo que leas queda guardado en el teléfono junto a su código: la próxima vez ese producto se reconoce al instante y <b>sin conexión</b>.</div></div>
+      <div class="step"><span class="n">1</span><div>Toca <b>Abrir la cámara</b> y apunta al <b>código de barras</b> del envase. En cuanto lo reconoce, el informe sale solo — es la vía más exacta, porque no depende de leer letra.</div></div>
+      <div class="step"><span class="n">2</span><div>Si el producto no está en la base, la app cambia sola a <b>Tabla nutricional</b>: encuadra la etiqueta, ajusta el recuadro a la tabla y pulsa <b>Leer la tabla</b>. Recortar solo la tabla —sin el resto del envase— es lo que más sube el acierto de la lectura.</div></div>
+      <div class="step"><span class="n">3</span><div>Cualquier valor del informe se puede corregir a mano: escribe encima y pulsa <b>Recalcular</b>. El puntaje, los sellos y todo lo demás se rehacen con tu corrección.</div></div>
+      <div class="step"><span class="n">4</span><div>Lo que leas o corrijas queda guardado en el teléfono junto a su código de barras: la próxima vez ese producto se reconoce al instante y <b>sin conexión</b>. Revísalo o bórralo en «Ver y editar productos guardados», más abajo.</div></div>
     </div>
 
     <div class="sep"></div>
+    <h3>Precisión de la lectura</h3>
+    <p class="mut">Con internet, la tabla nutricional se lee primero con un motor de reconocimiento en la nube (más preciso que el del teléfono, en especial con letra pequeña o envases curvos); si falla o no hay red, se usa en silencio el lector local, que funciona sin conexión. El informe siempre dice cuál de los dos leyó tu etiqueta.</p>
+    <div class="note"><b>La clave gratuita de fábrica se satura</b>La usan todos los que prueban esta app en internet, así que a menudo está saturada y la app cae al lector local sin avisar demora. Con tu propia clave —gratis, sin tarjeta, dos minutos en <b>ocr.space/ocrapi</b>— la lectura en línea funciona siempre. Se pide una sola vez: queda guardada en este teléfono para siempre.</div>
+    <label class="f"><span>Tu clave de OCR.space (opcional)</span>
+      <input type="text" id="inOcrKey" autocapitalize="off" autocorrect="off" placeholder="Pégala aquí, ej: K8123456789"></label>
+    <button class="btn sec sm" id="btnGuardarOcrKey">💾 Guardar mi clave</button>
+
+    <div class="sep"></div>
     <h3>Conexión</h3>
-    <p class="mut">Con internet consulta <b>Open Food Facts</b>, una base pública y gratuita de más de tres millones de productos. Sin internet funciona igual con la lectura de etiquetas, la base local de alimentos y los productos que ya escaneaste. No usa ninguna clave ni cuenta.</p>
+    <p class="mut">Con internet consulta <b>Open Food Facts</b>, una base pública y gratuita de más de tres millones de productos, y —cuando corriges algo a mano— la contrasta contigo para avisarte si difieren mucho. No existe una API pública oficial chilena (MINSAL/ISP) con la que comparar; Open Food Facts es la única fuente automática disponible, y no siempre acierta. Sin internet funciona igual con la lectura de etiquetas, la base local de 94 alimentos y los productos que ya guardaste. Ninguna de estas conexiones usa clave ni cuenta tuya.</p>
 
     <div class="sep"></div>
     <h3>Memoria de productos</h3>
     <p class="mut" id="prodCount"></p>
-    <button class="btn sec sm" id="btnBorrarProd">🗑️ Vaciar la memoria de productos</button>
+    <button class="btn sec sm" id="btnVerProd">📂 Ver y editar productos guardados</button>
 
     <div class="sep"></div>
     <div class="note inf"><b>Versión instalada: <span id="appVer"></span></b>
@@ -401,6 +442,19 @@ details[open] summary{margin-bottom:11px}
 
     <div class="sep"></div>
     <button class="btn" id="setupClose">Listo</button>
+  </div>
+</div>
+
+<!-- Memoria de productos escaneados -->
+<div class="ovl hide" id="prodOvl">
+  <div class="card" style="width:100%;max-width:460px;margin:0">
+    <h2>Memoria de productos</h2>
+    <p class="mut" style="margin-bottom:9px">Lo que escaneaste o corregiste, guardado por código de barras. Toca uno para verlo o corregirlo de nuevo; la ✕ lo borra solo a él.</p>
+    <div class="srch"><input type="text" id="prodQ" placeholder="Buscar por nombre o código…" autocomplete="off"></div>
+    <div class="res" id="prodRes"></div>
+    <div class="sep"></div>
+    <button class="btn dgr sm" id="btnBorrarProd2">🗑️ Vaciar toda la memoria</button>
+    <button class="btn sec" id="prodClose" style="margin-top:9px">Cerrar</button>
   </div>
 </div>
 
@@ -1077,8 +1131,23 @@ function revisar(x, tipo){
     else if(na>5000 && !condimento)
       av.push({k:'sodio_mg', m:`Sodio ${na} mg por 100 g equivale a ${(na*2.5/1000).toFixed(1)} g de sal dentro de 100 g de producto. Inverosímil para este alimento: corrígelo abajo.`});
   }
+
+  /* Coherencia con el tipo declarado: mas blanda que las anteriores, porque
+     aqui si hay excepciones reales (un aceite aromatizado con poca grasa,
+     una bebida energetica con algo de proteina). Se avisa, no se bloquea. */
+  if(tipo==='grasa' && kcal!=null && kcal<500 && suma>1)
+    av.push({k:'kcal', m:`${kcal} kcal en 100 g es poco para un aceite, manteca o margarina: suelen rondar 700-900 kcal. Revisa si es el tipo de producto correcto o si el valor está mal.`});
+  if(tipo==='bebida' && gra>15)
+    av.push({k:'grasa_g', m:`${gra} g de grasa en 100 ml es mucho para una bebida. Revisa si el tipo de producto (¿es realmente líquido?) o el valor están bien.`});
+  if(tipo==='bebida' && prot>10)
+    av.push({k:'proteina_g', m:`${prot} g de proteína en 100 ml es alto incluso para una bebida proteica. Confírmalo con el envase.`});
+  if(tipo==='queso' && prot>0 && prot<3 && kcal>150)
+    av.push({k:'proteina_g', m:`${prot} g de proteína es poco para un queso de ${kcal} kcal. Los quesos suelen tener 15-30 g de proteína en 100 g.`});
+
   return av;
 }
+
+// tests de las reglas por tipo, se añaden en el bloque de autotest mas abajo
 
 /* Contraste entre las dos columnas de la etiqueta chilena. */
 function revisarColumnas(filas, porcG){
@@ -1241,7 +1310,7 @@ function renderShot(){
     ? `<div class="shot"><img src="${foto}"><button class="del" id="delShot">✕</button></div>` : '';
   const d=$('delShot'); if(d) d.addEventListener('click',()=>{foto=null;renderShot();});
 }
-const APP_V = '14';
+const APP_V = '15';
 $('btnUpd').addEventListener('click', async ()=>{
   toast('Buscando la versión más reciente…');
   try{
@@ -1254,16 +1323,53 @@ $('btnUpd').addEventListener('click', async ()=>{
 $('setupClose').addEventListener('click',()=>$('setupOvl').className='ovl hide');
 $('btnSetup').addEventListener('click',()=>{
   $('appVer').textContent=APP_V;
+  $('inOcrKey').value = ls.g('ns_ocrkey','');
   const k=Object.keys(PRODS).length;
   $('prodCount').textContent = k
     ? k+' producto'+(k===1?'':'s')+' guardado'+(k===1?'':'s')+' en este teléfono: se reconocen al instante y sin conexión.'
     : 'Todavía no has guardado ningún producto. Se guardan solos al escanear.';
   $('setupOvl').className='ovl'; $('setupOvl').scrollTop=0; window.scrollTo(0,0);
 });
-$('btnBorrarProd').addEventListener('click',()=>{
+/* Memoria de productos: verla, buscarla, corregir uno o borrarlo sin tocar el resto */
+function renderProdList(q){
+  const n=norm(q||'');
+  const items = Object.values(PRODS)
+    .filter(p=>!n || norm(p.nombre||'').includes(n) || (p.cod||'').includes(n))
+    .sort((a,b)=>(b._ts||0)-(a._ts||0));
+  $('prodRes').innerHTML = items.length ? items.map(p=>`
+    <div data-c="${esc(p.cod)}" style="display:flex;align-items:center;gap:9px">
+      <div style="flex:1;min-width:0">${esc(p.nombre||'Sin nombre')}
+        <small>${esc(p.cod)}${p.nut&&p.nut.kcal!=null?' · '+p.nut.kcal+' kcal':''}${p.nut&&p.nut.sodio_mg!=null?' · '+p.nut.sodio_mg+' mg sodio':''}</small></div>
+      <button data-del="${esc(p.cod)}" style="flex:none;width:34px;height:34px;border-radius:9px;border:1px solid var(--line);background:var(--card2);color:#fca5a5;font-size:15px">✕</button>
+    </div>`).join('')
+    : `<div style="color:var(--tx3)">${q?'Sin resultados':'Todavía no has guardado ningún producto.'}</div>`;
+  $('prodRes').querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',ev=>{
+    ev.stopPropagation();
+    delete PRODS[b.dataset.del]; ls.s('ns_prod',PRODS);
+    renderProdList($('prodQ').value); toast('Producto borrado de la memoria');
+  }));
+  $('prodRes').querySelectorAll('[data-c]').forEach(d=>d.addEventListener('click',()=>{
+    const p=PRODS[d.dataset.c]; if(!p) return;
+    $('prodOvl').className='ovl hide';
+    aplicarProducto(p); goto('res');
+  }));
+}
+$('btnVerProd').addEventListener('click',()=>{
+  $('setupOvl').className='ovl hide';
+  $('prodOvl').className='ovl'; $('prodQ').value=''; renderProdList('');
+  setTimeout(()=>$('prodQ').focus(),150);
+});
+$('prodQ').addEventListener('input',e=>renderProdList(e.target.value));
+$('prodClose').addEventListener('click',()=>$('prodOvl').className='ovl hide');
+$('btnBorrarProd2').addEventListener('click',()=>{
+  if(!Object.keys(PRODS).length) return;
   Object.keys(PRODS).forEach(k=>delete PRODS[k]);
-  ls.s('ns_prod',PRODS); $('prodCount').textContent='Memoria vaciada.';
-  toast('Memoria de productos vaciada');
+  ls.s('ns_prod',PRODS); renderProdList(''); toast('Memoria de productos vaciada');
+});
+$('btnGuardarOcrKey').addEventListener('click',()=>{
+  const k=$('inOcrKey').value.trim();
+  ls.s('ns_ocrkey', k);
+  toast(k? 'Clave guardada. La lectura en línea la usará siempre.' : 'Clave borrada: se vuelve a la clave pública compartida.');
 });
 const appURL = () => (location.href.split('#')[0]).split('?')[0];
 /* ════════ OCR dentro de la app (Tesseract local, sin servicios externos) ════════ */
@@ -1343,6 +1449,134 @@ function prepararImagen(file){
   });
 }
 
+/* Lectura en linea: motor de nube (OCR.space), bastante mas preciso que el
+   local con letra pequena, papel brillante o envases curvos. Usa una clave
+   publica de demostracion (sin registro, no hay que escribir nada) — por eso
+   comparte cupo con otros usuarios de internet y puede fallar sin avisar; si
+   eso pasa, o no hay red, se cae en silencio al motor local de siempre. */
+/* La clave publica «helloworld» la comparte todo internet y se satura a
+   menudo (probado: devuelve E551 «throttled» en horas de mucho trafico).
+   Si el usuario registro una clave propia —gratis, sin tarjeta, en
+   ocr.space/ocrapi— se usa esa en su lugar, para siempre, sin volver a
+   pedirla. Sin clave propia, igual se intenta con la publica: cuando no
+   este saturada, funciona igual de bien. */
+const ocrKey = () => (ls.g('ns_ocrkey','')||'').trim() || 'helloworld';
+async function ocrEnLinea(canvas, prog){
+  try{
+    prog && prog('Probando lectura en línea (más precisa)…', 20);
+    const jpg = canvas.toDataURL('image/jpeg', 0.82);
+    const fd = new FormData();
+    fd.append('apikey', ocrKey());
+    fd.append('language', 'spa');
+    fd.append('OCREngine', '2');
+    fd.append('scale', 'true');
+    fd.append('isTable', 'true');
+    fd.append('base64Image', jpg);
+    const ctl = new AbortController();
+    const t = setTimeout(()=>ctl.abort(), 12000);
+    let r;
+    try{ r = await fetch('https://api.ocr.space/parse/image', {method:'POST', body:fd, signal:ctl.signal}); }
+    finally{ clearTimeout(t); }
+    if(!r.ok) return null;
+    const j = await r.json();
+    if(j.IsErroredOnProcessing) return null;
+    const txt = (j.ParsedResults && j.ParsedResults[0] && j.ParsedResults[0].ParsedText || '').trim();
+    return txt.length>=15 ? txt : null;
+  }catch(e){ return null; }               // sin red, timeout o cupo agotado: silencioso
+}
+
+/* Prueba primero la nube (rapida y mas precisa); si no responde, usa el motor local.
+   motorTxt() queda registrado en el resultado para que el informe diga cual se uso. */
+let ultimoMotorOCR = null;
+async function leerTabla(canvas, prog){
+  const enLinea = await ocrEnLinea(canvas, prog);
+  if(enLinea){ ultimoMotorOCR='linea'; return enLinea; }
+  prog && prog('Sin conexión o cupo agotado: uso el lector local…', 30);
+  const w = await motorOCR(prog);
+  const { data } = await w.recognize(canvas);
+  ultimoMotorOCR='local';
+  return (data.text||'').trim();
+}
+
+/* ══════════ Recorte de la foto antes de leer la tabla ══════════
+   El OCR falla mucho mas cuando lee toda la foto —logo, fondo, otra letra—
+   que cuando lee solo la tabla. Dejar que el usuario ajuste un recuadro es
+   la mejora de exactitud mas barata que existe sin subir la imagen a un
+   servicio de vision por computador. */
+function recortar(canvas){
+  return new Promise(resolve=>{
+    const ovl=$('cropOvl'), img=$('cropImg'), wrap=$('cropWrap'), rect=$('cropRect');
+    img.src = canvas.toDataURL('image/jpeg',0.88);
+    ovl.className='';
+
+    let est={x:0.04,y:0.26,w:0.92,h:0.52};  // recuadro inicial: casi todo el ancho, para no cortar texto pegado al borde
+    const pintar=()=>{
+      const b=img.getBoundingClientRect(), w0=wrap.getBoundingClientRect();
+      rect.style.left=(b.left-w0.left+est.x*b.width)+'px';
+      rect.style.top=(b.top-w0.top+est.y*b.height)+'px';
+      rect.style.width=(est.w*b.width)+'px';
+      rect.style.height=(est.h*b.height)+'px';
+    };
+
+    let arrastre=null;
+    const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+    const posImg=e=>{
+      const b=img.getBoundingClientRect();
+      const t=e.touches?e.touches[0]:e;
+      return {x:(t.clientX-b.left)/b.width, y:(t.clientY-b.top)/b.height, b};
+    };
+    const onDown=(modo)=>e=>{
+      e.preventDefault();
+      const {x,y}=posImg(e);
+      arrastre={modo, x0:x, y0:y, est0:{...est}};
+    };
+    const onMove=e=>{
+      if(!arrastre) return;
+      e.preventDefault();
+      const {x,y}=posImg(e);
+      const dx=x-arrastre.x0, dy=y-arrastre.y0, e0=arrastre.est0;
+      if(arrastre.modo==='mover'){
+        est.x=clamp(e0.x+dx,0,1-e0.w); est.y=clamp(e0.y+dy,0,1-e0.h);
+      } else {
+        let {x:ex,y:ey,w:ew,h:eh}=e0;
+        if(arrastre.modo.includes('w')){ const nx=clamp(e0.x+dx,0,e0.x+e0.w-0.06); ew=e0.w-(nx-e0.x); ex=nx; }
+        if(arrastre.modo.includes('e')){ ew=clamp(e0.w+dx,0.06,1-e0.x); }
+        if(arrastre.modo.includes('n')){ const ny=clamp(e0.y+dy,0,e0.y+e0.h-0.06); eh=e0.h-(ny-e0.y); ey=ny; }
+        if(arrastre.modo.includes('s')){ eh=clamp(e0.h+dy,0.06,1-e0.y); }
+        est={x:ex,y:ey,w:ew,h:eh};
+      }
+      pintar();
+    };
+    const onUp=()=>{ arrastre=null; };
+
+    const listeners=[];
+    const on=(el,ev,fn,opt)=>{ el.addEventListener(ev,fn,opt); listeners.push([el,ev,fn,opt]); };
+    on(rect,'pointerdown',onDown('mover'));
+    rect.querySelectorAll('.h').forEach(h=>on(h,'pointerdown',ev=>{ ev.stopPropagation(); onDown([...h.classList].find(c=>c!=='h'))(ev); }));
+    on(window,'pointermove',onMove);
+    on(window,'pointerup',onUp);
+
+    const cerrar=(resultado)=>{
+      listeners.forEach(([el,ev,fn,opt])=>el.removeEventListener(ev,fn,opt));
+      ovl.className='ovl hide'; ovl.className='hide';
+      resolve(resultado);
+    };
+
+    img.onload=pintar;
+    if(img.complete) pintar();
+    window.addEventListener('resize',pintar,{once:true});
+
+    $('cropTodo').onclick=()=>cerrar(canvas);
+    $('cropOk').onclick=()=>{
+      const w=canvas.width, h=canvas.height;
+      const sx=Math.round(est.x*w), sy=Math.round(est.y*h), sw=Math.round(est.w*w), sh=Math.round(est.h*h);
+      const out=document.createElement('canvas'); out.width=sw; out.height=sh;
+      out.getContext('2d').drawImage(canvas, sx,sy,sw,sh, 0,0,sw,sh);
+      cerrar(out);
+    };
+  });
+}
+
 function ocrProgreso(txt,pc){
   const b=$('ocrBox');
   b.className='';
@@ -1374,20 +1608,18 @@ $('fileLib').addEventListener('change', async e=>{
       toast('El código '+cod+' no está en la base. Leo la tabla nutricional…');
       ocrProgreso('Leyendo la etiqueta…',40);
     }
-    const txt = await ocrDeCanvas(realzar(canvas));
+    ocrFin();
+    const recorte = await recortar(canvas);
+    ocrProgreso('Leyendo la etiqueta…',20);
+    const txt = await leerTabla(realzar(recorte), ocrProgreso);
     ocrFin();
     if(txt.length<15){ toast('No se distinguió texto. Acerca más la cámara a la tabla y evita reflejos.',true); return; }
     codPend = cod || codPend;
+    motorOrigen = ultimoMotorOCR;
     if(!recibirTexto(txt)) $('inTexto').value=txt;
   }catch(err){ ocrFin(); toast('No se pudo leer la imagen: '+(err.message||'error'),true); }
   finally{ ocrOcupado=false; }
 });
-
-async function ocrDeCanvas(canvas){
-  const w = await motorOCR(ocrProgreso);
-  const { data } = await w.recognize(canvas);
-  return (data.text||'').trim();
-}
 
 /* ── Ingreso automático del texto: por la URL (#t=), al pegar o al abrir ── */
 function recibirTexto(txt){
@@ -1556,7 +1788,7 @@ const PRODS = ls.g('ns_prod', {});
 
 function guardarProducto(r){
   if(!r || !r.cod) return;
-  PRODS[r.cod]={...r, fuente:'local'};
+  PRODS[r.cod]={...r, fuente:'local', _ts:Date.now()};
   const k=Object.keys(PRODS);
   if(k.length>400) delete PRODS[k[0]];        // tope sencillo de memoria
   ls.s('ns_prod',PRODS);
@@ -1627,8 +1859,7 @@ const CAMPOS_OFF = ['product_name','product_name_es','generic_name_es','brands',
 
 /* navigator.onLine da falsos negativos, asi que nunca decide: solo informa.
    La consulta se intenta siempre y es el propio fetch quien falla si no hay red. */
-async function buscarProducto(cod){
-  if(PRODS[cod]) return PRODS[cod];
+async function fetchOFF(cod){
   const ctl=new AbortController();
   const t=setTimeout(()=>ctl.abort(),9000);
   try{
@@ -1640,10 +1871,34 @@ async function buscarProducto(cod){
     if(j.status!==1 || !j.product) return null;
     const prod=deOFF(cod,j.product);
     if(prod.nut.kcal==null && prod.nut.grasa_g==null && prod.nut.carb_g==null) return null;
-    guardarProducto(prod);
     return prod;
   }catch(e){ pintarRed('no'); return null; }
   finally{ clearTimeout(t); }
+}
+
+async function buscarProducto(cod){
+  if(PRODS[cod]) return PRODS[cod];
+  const prod = await fetchOFF(cod);
+  if(prod) guardarProducto(prod);
+  return prod;
+}
+
+/* Contrasta lo que hay en pantalla (manual, corregido o leido por camara) contra
+   Open Food Facts. No decide por el usuario: solo muestra donde discrepa, para que
+   el envase real sea quien resuelva la duda. Nunca sobreescribe nada solo. */
+async function compararConOFF(cod, x100){
+  if(!cod) return null;
+  const off = await fetchOFF(cod);
+  if(!off) return null;
+  const filas=[];
+  NUTS.forEach(([k,l,u])=>{
+    const mio=x100[k], suyo=off.nut[k];
+    if(mio==null || suyo==null) return;
+    const base=Math.max(Math.abs(mio),Math.abs(suyo),1);
+    const difPct = Math.abs(mio-suyo)/base*100;
+    if(difPct>=15) filas.push({k,l,u,mio:Math.round(mio*10)/10,suyo:Math.round(suyo*10)/10,difPct:Math.round(difPct)});
+  });
+  return {nombre:off.nombre||off.marca||'', filas};
 }
 
 /* Vuelca el producto en el formulario y genera el informe. */
@@ -1662,7 +1917,7 @@ function aplicarProducto(r){
   toast(r.fuente==='local' ? 'Producto reconocido (memoria del teléfono) ✓' : 'Producto encontrado en la base mundial ✓');
   generarInforme(true);
 }
-let codPend=null, novaOFF=null, nsOFF=null, origenDato='manual', filasOCR=[];
+let codPend=null, novaOFF=null, nsOFF=null, origenDato='manual', filasOCR=[], motorOrigen=null;
 
 /* ── Cámara en vivo ───────────────────────────────────────────── */
 let camStream=null, camModo='cod', camTimer=null, camCv=null, camOcupado=false;
@@ -1758,12 +2013,14 @@ async function camLeerTabla(){
   cerrarCam();
   ocrOcupado=true;
   try{
-    realzar(alta);
     foto=miniatura(alta); renderShot();
-    ocrProgreso('Leyendo la etiqueta…',30);
-    const txt=await ocrDeCanvas(alta);
+    const recorte = await recortar(alta);
+    realzar(recorte);
+    ocrProgreso('Leyendo la etiqueta…',20);
+    const txt = await leerTabla(recorte, ocrProgreso);
     ocrFin();
     if(txt.length<15) return toast('No se distinguió texto. Acércate más y evita reflejos.',true);
+    motorOrigen = ultimoMotorOCR;
     if(!recibirTexto(txt)) $('inTexto').value=txt;
   }catch(e){ ocrFin(); toast('No se pudo leer: '+(e.message||'error'),true); }
   finally{ ocrOcupado=false; camOcupado=false; }
@@ -1845,7 +2102,7 @@ function generarInforme(auto){
     alergs: [...new Set(ings.map(i=>i.al).filter(Boolean))],
     cod: codPend, novaOFF, nsOFF, porcDecl,
     avisos: revisar(x100, tipo).concat(origenDato==='camara'? revisarColumnas(filasOCR, porcDecl?porcG:null) : []),
-    origen: origenDato, textoOCR: $('inTexto').value.trim().slice(0,1200),
+    origen: origenDato, motor: motorOrigen, textoOCR: $('inTexto').value.trim().slice(0,1200),
     ingTexto: $('inIng').value.trim(),
     ts: Date.now() };
 
@@ -1855,8 +2112,19 @@ function generarInforme(auto){
     nut:x100, nova:novaOFF, nsOFF });
 
   ls.s(K.last,d); pushHist(d); renderRes(d); goto('res');
-  igBaseSel=null; codPend=null; novaOFF=null; nsOFF=null;
+  igBaseSel=null; codPend=null; novaOFF=null; nsOFF=null; motorOrigen=null;
   if(auto) toast('Etiqueta leída y analizada ✓');
+
+  /* Contraste con Open Food Facts: nunca bloquea el informe, llega despues si llega. */
+  if(d.cod && d.origen!=='barras' && d.origen!=='memoria'){
+    compararConOFF(d.cod, x100).then(cmp=>{
+      if(!cmp || !cmp.filas.length) return;
+      const actual = ls.g(K.last,null);
+      if(!actual || actual.ts!==d.ts) return;      // el usuario ya cambio de informe
+      const ph = document.getElementById('cmpOFF');
+      if(ph) ph.innerHTML = cardComparacionOFF(cmp);
+    });
+  }
 }
 $('btnGo').addEventListener('click',()=>generarInforme(false));
 
@@ -1880,6 +2148,12 @@ function bar(l,v,u,max,inv,extra){
     ${extra?`<small class="mut" style="margin-top:3px">${extra}</small>`:''}</div>`;
 }
 
+function cardComparacionOFF(cmp){
+  return `<div class="card"><h2>🌍 Comparación con Open Food Facts</h2>
+    <small class="mut" style="margin-bottom:11px">Base pública mundial${cmp.nombre?' — allí figura como «'+esc(cmp.nombre)+'»':''}. No es una fuente oficial chilena (no existe una API pública del MINSAL o el ISP), pero es el único contraste automático disponible. Sirve para dudar, no para decidir: si difiere mucho, confía en el envase que tienes en la mano.</small>
+    ${cmp.filas.map(f=>`<div class="note ${f.difPct>=40?'bad':''}">«<b>${esc(f.l)}</b>» — tú: ${f.mio} ${f.u} · Open Food Facts: ${f.suyo} ${f.u} (${f.difPct} % de diferencia)</div>`).join('')}
+    </div>`;
+}
 function renderRes(d){
   if(!d){ $('resBox').innerHTML='<div class="card"><p class="mut">Aún no hay informe. Ve a <b>Analizar</b>.</p></div>'; return; }
   const x=d.x100, p=d.pPorc, n=d.needs, C=sc(d.score), circ=2*Math.PI*45, U=d.tipo==='bebida'?'ml':'g';
@@ -1914,7 +2188,9 @@ function renderRes(d){
       d.novaOFF||d.nsOFF ? ` · la base mundial lo clasifica como NOVA <b>${d.novaOFF||'—'}</b> y Nutri-Score <b>${(d.nsOFF||'—').toUpperCase()}</b>${
         (d.novaOFF&&d.novaOFF!==d.nova)||(d.nsOFF&&d.nsOFF.toUpperCase()!==d.grade)
           ? ', algo distinto de lo calculado aquí porque cada versión del producto declara valores propios' : ', coincide con lo calculado aquí'}` : ''}</small>`:''}
-    </div>`;
+    ${d.motor?`<small class="mut" style="margin-top:5px;display:block">Etiqueta leída ${d.motor==='linea'?'en línea (motor de nube, más preciso)':'con el lector local del teléfono'}.</small>`:''}
+    </div>
+    <div id="cmpOFF"></div>`;
 
   /* Datos que no cuadran: se avisa antes que nada, porque invalidan el resto */
   if(d.avisos && d.avisos.length){
@@ -2304,6 +2580,11 @@ if(location.search.includes('test')){
   A(mal2._filas.map(f=>f.et).join('|')==='Energía|Proteínas|Grasa Total|H. de C. Disp|Sodio','nombres de fila limpios y completos');
   A(revisarColumnas(et._filas,30).some(a=>a.k==='_porc'),'si todas fallan, culpa al tamaño de porción');
   R.push('Columnas');
+  A(revisar({kcal:120,proteina_g:1,carb_g:2,grasa_g:1},'grasa').some(a=>a.k==='kcal'),'aceite con muy pocas kcal: se avisa');
+  A(revisar({kcal:900,proteina_g:0,carb_g:0,grasa_g:100},'grasa').length===0,'aceite normal: sin avisos');
+  A(revisar({kcal:60,proteina_g:2,carb_g:8,grasa_g:22},'bebida').some(a=>a.k==='grasa_g'),'bebida con mucha grasa: se avisa');
+  A(revisar({kcal:350,proteina_g:1.5,carb_g:20,grasa_g:28},'queso').some(a=>a.k==='proteina_g'),'queso con muy poca proteína: se avisa');
+  A(revisar({kcal:350,proteina_g:22,carb_g:2,grasa_g:28},'queso').length===0,'queso normal: sin avisos');
   R.push('Verosimilitud');
   setTimeout(()=>toast('✅ TODOS LOS TESTS OK — '+R.join(' · ')),400);
 }
