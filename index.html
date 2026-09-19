@@ -41,7 +41,7 @@ body{padding-top:var(--st)}
 
 header{position:sticky;top:0;z-index:60;background:var(--hdr);
   -webkit-backdrop-filter:saturate(180%) blur(14px);backdrop-filter:blur(14px);
-  border-bottom:1px solid var(--line);padding:9px 13px 7px}
+  border-bottom:1px solid var(--line);padding:9px 13px 8px}
 .hrow{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .brand{display:flex;align-items:center;gap:9px;font-weight:800;font-size:19px;letter-spacing:-.4px}
 .logo{width:30px;height:30px;border-radius:9px;display:block;object-fit:cover}
@@ -56,14 +56,18 @@ header{position:sticky;top:0;z-index:60;background:var(--hdr);
   -webkit-transition:left .25s ease;transition:left .25s ease}
 :root[data-theme="light"] .tema i{left:27px}
 .tema:active{opacity:.7}
-nav{display:flex;gap:5px;margin-top:8px}
-nav button{flex:1;min-height:40px;border:1px solid var(--line);background:var(--card);
-  color:var(--tx2);border-radius:10px;font-size:12.5px;font-weight:700;padding:0 3px;font-family:inherit}
-nav button.on{background:var(--ac);border-color:var(--ac);color:#fff}
+/* Barra de pestañas abajo: se alcanza con el pulgar y respeta el área segura del iPhone */
+nav{position:fixed;left:0;right:0;bottom:0;z-index:60;display:flex;gap:4px;padding:6px 8px calc(6px + var(--sb));
+  background:var(--hdr);-webkit-backdrop-filter:saturate(180%) blur(14px);backdrop-filter:blur(14px);border-top:1px solid var(--line)}
+nav button{flex:1;min-height:50px;border:1px solid transparent;background:transparent;
+  color:var(--tx2);border-radius:12px;font-size:11px;font-weight:700;padding:4px 2px;font-family:inherit;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;line-height:1.1}
+nav button i{font-style:normal;font-size:20px;line-height:1}
+nav button.on{background:rgba(59,130,246,.16);border-color:rgba(59,130,246,.35);color:var(--act)}
 nav button:active{opacity:.6}
 nav button{-webkit-transition:background-color .2s,color .2s;transition:background-color .2s,color .2s;cursor:pointer}
 
-main{padding:13px 13px calc(34px + var(--sb));max-width:780px;margin:0 auto}
+main{padding:13px 13px calc(84px + var(--sb));max-width:780px;margin:0 auto}
 .card{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:15px;margin-bottom:12px;box-shadow:var(--sombra)}
 @-webkit-keyframes viewIn{from{opacity:0;-webkit-transform:translateY(8px)}to{opacity:1;-webkit-transform:none}}
 @keyframes viewIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
@@ -336,7 +340,7 @@ td.num i{font-style:normal;color:var(--tx3);font-size:11px;margin-left:3px}
 #cropBar .sec{background:var(--card2);border:1px solid var(--line);color:var(--tx2)}
 .ovl{position:fixed;inset:0;background:rgba(6,9,13,.94);z-index:200;display:flex;
   align-items:center;justify-content:center;padding:22px;overflow-y:auto;-webkit-overflow-scrolling:touch}
-.toast{position:fixed;left:13px;right:13px;bottom:calc(18px + var(--sb));z-index:300;
+.toast{position:fixed;left:13px;right:13px;bottom:calc(78px + var(--sb));z-index:300;
   background:var(--card2);color:var(--tx);border:1px solid var(--line);border-radius:13px;padding:13px 15px;
   font-size:14px;box-shadow:0 12px 34px rgba(0,0,0,.35);display:none;
   -webkit-animation:viewIn .25s ease-out both;animation:viewIn .25s ease-out both}
@@ -392,13 +396,15 @@ details[open] summary{margin-bottom:11px}
     <div class="hacc"><span class="off">● OFFLINE</span>
       <button class="tema" id="btnTema" title="Cambiar entre modo oscuro y claro" aria-label="Cambiar tema"><i>☾</i></button></div>
   </div>
-  <nav>
-    <button data-v="scan" class="on">📷 Analizar</button>
-    <button data-v="res">📊 Informe</button>
-    <button data-v="perf">👤 Perfil</button>
-    <button data-v="hist">🕓 Historial</button>
-  </nav>
 </header>
+<!-- la barra va fuera del header: el desenfoque del header crearía un contenedor
+     y la barra fija quedaría pegada arriba en vez de abajo -->
+<nav>
+  <button data-v="scan" class="on"><i>📷</i>Analizar</button>
+  <button data-v="res"><i>📊</i>Informe</button>
+  <button data-v="perf"><i>👤</i>Perfil</button>
+  <button data-v="hist"><i>🕓</i>Historial</button>
+</nav>
 
 <main>
 
@@ -1872,7 +1878,7 @@ function verFoto(src){
 }
 $('lupaCerrar').addEventListener('click',()=>{ $('lupaOvl').className='hide'; $('lupaImg').src=''; });
 $('lupaOvl').addEventListener('click',e=>{ if(e.target.id==='lupaOvl'){ $('lupaOvl').className='hide'; $('lupaImg').src=''; } });
-const APP_V = '23';
+const APP_V = '24';
 $('inOcrModo').addEventListener('change',e=>{ ls.s('ns_ocrmodo',e.target.value); toast(e.target.value==='local'?'Lector local: la foto no sale del teléfono':'Lector en línea con respaldo local'); });
 
 /* ── Lectura sin internet: deja en cache los motores de OCR y codigos ──
