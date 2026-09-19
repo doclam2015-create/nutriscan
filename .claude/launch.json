@@ -2,7 +2,7 @@
   "version": "0.0.1",
   "configurations": [
     { "name": "nutriscan", "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m","http.server","8777","--directory","/Users/marcelolam/Desktop/NutriScan"],
+      "runtimeArgs": ["-m","http.server","8777","--directory","/Users/marcelolam/Desktop/CONSULTA PEDIATRICA/NutriScan"],
       "port": 8777 }
   ]
 }

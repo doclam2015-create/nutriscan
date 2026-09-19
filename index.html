@@ -11,13 +11,26 @@
 <link rel="apple-touch-icon" href="./icon-180.png">
 <link rel="icon" href="./icon-180.png">
 <title>NutriScan · Análisis de etiquetas</title>
+<script>(function(){try{var t=localStorage.getItem('ns_theme');if(!t&&window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)t='light';if(t==='light'){document.documentElement.setAttribute('data-theme','light');var m=document.querySelector('meta[name=theme-color]');if(m)m.content='#f3f5f8';}}catch(e){}})();</script>
 <style>
 :root{
   --bg:#0d1117; --bg2:#161b22; --card:#1b2129; --card2:#222a35; --line:#2b333f;
   --tx:#e9eef5; --tx2:#9aa7b8; --tx3:#66748a;
   --ac:#3b82f6; --ok:#22c55e; --warn:#f59e0b; --bad:#ef4444;
+  --okt:#6ee7a8; --wnt:#fcd34d; --badt:#fca5a5; --act:#9dc3ff;
+  --hdr:rgba(13,17,23,.92); --sombra:0 10px 30px rgba(0,0,0,.35);
   --st:env(safe-area-inset-top); --sb:env(safe-area-inset-bottom);
+  color-scheme:dark;
 }
+/* Tema claro: mismos componentes, paleta invertida */
+:root[data-theme="light"]{
+  --bg:#f3f5f8; --bg2:#ffffff; --card:#ffffff; --card2:#eaeef3; --line:#d7dde6;
+  --tx:#0f1722; --tx2:#4a5566; --tx3:#7b8797;
+  --okt:#15803d; --wnt:#b45309; --badt:#b91c1c; --act:#1d4ed8;
+  --hdr:rgba(243,245,248,.9); --sombra:0 8px 24px rgba(15,23,34,.08);
+  color-scheme:light;
+}
+html,body{-webkit-transition:background-color .3s ease,color .3s ease;transition:background-color .3s ease,color .3s ease}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0;background:var(--bg);color:var(--tx);
   font:16px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text",Helvetica,Arial,sans-serif;
@@ -26,7 +39,7 @@ body{padding-top:var(--st)}
 .hide{visibility:hidden!important;height:0!important;min-height:0!important;overflow:hidden!important;
   margin:0!important;padding:0!important;border:0!important}
 
-header{position:sticky;top:0;z-index:60;background:rgba(13,17,23,.95);
+header{position:sticky;top:0;z-index:60;background:var(--hdr);
   -webkit-backdrop-filter:saturate(180%) blur(14px);backdrop-filter:blur(14px);
   border-bottom:1px solid var(--line);padding:9px 13px 7px}
 .hrow{display:flex;align-items:center;justify-content:space-between;gap:10px}
@@ -34,14 +47,27 @@ header{position:sticky;top:0;z-index:60;background:rgba(13,17,23,.95);
 .logo{width:30px;height:30px;border-radius:9px;display:block;object-fit:cover}
 .off{font-size:10px;color:var(--ok);border:1px solid rgba(34,197,94,.4);background:rgba(34,197,94,.1);
   padding:3px 7px;border-radius:20px;font-weight:700;letter-spacing:.3px}
+.hacc{display:flex;align-items:center;gap:7px}
+/* Interruptor día/noche */
+.tema{width:52px;height:28px;border-radius:14px;border:1px solid var(--line);background:var(--card2);
+  position:relative;padding:0;flex:none;cursor:pointer;-webkit-user-select:none;user-select:none}
+.tema i{position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--ac);
+  display:flex;align-items:center;justify-content:center;font-size:11px;font-style:normal;color:#fff;
+  -webkit-transition:left .25s ease;transition:left .25s ease}
+:root[data-theme="light"] .tema i{left:27px}
+.tema:active{opacity:.7}
 nav{display:flex;gap:5px;margin-top:8px}
 nav button{flex:1;min-height:40px;border:1px solid var(--line);background:var(--card);
   color:var(--tx2);border-radius:10px;font-size:12.5px;font-weight:700;padding:0 3px;font-family:inherit}
 nav button.on{background:var(--ac);border-color:var(--ac);color:#fff}
 nav button:active{opacity:.6}
+nav button{-webkit-transition:background-color .2s,color .2s;transition:background-color .2s,color .2s;cursor:pointer}
 
 main{padding:13px 13px calc(34px + var(--sb));max-width:780px;margin:0 auto}
-.card{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:15px;margin-bottom:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:15px;margin-bottom:12px;box-shadow:var(--sombra)}
+@-webkit-keyframes viewIn{from{opacity:0;-webkit-transform:translateY(8px)}to{opacity:1;-webkit-transform:none}}
+@keyframes viewIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.view:not(.hide){-webkit-animation:viewIn .28s ease-out both;animation:viewIn .28s ease-out both}
 h2{font-size:12.5px;margin:0 0 11px;letter-spacing:.7px;text-transform:uppercase;color:var(--tx2);font-weight:800}
 h3{font-size:16.5px;margin:0 0 7px;letter-spacing:-.2px}
 p.mut{color:var(--tx2);font-size:13.5px;margin:6px 0}
@@ -59,17 +85,19 @@ textarea{min-height:120px;resize:vertical;line-height:1.5}
 .btn{width:100%;min-height:52px;border:none;border-radius:13px;background:var(--ac);color:#fff;
   font-size:16px;font-weight:700;font-family:inherit;margin-top:5px;
   display:flex;align-items:center;justify-content:center;gap:8px}
-.btn:active{background:#2563eb}
+.btn{cursor:pointer;-webkit-user-select:none;user-select:none;-webkit-transition:opacity .15s;transition:opacity .15s}
+.btn:active{opacity:.75}
 .btn.sec{background:var(--card2);border:1px solid var(--line);color:var(--tx)}
-.btn.sec:active{background:#2c3644}
-.btn.dgr{background:#3a1d1d;border:1px solid #5c2a2a;color:#fca5a5}
+.btn.sec:active{opacity:.75}
+.btn.dgr{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.4);color:var(--badt)}
 .btn.sm{min-height:42px;font-size:13.5px;border-radius:11px}
 .row{display:flex;gap:9px}
 .row .btn{margin-top:0}
 .chips{display:flex;flex-wrap:wrap;gap:7px}
 .chip{padding:9px 13px;border-radius:20px;border:1px solid var(--line);background:var(--bg2);
   color:var(--tx2);font-size:12.5px;font-weight:700;min-height:40px;display:flex;align-items:center}
-.chip.on{background:rgba(59,130,246,.2);border-color:var(--ac);color:#9dc3ff}
+.chip.on{background:rgba(59,130,246,.2);border-color:var(--ac);color:var(--act)}
+.chip{cursor:pointer;-webkit-user-select:none;user-select:none}
 .chip:active{opacity:.6}
 
 .steps{counter-reset:s}
@@ -96,9 +124,9 @@ textarea{min-height:120px;resize:vertical;line-height:1.5}
   background:var(--bg2);color:var(--tx3);border:1px solid var(--line)}
 .badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
 .badge{padding:6px 10px;border-radius:9px;font-size:11.5px;font-weight:800;border:1px solid;white-space:nowrap}
-.b-ok{background:rgba(34,197,94,.13);border-color:rgba(34,197,94,.42);color:#6ee7a8}
-.b-wn{background:rgba(245,158,11,.13);border-color:rgba(245,158,11,.42);color:#fcd34d}
-.b-bd{background:rgba(239,68,68,.13);border-color:rgba(239,68,68,.42);color:#fca5a5}
+.b-ok{background:rgba(34,197,94,.13);border-color:rgba(34,197,94,.42);color:var(--okt)}
+.b-wn{background:rgba(245,158,11,.13);border-color:rgba(245,158,11,.42);color:var(--wnt)}
+.b-bd{background:rgba(239,68,68,.13);border-color:rgba(239,68,68,.42);color:var(--badt)}
 .b-nt{background:rgba(148,163,184,.1);border-color:var(--line);color:var(--tx2)}
 
 .sello{display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -154,7 +182,7 @@ tr:last-child td{border-bottom:none}
   display:flex;align-items:center;justify-content:center;font-size:20px}
 .hitem .m{flex:1;min-width:0}
 .hitem .hdel{flex:none;width:44px;height:44px;border-radius:11px;border:1px solid var(--line);
-  background:var(--card2);color:#fca5a5;font-size:15px;line-height:1;padding:0}
+  background:var(--card2);color:var(--badt);font-size:15px;line-height:1;padding:0}
 .hitem .m b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hitem .m span{font-size:11px;color:var(--tx3)}
 .hitem .s{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;
@@ -196,10 +224,25 @@ tr:last-child td{border-bottom:none}
 #camAcc.disparo #camCerrar{flex:none;width:104px}
 .edt{width:64px;padding:6px 7px;min-height:0;font-size:14px;text-align:right;border-radius:9px;
   background:var(--bg2);border:1px solid var(--line);color:var(--tx);-webkit-appearance:none}
-.edt.malo{border-color:var(--bad);background:rgba(239,68,68,.12);color:#fca5a5}
+.edt.malo{border-color:var(--bad);background:rgba(239,68,68,.12);color:var(--badt)}
 td.num i{font-style:normal;color:var(--tx3);font-size:11px;margin-left:3px}
 .tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
 .tablewrap table{min-width:330px}
+
+/* el valor que se ajusta solo al corregir la otra columna */
+@keyframes ecoIn{0%{background:rgba(59,130,246,.35)}100%{background:var(--card2)}}
+.edt.eco{animation:ecoIn .45s ease-out}
+
+/* ── Elementos de la cabecera que llevan a su sección ── */
+[data-ir]{cursor:pointer;-webkit-tap-highlight-color:transparent;position:relative}
+.badge[data-ir]{padding-right:22px}
+.badge[data-ir]:after{content:'›';position:absolute;right:9px;top:50%;transform:translateY(-50%);
+  font-size:15px;line-height:1;opacity:.55;font-weight:700}
+[data-ir]:active{transform:scale(.96)}
+.ring[data-ir],.gradebox[data-ir]{border-radius:12px}
+/* resalte de la tarjeta a la que se llega */
+@keyframes llegada{0%{box-shadow:0 0 0 0 rgba(59,130,246,.55)}100%{box-shadow:0 0 0 13px rgba(59,130,246,0)}}
+.card.destaca{animation:llegada 1.1s ease-out; border-color:var(--ac)}
 
 /* ── Fotos del producto: envase y contenido ── */
 #fotosBox{display:grid;grid-template-columns:1fr 1fr;gap:9px}
@@ -244,9 +287,13 @@ td.num i{font-style:normal;color:var(--tx3);font-size:11px;margin-left:3px}
 .ovl{position:fixed;inset:0;background:rgba(6,9,13,.94);z-index:200;display:flex;
   align-items:center;justify-content:center;padding:22px;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .toast{position:fixed;left:13px;right:13px;bottom:calc(18px + var(--sb));z-index:300;
-  background:#2b3644;border:1px solid var(--line);border-radius:13px;padding:13px 15px;
-  font-size:14px;box-shadow:0 12px 34px rgba(0,0,0,.6);display:none}
+  background:var(--card2);color:var(--tx);border:1px solid var(--line);border-radius:13px;padding:13px 15px;
+  font-size:14px;box-shadow:0 12px 34px rgba(0,0,0,.35);display:none;
+  -webkit-animation:viewIn .25s ease-out both;animation:viewIn .25s ease-out both}
 .toast.err{background:#3a1d1d;border-color:#5c2a2a;color:#fecaca}
+.res div{cursor:pointer}
+.hitem{cursor:pointer}
+#histQ{margin-bottom:10px}
 details{margin:0}
 details summary{list-style:none;cursor:pointer;min-height:46px;display:flex;align-items:center;
   gap:8px;font-size:13.5px;font-weight:700;color:var(--tx2);padding:11px 12px;
@@ -273,7 +320,8 @@ details[open] summary{margin-bottom:11px}
 <header>
   <div class="hrow">
     <div class="brand"><img class="logo" src="./icon-180.png" alt="">NutriScan</div>
-    <span class="off">● OFFLINE</span>
+    <div class="hacc"><span class="off">● OFFLINE</span>
+      <button class="tema" id="btnTema" title="Cambiar entre modo oscuro y claro" aria-label="Cambiar tema"><i>☾</i></button></div>
   </div>
   <nav>
     <button data-v="scan" class="on">📷 Analizar</button>
@@ -400,7 +448,9 @@ details[open] summary{margin-bottom:11px}
 
 <!-- ══════════════ HISTORIAL ══════════════ -->
 <section class="view hide" id="v-hist">
-  <div class="card"><h2>Productos analizados</h2><div id="histList"></div></div>
+  <div class="card"><h2>Productos analizados</h2>
+    <input type="text" id="histQ" placeholder="Buscar en el historial…" autocomplete="off">
+    <div id="histList"></div></div>
   <div class="card" id="diaBox"></div>
   <button class="btn dgr" id="btnClrHist">🗑️ Borrar historial</button>
 </section>
@@ -1696,7 +1746,7 @@ function verFoto(src){
 }
 $('lupaCerrar').addEventListener('click',()=>{ $('lupaOvl').className='hide'; $('lupaImg').src=''; });
 $('lupaOvl').addEventListener('click',e=>{ if(e.target.id==='lupaOvl'){ $('lupaOvl').className='hide'; $('lupaImg').src=''; } });
-const APP_V = '19';
+const APP_V = '20';
 $('btnUpd').addEventListener('click', async ()=>{
   toast('Buscando la versión más reciente…');
   try{
@@ -1726,7 +1776,7 @@ function renderProdList(q){
     <div data-c="${esc(p.cod)}" style="display:flex;align-items:center;gap:9px">
       <div style="flex:1;min-width:0">${esc(p.nombre||'Sin nombre')}
         <small>${esc(p.cod)}${p.nut&&p.nut.kcal!=null?' · '+p.nut.kcal+' kcal':''}${p.nut&&p.nut.sodio_mg!=null?' · '+p.nut.sodio_mg+' mg sodio':''}</small></div>
-      <button data-del="${esc(p.cod)}" style="flex:none;width:34px;height:34px;border-radius:9px;border:1px solid var(--line);background:var(--card2);color:#fca5a5;font-size:15px">✕</button>
+      <button data-del="${esc(p.cod)}" style="flex:none;width:34px;height:34px;border-radius:9px;border:1px solid var(--line);background:var(--card2);color:var(--badt);font-size:15px">✕</button>
     </div>`).join('')
     : `<div style="color:var(--tx3)">${q?'Sin resultados':'Todavía no has guardado ningún producto.'}</div>`;
   $('prodRes').querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',ev=>{
@@ -2720,6 +2770,126 @@ async function pintarFotosRes(d){
   caja.querySelectorAll('img').forEach(i=>i.addEventListener('click',()=>verFoto(i.src)));
 }
 
+/* ══════════ Informe en texto, para pegarlo en otra parte ══════════
+   Sale en Markdown: se lee bien tal cual y cualquier IA lo entiende sin
+   tener que explicarle el formato. Lleva de donde salio cada dato, para
+   que quien lo lea sepa cuanto fiarse. */
+function informeTexto(d){
+  const U = d.tipo==='bebida' ? 'ml' : 'g';
+  const n = d.needs || needs(perfil);
+  const L = [];
+  const fecha = new Date(d.ts).toLocaleString('es-CL',{dateStyle:'long',timeStyle:'short'});
+
+  L.push('# Análisis nutricional — '+(d.nombre||'Producto sin nombre'));
+  L.push('');
+  L.push('- Analizado el '+fecha+' con NutriScan v'+APP_V);
+  if(d.cod) L.push('- Código de barras: '+d.cod);
+  L.push('- Tipo: '+({solido:'sólido',bebida:'bebida/líquido',grasa:'aceite o grasa',queso:'queso',fruto:'fruto seco o semilla'}[d.tipo]||d.tipo));
+  L.push('- Porción: '+(d.porcDecl===false
+        ? 'el envase no la declara; los valores «por porción» son por 100 '+U
+        : d.porcG+' '+U+(d.porcN?' · '+d.porcN+' porciones por envase':'')));
+  const origen = {barras:'base mundial Open Food Facts, por código de barras',
+                  memoria:'memoria del teléfono (ya se había escaneado o corregido)',
+                  camara:'lectura de la etiqueta con la cámara (OCR)',
+                  corregido:'valores corregidos a mano por el usuario',
+                  manual:'introducido a mano'}[d.origen] || d.origen;
+  L.push('- Origen de los datos: '+origen
+        + (d.motor ? ' · leído '+(d.motor==='linea'?'con motor de nube':'con el lector local del teléfono') : ''));
+  if(d.avisos && d.avisos.length){
+    L.push('');
+    L.push('> **Atención:** la app detectó valores que no cuadran. Tenlos en cuenta al responder:');
+    d.avisos.forEach(a=>L.push('> - '+a.m));
+  }
+
+  L.push('');
+  L.push('## Resultado global');
+  L.push('');
+  L.push('| Indicador | Valor |');
+  L.push('|---|---|');
+  L.push('| Calidad nutricional | '+d.score+'/100 |');
+  L.push('| Nutri-Score ajustado | '+d.grade+' |');
+  L.push('| Procesamiento NOVA | '+d.nova+' — '+(d.novaTxt||'')+' |');
+  if(d.ig!=null)  L.push('| Índice glucémico | '+d.ig+(d.igTxt?' ('+d.igTxt+')':'')+' |');
+  if(d.cg!=null)  L.push('| Carga glucémica por porción | '+d.cg+' |');
+  L.push('| Sellos Ley 20.606 | '+(d.sellos.length? d.sellos.join(', ') : 'ninguno')+' |');
+  if(d.alergs.length) L.push('| Alérgenos | '+d.alergs.join(', ')+' |');
+
+  L.push('');
+  L.push('## Tabla nutricional');
+  L.push('');
+  L.push('| Nutriente | Por 100 '+U+' | Por porción | % de mis necesidades diarias |');
+  L.push('|---|---|---|---|');
+  const meta={kcal:n.kcal,proteina_g:n.prot,carb_g:n.carb,azucar_g:n.azucar,fibra_g:n.fibra,
+    grasa_g:n.grasa,sat_g:n.sat,sodio_mg:n.sodio,colesterol_mg:n.colesterol,calcio_mg:n.ca,
+    hierro_mg:n.fe,potasio_mg:n.k,magnesio_mg:n.mg,zinc_mg:n.zn,vitc_mg:n.vc,vita_ug:n.va,vitd_ug:n.vd};
+  NUTS.forEach(([k,l,u])=>{
+    if(d.x100[k]==null) return;
+    const pc = meta[k] ? Math.round(d.pPorc[k]/meta[k]*100)+' %' : '—';
+    L.push('| '+l+' | '+d.x100[k]+' '+u+' | '+d.pPorc[k]+' '+u+' | '+pc+' |');
+  });
+
+  if(d.ings && d.ings.length){
+    L.push('');
+    L.push('## Ingredientes ('+d.ings.length+')');
+    L.push('');
+    d.ings.forEach(i=>{
+      const riesgo = {alto:'riesgo alto',medio:'riesgo medio',bajo:'riesgo bajo',ninguno:'sin riesgo'}[i.r]||i.r||'';
+      L.push('- **'+i.nombre+'**'+(i.c?' ('+i.c+')':'')+(riesgo?' — '+riesgo:'')+(i.q?': '+i.q:''));
+    });
+  } else if(d.ingTexto){
+    L.push('');
+    L.push('## Ingredientes declarados');
+    L.push('');
+    L.push(d.ingTexto);
+  }
+
+  if(d.sistemas){
+    const conAlgo = Object.entries(d.sistemas)
+      .filter(([,v])=>v && ((v.ben&&v.ben.length)||(v.rie&&v.rie.length)));
+    if(conAlgo.length){
+      L.push('');
+      L.push('## Órganos y sistemas');
+      L.push('');
+      conAlgo.forEach(([org,v])=>{
+        L.push('**'+((ORG[org]&&ORG[org][1])||org)+'**');
+        (v.ben||[]).forEach(m=>L.push('- Beneficia: '+m));
+        (v.rie||[]).forEach(m=>L.push('- Sobrecarga o perjudica: '+m));
+        L.push('');
+      });
+    }
+  }
+
+  if(d.adv && d.adv.length){
+    L.push('');
+    L.push('## Advertencias para mi perfil');
+    L.push('');
+    d.adv.forEach(([,m])=>L.push('- '+m));
+  }
+
+  L.push('');
+  L.push('## Mi perfil');
+  L.push('');
+  if(perfil){
+    L.push('- '+perfil.edad+' años · '+(perfil.sexo==='f'?'mujer':'hombre')+' · '+perfil.peso+' kg · '+perfil.talla+' cm');
+    if(perfil.act)  L.push('- Actividad física: '+perfil.act);
+    if(perfil.obj)  L.push('- Objetivo: '+perfil.obj);
+    if(perfil.conds && perfil.conds.length) L.push('- Condiciones de salud: '+perfil.conds.join(', '));
+    if(perfil.alerg) L.push('- Alergias o intolerancias: '+perfil.alerg);
+    if(perfil.notas) L.push('- Notas: '+perfil.notas);
+    L.push('- Necesidades diarias estimadas: '+n.kcal+' kcal · azúcares ≤'+n.azucar+' g · grasas saturadas ≤'+n.sat+' g · sodio ≤'+n.sodio+' mg');
+  } else {
+    L.push('- Sin perfil configurado: los porcentajes usan una referencia estándar de 2000 kcal.');
+  }
+
+  L.push('');
+  L.push('---');
+  L.push('');
+  L.push('Datos tomados de la etiqueta de un producto a la venta en Chile. '
+       + 'Los sellos siguen la Ley 20.606 de etiquetado chileno. '
+       + 'Si algún valor te parece imposible, dímelo en vez de darlo por bueno.');
+  return L.join('\n');
+}
+
 function renderRes(d){
   if(!d){ $('resBox').innerHTML='<div class="card"><p class="mut">Aún no hay informe. Ve a <b>Analizar</b>.</p></div>'; return; }
   const x=d.x100, p=d.pPorc, n=d.needs, C=sc(d.score), circ=2*Math.PI*45, U=d.tipo==='bebida'?'ml':'g';
@@ -2732,23 +2902,23 @@ function renderRes(d){
       ? `Valores por 100 ${U} — el envase no declara el tamaño de la porción`
       : `Porción de ${d.porcG} ${U}${d.porcN?` · ${d.porcN} porci${d.porcN==1?'ón':'ones'} por envase`:''}`}</p>
     <div class="scorewrap">
-      <div class="ring"><svg width="106" height="106">
-        <circle cx="53" cy="53" r="45" stroke="#2b333f" stroke-width="9" fill="none"/>
+      <div class="ring" data-ir="cd-balance" title="Ver el balance del producto"><svg width="106" height="106">
+        <circle cx="53" cy="53" r="45" style="stroke:var(--line)" stroke-width="9" fill="none"/>
         <circle cx="53" cy="53" r="45" stroke="${C}" stroke-width="9" fill="none" stroke-linecap="round"
           stroke-dasharray="${circ}" stroke-dashoffset="${circ*(1-d.score/100)}"/></svg>
         <div class="val"><b style="color:${C}">${d.score}</b><i>DE 100</i></div></div>
       <div style="flex:1;min-width:0">
         <div style="font-size:12.5px;color:var(--tx2);font-weight:700">Calidad nutricional global</div>
-        <div class="gradebox">${['A','B','C','D','E'].map(g=>
+        <div class="gradebox" data-ir="cd-balance" title="Ver el balance del producto">${['A','B','C','D','E'].map(g=>
           `<div class="${g===d.grade?'on':''}" style="${g===d.grade?'background:'+GC[g]+';color:#0b1017':''}">${g}</div>`).join('')}</div>
         <small class="mut" style="margin-top:6px">Nutri-Score <b>${d.grade}</b> ajustado por procesamiento NOVA y grasas trans.</small>
       </div></div>
     <div class="badges">
-      <span class="badge ${d.nova>=4?'b-bd':d.nova===3?'b-wn':'b-ok'}">NOVA ${d.nova}</span>
-      ${d.ig!=null?`<span class="badge ${d.ig>=70?'b-bd':d.ig>=56?'b-wn':'b-ok'}">IG ${d.ig}</span>`:''}
-      ${d.cg!=null?`<span class="badge ${d.cg>=20?'b-bd':d.cg>=11?'b-wn':'b-ok'}">CG ${d.cg}</span>`:''}
-      <span class="badge ${d.sellos.length>=3?'b-bd':d.sellos.length?'b-wn':'b-ok'}">${d.sellos.length} sello${d.sellos.length===1?'':'s'}</span>
-      ${d.alergs.length?`<span class="badge b-wn">⚠ ${d.alergs.join(', ')}</span>`:''}
+      <span class="badge ${d.nova>=4?'b-bd':d.nova===3?'b-wn':'b-ok'}" data-ir="cd-nova" title="Ver el nivel de procesamiento">NOVA ${d.nova}</span>
+      ${d.ig!=null?`<span class="badge ${d.ig>=70?'b-bd':d.ig>=56?'b-wn':'b-ok'}" data-ir="cd-glicemia" title="Ver el impacto sobre la glicemia">IG ${d.ig}</span>`:''}
+      ${d.cg!=null?`<span class="badge ${d.cg>=20?'b-bd':d.cg>=11?'b-wn':'b-ok'}" data-ir="cd-glicemia" title="Ver el impacto sobre la glicemia">CG ${d.cg}</span>`:''}
+      <span class="badge ${d.sellos.length>=3?'b-bd':d.sellos.length?'b-wn':'b-ok'}" data-ir="cd-sellos" title="Ver los sellos de advertencia">${d.sellos.length} sello${d.sellos.length===1?'':'s'}</span>
+      ${d.alergs.length?`<span class="badge b-wn" data-ir="cd-ings" title="Ver los ingredientes">⚠ ${d.alergs.join(', ')}</span>`:''}
     </div>
     ${d.cod?`<small class="mut" style="margin-top:9px;display:block">Código de barras <b>${esc(d.cod)}</b>${
       d.novaOFF||d.nsOFF ? ` · la base mundial lo clasifica como NOVA <b>${d.novaOFF||'—'}</b> y Nutri-Score <b>${(d.nsOFF||'—').toUpperCase()}</b>${
@@ -2762,7 +2932,7 @@ function renderRes(d){
 
   /* Datos que no cuadran: se avisa antes que nada, porque invalidan el resto */
   if(d.avisos && d.avisos.length){
-    h+=`<div class="card" style="border-color:#8a3d3d">
+    h+=`<div class="card" id="cd-avisos" style="border-color:#8a3d3d">
       <h2>⚠️ Revisa estos valores</h2>
       <small class="mut" style="margin-bottom:11px">${d.origen==='barras'
         ? 'Estos datos vienen de la base mundial, que cualquiera puede editar y a veces trae errores.'
@@ -2773,13 +2943,13 @@ function renderRes(d){
 
   /* Advertencias personalizadas */
   if(d.adv.length){
-    h+=`<div class="card"><h2>⚠️ Para ti en particular</h2>
+    h+=`<div class="card" id="cd-adv"><h2>⚠️ Para ti en particular</h2>
       ${d.adv.map(([t,m])=>`<div class="note ${t==='bad'?'bad':t==='inf'?'inf':''}">${esc(m)}</div>`).join('')}
       ${!perfil?'<small class="mut">Configura tu perfil para advertencias específicas.</small>':''}</div>`;
   }
 
   /* PORCENTAJE DE NECESIDADES DIARIAS */
-  h+=`<div class="card"><h2>% de tus necesidades diarias · ${d.porcDecl===false?`100 ${U}`:`1 porción (${d.porcG} ${U})`}</h2>
+  h+=`<div class="card" id="cd-dia"><h2>% de tus necesidades diarias · ${d.porcDecl===false?`100 ${U}`:`1 porción (${d.porcG} ${U})`}</h2>
     <small class="mut" style="margin-bottom:12px">${perfil
       ? `Calculado para ${perfil.edad} años, ${perfil.peso} kg, ${perfil.talla} cm, actividad ${({'1.2':'sedentaria','1.375':'ligera','1.55':'moderada','1.725':'intensa','1.9':'muy intensa'})[perfil.act]||'—'} → <b>${n.kcal} kcal/día</b>.`
       : `Adulto de referencia de ${n.kcal} kcal/día — configura tu perfil para valores propios.`}</small>
@@ -2812,24 +2982,24 @@ function renderRes(d){
   const S=d.sistemas, ids=Object.keys(S);
   if(ids.length){
     const ben = ids.filter(i=>S[i].ben.length), rie = ids.filter(i=>S[i].rie.length);
-    h+=`<div class="card"><h2>Órganos y sistemas afectados</h2>`;
+    h+=`<div class="card" id="cd-organos"><h2>Órganos y sistemas afectados</h2>`;
     if(ben.length){
-      h+=`<p class="mut" style="font-weight:700;color:#6ee7a8;margin-bottom:8px">▲ Beneficia</p>`;
+      h+=`<p class="mut" style="font-weight:700;color:var(--okt);margin-bottom:8px">▲ Beneficia</p>`;
       h+=ben.map(i=>`<div class="org"><span class="ic">${ORG[i][0]}</span><div class="tx"><b>${ORG[i][1]}</b>
         <span>${S[i].ben.map(esc).join(' ')}</span></div>
-        <span class="pill" style="background:rgba(34,197,94,.16);color:#6ee7a8">+</span></div>`).join('');
+        <span class="pill" style="background:rgba(34,197,94,.16);color:var(--okt)">+</span></div>`).join('');
     }
     if(rie.length){
-      h+=`<p class="mut" style="font-weight:700;color:#fca5a5;margin:14px 0 8px">▼ Sobrecarga o perjudica</p>`;
+      h+=`<p class="mut" style="font-weight:700;color:var(--badt);margin:14px 0 8px">▼ Sobrecarga o perjudica</p>`;
       h+=rie.map(i=>`<div class="org"><span class="ic">${ORG[i][0]}</span><div class="tx"><b>${ORG[i][1]}</b>
         <span>${S[i].rie.map(esc).join(' ')}</span></div>
-        <span class="pill" style="background:rgba(239,68,68,.16);color:#fca5a5">−</span></div>`).join('');
+        <span class="pill" style="background:rgba(239,68,68,.16);color:var(--badt)">−</span></div>`).join('');
     }
     h+=`<small class="mut" style="margin-top:10px">Relaciones derivadas de la composición declarada y de la evidencia nutricional general. El efecto real depende de la cantidad y de la frecuencia con que consumas el producto, no de una porción aislada.</small></div>`;
   }
 
   /* SELLOS */
-  h+=`<div class="card"><h2>Sellos de advertencia · Ley 20.606 (Chile)</h2>`;
+  h+=`<div class="card" id="cd-sellos"><h2>Sellos de advertencia · Ley 20.606 (Chile)</h2>`;
   h+= d.sellos.length
     ? `<div style="display:flex;gap:9px;flex-wrap:wrap">${d.sellos.map(s=>`<div class="sello">Alto en<b>${s[0]}</b></div>`).join('')}</div>
        <table style="margin-top:13px"><tr><th>Nutriente</th><th class="num">Producto</th><th class="num">Límite</th></tr>
@@ -2841,7 +3011,7 @@ function renderRes(d){
   if(d.ig!=null){
     const c1=d.ig>=70?['Alto','bad']:d.ig>=56?['Medio','']:['Bajo','ok'];
     const c2=d.cg==null?null:(d.cg>=20?['Alta','bad']:d.cg>=11?['Media','']:['Baja','ok']);
-    h+=`<div class="card"><h2>Impacto sobre la glicemia</h2>
+    h+=`<div class="card" id="cd-glicemia"><h2>Impacto sobre la glicemia</h2>
       <div class="note ${c1[1]}"><b>Índice glucémico ≈ ${d.ig} — ${c1[0]}</b>
         Rapidez con que eleva el azúcar en sangre comparado con la glucosa pura (100). ${esc(d.igTxt)}</div>
       ${c2?`<div class="note ${c2[1]}"><b>Carga glucémica de la porción: ${d.cg} — ${c2[0]}</b>
@@ -2851,16 +3021,16 @@ function renderRes(d){
 
   /* NOVA */
   const nt=NOVAT[d.nova]||['—',''];
-  h+=`<div class="card"><h2>Nivel de procesamiento</h2>
+  h+=`<div class="card" id="cd-nova"><h2>Nivel de procesamiento</h2>
     <div style="display:flex;gap:5px;margin-bottom:12px">${[1,2,3,4].map(i=>
-      `<div style="flex:1;height:8px;border-radius:4px;background:${d.nova>=i?(d.nova===4?'#ef4444':d.nova===3?'#f59e0b':d.nova===2?'#eab308':'#22c55e'):'#2b333f'}"></div>`).join('')}</div>
+      `<div style="flex:1;height:8px;border-radius:4px;background:${d.nova>=i?(d.nova===4?'#ef4444':d.nova===3?'#f59e0b':d.nova===2?'#eab308':'#22c55e'):'var(--line)'}"></div>`).join('')}</div>
     <h3>NOVA ${d.nova} — ${nt[0]}</h3><p class="mut">${nt[1]}</p>
     <div class="note inf"><b>En este producto</b>${esc(d.novaTxt)}</div></div>`;
 
   /* INGREDIENTES */
   if(d.ings.length){
     const desc = d.ings.filter(i=>i.t==='otro').length;
-    h+=`<div class="card"><h2>Ingredientes explicados (${d.ings.length})</h2>
+    h+=`<div class="card" id="cd-ings"><h2>Ingredientes explicados (${d.ings.length})</h2>
       ${desc/d.ings.length>0.4 ? `<div class="note"><b>Lista poco reconocida</b>De ${d.ings.length} ingredientes, ${desc} no están en el diccionario —suele pasar cuando la lista viene en otro idioma o el OCR la leyó mal—. El nivel de procesamiento (NOVA ${d.nova}) puede estar subestimado: revisa la lista original del envase.</div>` : ''}
       ${d.ings.map((i,k)=>`<div class="ing" data-i="${k}">
         <div class="hd"><span class="dot" style="background:${RC[i.r]||'#64748b'}"></span>
@@ -2895,7 +3065,7 @@ function renderRes(d){
   const frec = d.score>=70?['Diario','ok']: d.score>=50?['Frecuente, sin problema','ok']
              : d.score>=35?['Ocasional: 1 a 2 veces por semana','']
              : d.score>=20?['Excepcional: máximo 1 vez al mes','bad']:['Mejor evitarlo','bad'];
-  h+=`<div class="card"><h2>Balance</h2>
+  h+=`<div class="card" id="cd-balance"><h2>Balance</h2>
     ${pos.map(t=>`<div class="note ok">${esc(t)}</div>`).join('')}
     ${neg.map(t=>`<div class="note bad">${esc(t)}</div>`).join('')}
     <div class="sep"></div>
@@ -2903,7 +3073,7 @@ function renderRes(d){
 
   /* TABLA COMPLETA */
   const rows=NUTS.filter(([k])=>x[k]!=null);
-  h+=`<div class="card"><h2>Tabla nutricional</h2><div class="tablewrap"><table>
+  h+=`<div class="card" id="cd-tabla"><h2>Tabla nutricional</h2><div class="tablewrap"><table>
     <tr><th>Nutriente</th><th class="num">100 ${U}</th><th class="num">Porción</th><th class="num">% día</th></tr>
     ${rows.map(([k,l,u])=>{
       const meta={kcal:n.kcal,proteina_g:n.prot,carb_g:n.carb,azucar_g:n.azucar,fibra_g:n.fibra,
@@ -2911,14 +3081,18 @@ function renderRes(d){
         hierro_mg:n.fe,potasio_mg:n.k,magnesio_mg:n.mg,zinc_mg:n.zn,vitc_mg:n.vc,vita_ug:n.va,vitd_ug:n.vd}[k];
       const pc = meta? Math.round(p[k]/meta*100)+' %' : '—';
       const malo = (d.avisos||[]).some(a=>a.k===k);
+      /* Las dos columnas se pueden corregir. Muchas etiquetas se leen bien en
+         una y mal en la otra, y obligar a convertir a mano es justo el trabajo
+         que la app deberia hacer sola. */
       return `<tr><td>${l}</td>
         <td class="num"><input class="edt${malo?' malo':''}" data-k="${k}" type="number" inputmode="decimal" step="any" value="${x[k]}"><i>${u}</i></td>
-        <td class="num">${p[k]} ${u}</td><td class="num">${pc}</td></tr>`;
+        <td class="num"><input class="edt edp" data-k="${k}" type="number" inputmode="decimal" step="any" value="${p[k]}"><i>${u}</i></td>
+        <td class="num">${pc}</td></tr>`;
     }).join('')}</table></div>
     <small class="mut" style="margin-top:8px">La columna «% día» usa <b>tus</b> requerimientos, no los del 2000 kcal genérico de la etiqueta.</small>
     <div class="sep"></div>
     <h3>Corregir lo leído</h3>
-    <small class="mut">Escribe encima de <b>cualquier</b> valor de la columna «100 ${U}» —los del envase, no los de la porción— y pulsa recalcular. Se rehacen el puntaje, los sellos, el índice glucémico, los órganos, las advertencias y todos los porcentajes.</small>
+    <small class="mut">Escribe encima de <b>cualquier</b> valor de la tabla y pulsa recalcular. Puedes corregir <b>tanto la columna «100 ${U}» como la de la porción</b>: si escribes en la de la porción, la de 100 ${U} se ajusta sola${d.porcDecl===false?' (usando la porción que declares abajo)':''}. Se rehacen el puntaje, los sellos, el índice glucémico, los órganos, las advertencias y todos los porcentajes.</small>
     <div class="g2" style="margin-top:11px">
       <label class="f"><span>Porción (${U})</span><input type="number" inputmode="decimal" step="any" id="edtPorcG" value="${d.porcDecl===false?'':d.porcG}" placeholder="100"></label>
       <label class="f"><span>Porciones por envase</span><input type="number" inputmode="decimal" step="any" id="edtPorcN" value="${d.porcN||''}" placeholder="1"></label>
@@ -2949,20 +3123,82 @@ function renderRes(d){
     <small class="mut">Son los únicos enlaces de la app. Todo lo demás funciona sin conexión.</small></div>`;
 
   h+=`<div class="card"><small class="mut">Herramienta informativa y educativa. Los valores dependen de lo que hayas ingresado: verifica siempre el envase original. No sustituye la evaluación de un médico o nutricionista, en especial si tienes una enfermedad crónica, estás embarazada o el producto es para un niño.</small></div>
+    <div class="row" style="margin-bottom:9px">
+      <button class="btn sec" id="btnCopiar">📋 Copiar informe</button>
+      <button class="btn sec" id="btnCompartir">📤 Compartir</button>
+    </div>
+    <small class="mut" style="margin-bottom:9px;text-align:center">El informe se copia como texto: pégalo en la IA que quieras o envíalo por WhatsApp.</small>
     <button class="btn sec" id="btnNew">📷 Analizar otro producto</button>`;
 
   $('resBox').innerHTML=h;
   pintarFotosRes(d);                       // llegan cuando IndexedDB responda
+  /* Las dos columnas se mantienen coherentes mientras se escribe: quien
+     corrige por porción no tiene que hacer la regla de tres a mano. */
+  (function(){
+    const caja=$('resBox');
+    const porcion = () => {
+      const v=parseFloat(($('edtPorcG')||{}).value);
+      return v>0 ? v : (d.porcG>0 ? d.porcG : 100);
+    };
+    const redondear = v => Math.abs(v)>=100 ? Math.round(v) : Math.round(v*100)/100;
+    const par = (k,cual) => caja.querySelector(`.edt${cual==='porc'?'.edp':':not(.edp)'}[data-k="${k}"]`);
+    caja.querySelectorAll('.edt').forEach(inp=>inp.addEventListener('input',()=>{
+      const k=inp.dataset.k, esPorc=inp.classList.contains('edp'), otro=par(k, esPorc?'cien':'porc');
+      if(!otro) return;
+      const v=parseFloat(inp.value);
+      if(inp.value.trim()==='' ){ otro.value=''; return; }
+      if(isNaN(v)) return;
+      const f=porcion()/100;
+      otro.value = redondear(esPorc ? (f>0 ? v/f : v) : v*f);
+      otro.classList.add('eco');
+      setTimeout(()=>otro.classList.remove('eco'),450);
+    }));
+    /* si cambia el tamaño de la porción, la columna de porción se recalcula */
+    const ep=$('edtPorcG');
+    if(ep) ep.addEventListener('input',()=>{
+      const f=porcion()/100;
+      caja.querySelectorAll('.edt:not(.edp)').forEach(i=>{
+        const v=parseFloat(i.value), o=par(i.dataset.k,'porc');
+        if(o && !isNaN(v)) o.value=redondear(v*f);
+      });
+    });
+  })();
+
+  /* Cabecera interactiva: cada dato lleva a la sección que lo explica. */
+  $('resBox').querySelectorAll('[data-ir]').forEach(e=>e.addEventListener('click',()=>{
+    const dest=$(e.dataset.ir);
+    if(!dest) return toast('Este producto no tiene esa sección');
+    dest.scrollIntoView({behavior:'smooth', block:'start'});
+    dest.classList.remove('destaca');
+    void dest.offsetWidth;                       // reinicia la animación si se repite
+    dest.classList.add('destaca');
+    setTimeout(()=>dest.classList.remove('destaca'),1300);
+  }));
+
   $('resBox').querySelectorAll('.ing .hd').forEach(hd=>hd.addEventListener('click',()=>{
     const b=hd.parentElement, bd=b.querySelector('.bd');
     const o=b.classList.toggle('open'); bd.className='bd'+(o?'':' hide');
   }));
   const bn=$('btnNew'); if(bn) bn.addEventListener('click',()=>goto('scan'));
+  const copiarTexto=async t=>{
+    try{ await navigator.clipboard.writeText(t); return true; }
+    catch(e){ const ta=document.createElement('textarea'); ta.value=t; ta.style.position='fixed'; ta.style.opacity='0';
+      document.body.appendChild(ta); ta.select(); const ok=document.execCommand('copy'); ta.remove(); return ok; }
+  };
+  const bc=$('btnCopiar'); if(bc) bc.addEventListener('click',async()=>{
+    const ok=await copiarTexto(informeTexto(d));
+    toast(ok?'Informe copiado ✓ Pégalo en la IA que quieras':'No se pudo copiar', !ok);
+  });
+  const bs=$('btnCompartir'); if(bs) bs.addEventListener('click',async()=>{
+    const t=informeTexto(d);
+    if(navigator.share){ try{ await navigator.share({title:'NutriScan · '+d.nombre, text:t}); }catch(e){} }
+    else{ const ok=await copiarTexto(t); toast(ok?'Este navegador no comparte: el informe quedó copiado ✓':'No se pudo compartir', !ok); }
+  });
 
   const br=$('btnRecalc');
   if(br) br.addEventListener('click',()=>{
     /* la tabla esta por 100 g/ml, asi que el formulario pasa a esa base */
-    $('resBox').querySelectorAll('.edt').forEach(i=>{ $('n_'+i.dataset.k).value = i.value.trim(); });
+    $('resBox').querySelectorAll('.edt:not(.edp)').forEach(i=>{ $('n_'+i.dataset.k).value = i.value.trim(); });
     $('inBase').value='100';
     $('inTipo').value=d.tipo;
     $('inNombre').value=d.nombre;
@@ -2986,15 +3222,16 @@ function pushHist(d){
   ls.s(K.hist,h.slice(0,50));
 }
 function renderHist(){
-  const h=ls.g(K.hist,[]);
-  $('histList').innerHTML = h.length ? h.map((it,i)=>`
+  const h=ls.g(K.hist,[]), q=norm(($('histQ')||{}).value||'');
+  const vis=h.map((it,i)=>[it,i]).filter(([it])=>!q||norm(it.nombre).includes(q));
+  $('histList').innerHTML = vis.length ? vis.map(([it,i])=>`
     <div class="hitem" data-h="${i}">
       ${it.foto?`<img src="${it.foto}">`:'<div class="ph">🥫</div>'}
       <div class="m"><b>${esc(it.nombre)}</b>
         <span>NOVA ${it.nova} · ${it.sellos} sello${it.sellos===1?'':'s'} · ${new Date(it.ts).toLocaleDateString('es-CL')} ${new Date(it.ts).toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'})}</span></div>
       <div class="s" style="background:${sc(it.score)}">${it.score}</div>
       <button class="hdel" data-del="${i}" title="Quitar del historial">✕</button></div>`).join('')
-    : '<p class="mut">Todavía no has analizado ningún producto.</p>';
+    : h.length ? '<p class="mut">Nada coincide con «'+esc(q)+'».</p>' : '<p class="mut">Todavía no has analizado ningún producto.</p>';
   $('histList').querySelectorAll('.hitem').forEach(e=>e.addEventListener('click',()=>{
     renderRes(h[+e.dataset.h].full); goto('res');
   }));
@@ -3028,6 +3265,19 @@ $('btnClrHist').addEventListener('click',async()=>{
   for(const it of ls.g(K.hist,[])) if(it.fotoId) await FOTODB.del(it.fotoId);
   ls.s(K.hist,[]); renderHist(); renderDia(); toast('Historial borrado');
 });
+
+/* ══════════ Tema día / noche ══════════ */
+function ponerTema(t){
+  document.documentElement.setAttribute('data-theme', t==='light'?'light':'dark');
+  const m=document.querySelector('meta[name=theme-color]'); if(m) m.content = t==='light'?'#f3f5f8':'#0d1117';
+  const b=$('btnTema'); if(b) b.querySelector('i').textContent = t==='light'?'☀':'☾';
+  try{ localStorage.setItem('ns_theme',t); }catch(e){}
+}
+$('btnTema').addEventListener('click',()=>{
+  ponerTema(document.documentElement.getAttribute('data-theme')==='light'?'dark':'light');
+});
+(function(){ const b=$('btnTema'); b.querySelector('i').textContent = document.documentElement.getAttribute('data-theme')==='light'?'☀':'☾'; })();
+$('histQ').addEventListener('input',renderHist);
 
 /* ══════════ Init ══════════ */
 renderShot(); renderFotos(); loadPerf(); renderNeeds(); renderRes(ls.g(K.last,null)); leerURL();
