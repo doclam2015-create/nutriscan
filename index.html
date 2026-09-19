@@ -272,6 +272,8 @@ td.num i{font-style:normal;color:var(--tx3);font-size:11px;margin-left:3px}
 .hitem .fav.on{color:#fbbf24;border-color:rgba(251,191,36,.5)}
 .filtros{display:flex;gap:7px;margin-bottom:10px}
 .filtros .chip{min-height:34px;padding:6px 11px;font-size:12px}
+#semBox .kcalbox{flex-wrap:wrap}
+#semBox .kcalbox div{flex:1 1 45%}
 /* toast con acción */
 .toast button{margin-left:10px;border:1px solid var(--line);background:var(--bg2);color:var(--act);border-radius:8px;
   padding:5px 10px;font-weight:800;font-family:inherit;font-size:13px;cursor:pointer}
@@ -517,13 +519,14 @@ details[open] summary{margin-bottom:11px}
 <section class="view hide" id="v-hist">
   <div class="card"><h2>Productos analizados</h2>
     <input type="text" id="histQ" placeholder="Buscar en el historial…" autocomplete="off">
-    <div class="filtros"><div class="chip" id="fltFav">★ Solo favoritos</div></div>
+    <div class="filtros"><div class="chip" id="fltFav" role="button" tabindex="0" aria-pressed="false">★ Solo favoritos</div></div>
     <button class="btn sec sm" id="btnCmp" style="margin:0 0 10px">⚖️ Comparar dos productos</button>
     <small class="mut hide" id="cmpHint" style="margin-bottom:10px">Toca los <b>dos</b> productos que quieres comparar.</small>
     <div id="histList"></div></div>
   <div class="card" id="diaBox"></div>
+  <div class="card" id="semBox"></div>
   <div class="card"><h2>Respaldo</h2>
-    <small class="mut" style="margin-bottom:10px">Tus datos viven solo en este teléfono. Exporta un respaldo para no perderlos al cambiar de equipo o borrar Safari; el JSON se puede volver a importar (historial, perfil y productos guardados; las fotos no se incluyen).</small>
+    <small class="mut" style="margin-bottom:10px">Tus datos viven solo en este teléfono. Exporta un respaldo para no perderlos al cambiar de equipo o borrar Safari; el JSON se puede volver a importar (historial, diario, perfil, productos guardados y, si quieres, las fotos).</small>
     <div class="row"><button class="btn sec sm" id="btnExpJson">💾 Respaldo JSON</button><button class="btn sec sm" id="btnExpCsv">📊 Tabla CSV</button></div>
     <button class="btn sec sm" id="btnImp" style="margin-top:9px">📥 Importar un respaldo</button>
     <input type="file" id="fileImp" accept=".json,application/json" class="hide">
@@ -615,6 +618,7 @@ details[open] summary{margin-bottom:11px}
     <div class="sep"></div>
     <h3>Memoria de productos</h3>
     <p class="mut" id="prodCount"></p>
+    <p class="mut" id="usoAlm"></p>
     <button class="btn sec sm" id="btnVerProd">📂 Ver y editar productos guardados</button>
 
     <div class="sep"></div>
@@ -1688,9 +1692,25 @@ function estimarIG(x, tipo, ings, igBase){
   return [ig,'Estimado a partir de la relación azúcares/carbohidratos, fibra, grasa y proteína del producto. Es una aproximación, no una medición.'];
 }
 /* Advertencias personalizadas por perfil */
-function advertencias(x, pPorc, ings, tipo, n, sel){
+/* Advertencias de alergenos del propio envase: «puede contener», «trazas de»,
+   «elaborado en una linea que procesa». No son ingredientes, pero importan
+   igual a quien tiene alergia. */
+function extraerTrazas(texto){
+  const t=String(texto||'').replace(/[ \t]+/g,' ');   // los saltos de linea delimitan la frase
+  const re=/(?:puede contener|podr[ií]a contener|trazas de|contiene trazas de|elaborad[oa] en (?:una |la )?(?:l[ií]nea|planta|f[aá]brica|instalaci[oó]n)[^.;]*?(?:procesa|elabora|manipula|utiliza)|may contain|traces of)\s*:?\s*([^.;\n]+)/gi;
+  const out=[]; let m;
+  while((m=re.exec(t))){ m[1].split(/,|\by\b|\/|\be\b/).map(x=>x.replace(/\b(y|e|o|de|del|otros?)\b/gi,'').trim()).filter(x=>x.length>2&&x.length<40).forEach(x=>{ if(!out.some(o=>norm(o)===norm(x))) out.push(x); }); }
+  return out.slice(0,12);
+}
+function advertencias(x, pPorc, ings, tipo, n, sel, trazas){
   const a=[], c=(perfil&&perfil.conds)||[];
   const alergUsr = ((perfil&&perfil.alerg)||'').split(/[,;]/).map(s=>norm(s)).filter(s=>s.length>2);
+  trazas = trazas||[];
+  /* Sin lista de ingredientes no se puede afirmar que no hay alergenos */
+  if(alergUsr.length && !ings.length)
+    a.push(['inf','Sin lista de ingredientes no se pudo comprobar tus alergias («'+alergUsr.join('», «')+'»): revísalo en el envase antes de consumir.']);
+  trazas.forEach(tr=>{ const t=norm(tr); alergUsr.forEach(al=>{ if(t.includes(al)||al.includes(t))
+    a.push(['warn','⚠ El envase advierte «puede contener '+tr+'» y declaras alergia a «'+al+'»: riesgo por contaminación cruzada.']); }); });
   // Alergias declaradas
   ings.forEach(i=>{
     const t = norm(i.nombre+' '+i.n+' '+(i.al||''));
@@ -1786,7 +1806,7 @@ const FOTODB = (()=>{
     });
   };
   return {
-    async put(id,v){ try{ await tx('readwrite',st=>st.put(v,id)); }catch(e){} },
+    async put(id,v){ try{ await tx('readwrite',st=>st.put(v,id)); return true; }catch(e){ return false; } },
     async get(id){ try{ return await tx('readonly',st=>st.get(id)); }catch(e){ return null; } },
     async del(id){ try{ await tx('readwrite',st=>st.delete(id)); }catch(e){} },
     async ids(){ try{ return await tx('readonly',st=>st.getAllKeys()) || []; }catch(e){ return []; } }
@@ -1852,7 +1872,7 @@ function verFoto(src){
 }
 $('lupaCerrar').addEventListener('click',()=>{ $('lupaOvl').className='hide'; $('lupaImg').src=''; });
 $('lupaOvl').addEventListener('click',e=>{ if(e.target.id==='lupaOvl'){ $('lupaOvl').className='hide'; $('lupaImg').src=''; } });
-const APP_V = '22';
+const APP_V = '23';
 $('inOcrModo').addEventListener('change',e=>{ ls.s('ns_ocrmodo',e.target.value); toast(e.target.value==='local'?'Lector local: la foto no sale del teléfono':'Lector en línea con respaldo local'); });
 
 /* ── Lectura sin internet: deja en cache los motores de OCR y codigos ──
@@ -1864,6 +1884,15 @@ async function cacheApp(){ const ks=(await caches.keys()).filter(k=>/^nutriscan-
 async function offListo(){
   try{ if(!window.caches) return false; const c=await cacheApp(); if(!c) return false;
     for(const a of ARCH_OFF){ if(!(await c.match(a,{ignoreSearch:true}))) return false; } return true; }catch(e){ return false; }
+}
+/* Cuanto ocupan tus datos: lo que hay que respaldar y cuanto margen queda */
+async function pintarUsoAlm(){
+  let ls_b=0; try{ for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); ls_b+=(k.length+(localStorage.getItem(k)||'').length)*2; } }catch(e){}
+  const kb=v=>v<1024*1024?Math.round(v/1024)+' KB':(v/1048576).toFixed(1)+' MB';
+  let fotos=0, ids=[]; try{ ids=await FOTODB.ids(); for(const id of ids){ const f=await FOTODB.get(id); if(f) fotos+=((f.envase||'').length+(f.contenido||'').length); } }catch(e){}
+  let est=''; try{ if(navigator.storage&&navigator.storage.estimate){ const e=await navigator.storage.estimate(); if(e.quota) est=' Espacio que el navegador permite: '+kb(e.quota)+' (usado '+kb(e.usage||0)+').'; } }catch(e){}
+  const h=ls.g(K.hist,[]).length, dl=ls.g(K.diario,[]).length;
+  $('usoAlm').innerHTML=`Datos guardados en este teléfono: <b>${kb(ls_b)}</b> en perfil, historial (${h}), diario (${dl}) y productos; <b>${kb(fotos)}</b> en fotos (${ids.length}).${est} Safari puede borrarlos si no abres la app por semanas: haz un respaldo de vez en cuando.`;
 }
 async function pintarOffEstado(){
   const ok=await offListo();
@@ -1904,6 +1933,7 @@ $('btnSetup').addEventListener('click',()=>{
   $('inOcrKey').value = ls.g('ns_ocrkey','');
   $('inOcrModo').value = ocrModo();
   pintarOffEstado();
+  pintarUsoAlm();
   const k=Object.keys(PRODS).length;
   $('prodCount').textContent = k
     ? k+' producto'+(k===1?'':'s')+' guardado'+(k===1?'':'s')+' en este teléfono: se reconocen al instante y sin conexión.'
@@ -2912,7 +2942,8 @@ function generarInforme(auto){
     porcG, porcN, ings, score, grade:ns.grade, nova:nv[0], novaTxt:nv[1], ig, igTxt, cg,
     sellos:sel, needs:n, foto,
     sistemas: sistemas(x100,ings,tipo==='bebida',n,pPorc),
-    adv: advertencias(x100,pPorc,ings,tipo,n,sel),
+    adv: advertencias(x100,pPorc,ings,tipo,n,sel,extraerTrazas($('inIng').value+'\n'+$('inTexto').value)),
+    trazas: extraerTrazas($('inIng').value+'\n'+$('inTexto').value),
     alergs: [...new Set(ings.map(i=>i.al).filter(Boolean))],
     cod: codPend, novaOFF, nsOFF, porcDecl,
     avisos: revisar(x100, tipo).concat(origenDato==='camara'? revisarColumnas(filasOCR, porcDecl?porcG:null) : []),
@@ -2924,7 +2955,7 @@ function generarInforme(auto){
     ts: Date.now() };
   /* Las fotos van aparte, en IndexedDB, referidas por este id. */
   d.fotoId = (codPend ? 'c'+codPend : 'p'+d.ts);
-  if(fotoEnvase || fotoContenido) FOTODB.put(d.fotoId, {envase:fotoEnvase, contenido:fotoContenido});
+  if(fotoEnvase || fotoContenido) FOTODB.put(d.fotoId, {envase:fotoEnvase, contenido:fotoContenido}).then(ok=>{ if(!ok) toast('Las fotos no se pudieron guardar en este teléfono (¿sin espacio o modo privado?).',true); });
   else FOTODB.del(d.fotoId);
 
   /* Aprende: si venía de un código, queda guardado para leerlo sin conexión la próxima vez. */
@@ -3137,6 +3168,8 @@ function renderRes(d){
       ${d.cg!=null?`<span class="badge ${d.cg>=20?'b-bd':d.cg>=11?'b-wn':'b-ok'}" data-ir="cd-glicemia" title="Ver el impacto sobre la glicemia">CG ${d.cg}</span>`:''}
       <span class="badge ${d.sellos.length>=3?'b-bd':d.sellos.length?'b-wn':'b-ok'}" data-ir="cd-sellos" title="Ver los sellos de advertencia">${d.sellos.length} sello${d.sellos.length===1?'':'s'}</span>
       ${d.alergs.length?`<span class="badge b-wn" data-ir="cd-ings" title="Ver los ingredientes">⚠ ${d.alergs.join(', ')}</span>`:''}
+      ${(d.trazas||[]).length?`<span class="badge b-nt" data-ir="cd-ings" title="Advertencia del envase">puede contener ${esc(d.trazas.slice(0,3).join(', '))}</span>`:''}
+      ${!d.ings.length?`<span class="badge b-nt" data-ir="cd-tabla" title="Agregar ingredientes">sin ingredientes</span>`:''}
     </div>
     ${(d.faltan||[]).length?`<div class="note" style="margin-top:11px"><b>Sin dato en el envase: ${d.faltan.map(k=>(NUTS.find(n=>n[0]===k)||[k,k])[1].toLowerCase()).join(', ')}</b>
       El puntaje, el Nutri-Score y la comparación con los límites de sellos se calcularon tratándolos como 0. Si la etiqueta sí los declara, escríbelos en la tabla de abajo.</div>`:''}
@@ -3241,7 +3274,7 @@ function renderRes(d){
     <h3 style="font-size:14px">Sellos que ves en el envase</h3>
     <small class="mut" style="margin-bottom:8px" id="selloEst">${d.sellosEnvase==null?'No revisado todavía: toca los que aparezcan impresos (o «Ninguno»).':d.sellosEnvase.length?'Confirmado por ti.':'Confirmado por ti: el envase no lleva sellos.'}</small>
     <div class="chips" id="sellosEnv">${[['CALORÍAS','Calorías'],['SODIO','Sodio'],['AZÚCARES','Azúcares'],['GRASAS SAT.','Grasas sat.']].map(([k,l])=>
-      `<div class="chip${(d.sellosEnvase||[]).includes(k)?' on':''}" data-s="${k}">${l}</div>`).join('')}<div class="chip${d.sellosEnvase&&!d.sellosEnvase.length?' on':''}" data-s="">Ninguno</div></div>
+      `<div class="chip${(d.sellosEnvase||[]).includes(k)?' on':''}" data-s="${k}" role="button" tabindex="0">${l}</div>`).join('')}<div class="chip${d.sellosEnvase&&!d.sellosEnvase.length?' on':''}" data-s="" role="button" tabindex="0">Ninguno</div></div>
     <div id="selloDif"></div></div>`;
 
   /* IMPACTO GLUCÉMICO */
@@ -3268,6 +3301,7 @@ function renderRes(d){
   if(d.ings.length){
     const desc = d.ings.filter(i=>i.t==='otro').length;
     h+=`<div class="card" id="cd-ings"><h2>Ingredientes explicados (${d.ings.length})</h2>
+      ${(d.trazas||[]).length?`<div class="note"><b>El envase advierte: puede contener ${esc(d.trazas.join(', '))}</b>No son ingredientes sino posible contaminación cruzada en la fábrica. Cuenta igual si tienes alergia; no cuenta para intolerancias leves.</div>`:''}
       ${desc/d.ings.length>0.4 ? `<div class="note"><b>Lista poco reconocida</b>De ${d.ings.length} ingredientes, ${desc} no están en el diccionario —suele pasar cuando la lista viene en otro idioma o el OCR la leyó mal—. El nivel de procesamiento (NOVA ${d.nova}) puede estar subestimado: revisa la lista original del envase.</div>` : ''}
       ${d.ings.map((i,k)=>`<div class="ing" data-i="${k}">
         <div class="hd"><span class="dot" style="background:${RC[i.r]||'#64748b'}"></span>
@@ -3522,7 +3556,7 @@ function pushHist(d){
     sodio:d.pPorc.sodio_mg||0,sat:d.pPorc.sat_g||0,full:d});
   /* los favoritos no se caen del tope de 50 */
   const fav=h.filter(x=>x.fav), resto=h.filter(x=>!x.fav);
-  return ls.s(K.hist,[...fav,...resto.slice(0,Math.max(0,50-fav.length))].sort((a,b)=>b.ts-a.ts));
+  return ls.s(K.hist,[...fav,...resto.slice(0,Math.max(0,100-fav.length))].sort((a,b)=>b.ts-a.ts));
 }
 /* Cambios hechos sobre un informe ya generado (sellos vistos, etc.) */
 function guardarInformeActual(d){
@@ -3573,7 +3607,8 @@ $('btnCmp').addEventListener('click',()=>{
   renderHist();
 });
 let soloFav=false;
-$('fltFav').addEventListener('click',()=>{ soloFav=!soloFav; $('fltFav').classList.toggle('on',soloFav); renderHist(); });
+$('fltFav').addEventListener('click',()=>{ soloFav=!soloFav; $('fltFav').classList.toggle('on',soloFav); $('fltFav').setAttribute('aria-pressed',soloFav); renderHist(); });
+$('fltFav').addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); $('fltFav').click(); } });
 function renderHist(){
   const h=ls.g(K.hist,[]), q=norm(($('histQ')||{}).value||'');
   $('histList').className = cmpModo?'comparando':'';
@@ -3619,7 +3654,30 @@ function renderHist(){
     setTimeout(()=>{ if(!deshecho && quitado && quitado.fotoId && !ls.g(K.hist,[]).some(x=>x.fotoId===quitado.fotoId)) FOTODB.del(quitado.fotoId); },6500);
   }));
 }
+function renderSemana(){
+  const lista=ls.g(K.diario,[]), n=needs(perfil), dias=[];
+  for(let i=6;i>=0;i--){ const d=new Date(); d.setDate(d.getDate()-i); dias.push(d); }
+  const filas=dias.map(d=>({d, t:sumarDia(lista,d.toDateString())}));
+  const con=filas.filter(f=>f.t.n>0);
+  if(!con.length){ $('semBox').innerHTML='<h2>Últimos 7 días</h2><p class="mut">Sin consumos registrados esta semana.</p>'; return; }
+  const max=Math.max(n.kcal,...filas.map(f=>f.t.kcal));
+  const prom=k=>Math.round(con.reduce((a,f)=>a+f.t[k],0)/con.length);
+  const DN=['dom','lun','mar','mié','jue','vie','sáb'];
+  $('semBox').innerHTML=`<h2>Últimos 7 días · energía registrada</h2>
+    <small class="mut" style="margin-bottom:10px">Solo cuenta lo que registraste (${con.length} de 7 días con registros). La línea marca tu meta de ${n.kcal} kcal.</small>
+    <div style="display:flex;gap:6px;align-items:flex-end;height:110px;border-bottom:1px solid var(--line);position:relative">
+      <i style="position:absolute;left:0;right:0;bottom:${Math.round(n.kcal/max*100)}%;height:1px;background:var(--tx3);opacity:.6"></i>
+      ${filas.map(f=>`<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:3px">
+        <span style="font-size:9.5px;color:var(--tx3);font-variant-numeric:tabular-nums">${f.t.n?Math.round(f.t.kcal):''}</span>
+        <div style="width:100%;border-radius:5px 5px 0 0;background:${f.t.n?(f.t.kcal>n.kcal?'var(--bad)':'var(--ok)'):'var(--card2)'};height:${f.t.n?Math.max(3,Math.round(f.t.kcal/max*80)):3}%"></div></div>`).join('')}</div>
+    <div style="display:flex;gap:6px;margin-top:4px">${filas.map(f=>`<div style="flex:1;text-align:center;font-size:10.5px;color:var(--tx3);font-weight:700">${DN[f.d.getDay()]}</div>`).join('')}</div>
+    <div class="kcalbox" style="margin-top:12px">
+      <div><b>${prom('kcal')}</b><span>kcal/día</span></div><div><b>${prom('azucar')} g</b><span>azúcar/día</span></div>
+      <div><b>${prom('sodio')} mg</b><span>sodio/día</span></div><div><b>${prom('sat')} g</b><span>saturadas/día</span></div></div>
+    <small class="mut" style="margin-top:6px">Promedios de los días con registros; con el diario incompleto, son solo una parte de tu dieta.</small>`;
+}
 function renderDia(){
+  renderSemana();
   const lista=ls.g(K.diario,[]), hoy=new Date().toDateString();
   const hoyL=lista.filter(e=>new Date(e.ts).toDateString()===hoy);
   if(!hoyL.length){ $('diaBox').innerHTML='<h2>Consumo de hoy</h2><p class="mut">Nada registrado hoy. Analizar un producto no lo suma: en el informe, en «Cantidad que consumirás», toca <b>Registrar</b>.</p>'; return; }
@@ -3683,7 +3741,7 @@ $('fileImp').addEventListener('change',async e=>{
     if(!confirm(`Respaldo del ${new Date(j.fecha).toLocaleDateString('es-CL')} (v${j.version||'?'}): ${j.historial.length} producto(s), ${Object.keys(j.productos||{}).length} en memoria, ${nDiario} consumo(s), ${nFotos} con foto.\n\nSe combinará con lo que ya tienes (nada se borra). ¿Continuar?`)) return;
     const actual=ls.g(K.hist,[]), ts=new Set(actual.map(x=>x.ts));
     const nuevos=j.historial.filter(x=>x&&x.ts&&!ts.has(x.ts));
-    const total=[...actual,...nuevos].sort((a,b)=>b.ts-a.ts).slice(0,50);
+    const total=[...actual,...nuevos].sort((a,b)=>b.ts-a.ts).slice(0,100);
     if(!ls.s(K.hist,total)) throw new Error('guardar');
     let np=0; Object.keys(j.productos||{}).forEach(c=>{ if(!PRODS[c]){ PRODS[c]=j.productos[c]; np++; } }); ls.s('ns_prod',PRODS);
     if(nDiario){ const dl=ls.g(K.diario,[]), dts=new Set(dl.map(e=>e.ts)); ls.s(K.diario,[...dl,...j.diario.filter(e=>e&&e.ts&&!dts.has(e.ts))].sort((a,b)=>b.ts-a.ts).slice(0,400)); }
@@ -3697,6 +3755,16 @@ $('btnClrHist').addEventListener('click',async()=>{
   for(const it of ls.g(K.hist,[])) if(it.fotoId) await FOTODB.del(it.fotoId);
   ls.s(K.hist,[]); renderHist(); renderDia(); toast('Historial borrado');
 });
+
+/* ══════════ Accesibilidad: foco al abrir ventanas, Escape para cerrar ══════════ */
+(function(){
+  const obs=new MutationObserver(ms=>ms.forEach(m=>{ const el=m.target;
+    if(el.classList.contains('ovl') && !el.classList.contains('hide')){
+      const f=el.querySelector('input:not(.hide),select,button'); if(f) setTimeout(()=>f.focus({preventScroll:true}),120); } }));
+  document.querySelectorAll('.ovl').forEach(o=>obs.observe(o,{attributes:true,attributeFilter:['class']}));
+  document.addEventListener('keydown',e=>{ if(e.key!=='Escape') return;
+    const ab=[...document.querySelectorAll('.ovl:not(.hide)')].pop(); if(ab) ab.className='ovl hide'; });
+})();
 
 /* ══════════ Tema día / noche ══════════ */
 function ponerTema(t){
@@ -3905,6 +3973,17 @@ if(location.search.includes('test')){
     A(faltantes({kcal:100,proteina_g:0,carb_g:0,azucar_g:0,grasa_g:0,sat_g:0,sodio_mg:0}).length===0,'un cero explícito sí es un dato');
   })();
   R.push('Cantidad y diario');
+  (function(){
+    const t=extraerTrazas('harina de trigo, azúcar. Puede contener maní, soya y leche. Elaborado en una línea que procesa nueces.');
+    A(t.some(x=>/man[ií]/i.test(x)) && t.some(x=>/soya/i.test(x)) && t.some(x=>/leche/i.test(x)) && t.some(x=>/nueces/i.test(x)),'lee «puede contener» y «línea que procesa»');
+    A(extraerTrazas('harina, sal, levadura').length===0,'sin advertencia no inventa trazas');
+    const p0=perfil; perfil={alerg:'maní',conds:[]};
+    const adv=advertencias({},{},[],'solido',needs(perfil),[],['maní']);
+    A(adv.some(a=>/contaminación cruzada/.test(a[1])),'alergia declarada + trazas → advertencia');
+    A(adv.some(a=>/Sin lista de ingredientes/.test(a[1])),'sin ingredientes no se afirma ausencia de alérgenos');
+    perfil=p0;
+  })();
+  R.push('Trazas');
   setTimeout(()=>toast('✅ TODOS LOS TESTS OK — '+R.join(' · ')),400);
 }
 </script>

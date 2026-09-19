@@ -1,0 +1,14 @@
+name: Comprobar sintaxis
+on: [push, pull_request]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - name: JS de index.html y sw.js
+        run: |
+          node -e "const s=require('fs').readFileSync('index.html','utf8');const a=s.indexOf(\"<script>\n'use strict'\")+8,b=s.lastIndexOf('</script>');require('fs').writeFileSync('app.js',s.slice(a,b))"
+          node --check app.js && node --check sw.js
+          grep -q "APP_V = '$(grep -o "nutriscan-v[0-9]*" sw.js | grep -o '[0-9]*$')'" index.html || { echo "APP_V y cache del service worker no coinciden"; exit 1; }
