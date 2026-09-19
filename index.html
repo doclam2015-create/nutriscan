@@ -243,6 +243,54 @@ td.num i{font-style:normal;color:var(--tx3);font-size:11px;margin-left:3px}
 /* resalte de la tarjeta a la que se llega */
 @keyframes llegada{0%{box-shadow:0 0 0 0 rgba(59,130,246,.55)}100%{box-shadow:0 0 0 13px rgba(59,130,246,0)}}
 .card.destaca{animation:llegada 1.1s ease-out; border-color:var(--ac)}
+.edt.foco{box-shadow:0 0 0 3px rgba(59,130,246,.45);border-color:var(--ac)}
+.note[data-k]{cursor:pointer}
+.note[data-k]:after{content:'Ir al valor ›';display:block;font-size:11.5px;color:var(--act);margin-top:3px;font-weight:700}
+/* cantidad consumida */
+.cant{display:flex;gap:7px;margin:9px 0}
+.cant button{flex:1;min-height:40px;border-radius:10px;border:1px solid var(--line);background:var(--bg2);color:var(--tx2);
+  font-size:12.5px;font-weight:700;font-family:inherit;cursor:pointer}
+.cant button.on{background:var(--ac);border-color:var(--ac);color:#fff}
+.mini{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:9px}
+.mini div{background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:8px 5px;text-align:center}
+.mini b{display:block;font-size:15px;font-variant-numeric:tabular-nums}
+.mini span{font-size:9.5px;color:var(--tx3);text-transform:uppercase;letter-spacing:.3px;font-weight:700;display:block}
+.mini i{font-style:normal;font-size:10.5px;color:var(--tx2);display:block;margin-top:1px}
+/* diario de consumo */
+.ditem{display:flex;align-items:center;gap:9px;padding:9px 10px;border:1px solid var(--line);border-radius:11px;
+  margin-bottom:7px;background:var(--bg2)}
+.ditem .m{flex:1;min-width:0}
+.ditem .m b{display:block;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ditem .m span{font-size:11px;color:var(--tx3)}
+.ditem .ddel{flex:none;width:38px;height:38px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--badt);font-size:14px;padding:0}
+/* favoritos */
+.hitem{gap:7px;padding:9px}
+.hitem .fav{flex:none;width:34px;height:34px;border-radius:9px;border:1px solid var(--line);background:var(--card2);color:var(--tx3);font-size:16px;padding:0;line-height:1}
+.hitem .hdel{width:34px;height:34px;border-radius:9px;font-size:13px}
+.hitem .s{width:34px;height:34px;font-size:13.5px;border-radius:9px}
+.hitem img,.hitem .ph{width:40px;height:40px}
+.hitem .fav.on{color:#fbbf24;border-color:rgba(251,191,36,.5)}
+.filtros{display:flex;gap:7px;margin-bottom:10px}
+.filtros .chip{min-height:34px;padding:6px 11px;font-size:12px}
+/* toast con acción */
+.toast button{margin-left:10px;border:1px solid var(--line);background:var(--bg2);color:var(--act);border-radius:8px;
+  padding:5px 10px;font-weight:800;font-family:inherit;font-size:13px;cursor:pointer}
+/* accesibilidad: menos movimiento cuando el sistema lo pide */
+@media (prefers-reduced-motion: reduce){
+  *,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+/* impresión: solo el informe, en claro */
+@media print{
+  :root{--bg:#fff;--bg2:#fff;--card:#fff;--card2:#f3f4f6;--line:#d1d5db;--tx:#111;--tx2:#374151;--tx3:#6b7280;
+    --okt:#15803d;--wnt:#b45309;--badt:#b91c1c;--act:#1d4ed8;--sombra:none}
+  header,nav,.btn,button,.ovl,.toast,#v-scan,#v-perf,#v-hist,.lnk,#cd-tabla .g2,#cd-tabla textarea,#cd-tabla h3,#cd-tabla .sep{display:none!important}
+  #v-res{visibility:visible!important;height:auto!important}
+  body,main{padding:0;max-width:none;background:#fff}
+  .card{break-inside:avoid;box-shadow:none;border:1px solid #d1d5db;margin-bottom:8px}
+  .edt{border:none;background:none;padding:0;width:auto;font-size:13px;color:#111}
+  .sello{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .fill,.gradebox div,.badge,.hitem .s{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
 
 /* ── Fotos del producto: envase y contenido ── */
 #fotosBox{display:grid;grid-template-columns:1fr 1fr;gap:9px}
@@ -294,6 +342,25 @@ td.num i{font-style:normal;color:var(--tx3);font-size:11px;margin-left:3px}
 .res div{cursor:pointer}
 .hitem{cursor:pointer}
 #histQ{margin-bottom:10px}
+/* pestañas del buscador (local / en línea) */
+.tabs{display:flex;gap:6px;margin-bottom:10px}
+.tabs button{flex:1;min-height:38px;border-radius:10px;border:1px solid var(--line);background:var(--bg2);
+  color:var(--tx2);font-size:12.5px;font-weight:700;font-family:inherit;cursor:pointer}
+.tabs button.on{background:var(--ac);border-color:var(--ac);color:#fff}
+.res div.offr{display:flex;gap:9px;align-items:center}
+.res div.offr img{width:40px;height:40px;border-radius:8px;object-fit:cover;flex:none;background:var(--card2)}
+.res div.offr .m{flex:1;min-width:0}
+/* comparación de dos productos */
+.hitem.sel{border-color:var(--ac);box-shadow:0 0 0 2px rgba(59,130,246,.35)}
+#histList.comparando .hdel{display:none}
+.cmp td.num.mejor{color:var(--okt);font-weight:700}
+.cmp td.num.peor{color:var(--badt)}
+.tablewrap table.cmp{min-width:0;width:100%;table-layout:fixed;font-size:13px}
+.cmp th:first-child,.cmp td:first-child{width:34%;font-size:12.5px}
+.cmp th.num{white-space:normal;line-height:1.25;font-size:10px;word-break:break-word}
+.cmp td.num{white-space:normal;padding-left:3px;padding-right:3px}
+.cmp .s{display:inline-flex;width:34px;height:34px;border-radius:9px;align-items:center;justify-content:center;
+  font-weight:800;color:#0b1017}
 details{margin:0}
 details summary{list-style:none;cursor:pointer;min-height:46px;display:flex;align-items:center;
   gap:8px;font-size:13.5px;font-weight:700;color:var(--tx2);padding:11px 12px;
@@ -372,7 +439,7 @@ details[open] summary{margin-bottom:11px}
   <div class="card">
     <h2>Valores nutricionales</h2>
     <div class="row" style="margin-bottom:12px">
-      <button class="btn sec sm" id="btnBase">📚 Buscar en base local (321 alimentos)</button>
+      <button class="btn sec sm" id="btnBase">🔎 Buscar por nombre (base local · en línea)</button>
     </div>
     <label class="f"><span>Los valores están expresados por…</span>
       <select id="inBase">
@@ -450,8 +517,17 @@ details[open] summary{margin-bottom:11px}
 <section class="view hide" id="v-hist">
   <div class="card"><h2>Productos analizados</h2>
     <input type="text" id="histQ" placeholder="Buscar en el historial…" autocomplete="off">
+    <div class="filtros"><div class="chip" id="fltFav">★ Solo favoritos</div></div>
+    <button class="btn sec sm" id="btnCmp" style="margin:0 0 10px">⚖️ Comparar dos productos</button>
+    <small class="mut hide" id="cmpHint" style="margin-bottom:10px">Toca los <b>dos</b> productos que quieres comparar.</small>
     <div id="histList"></div></div>
   <div class="card" id="diaBox"></div>
+  <div class="card"><h2>Respaldo</h2>
+    <small class="mut" style="margin-bottom:10px">Tus datos viven solo en este teléfono. Exporta un respaldo para no perderlos al cambiar de equipo o borrar Safari; el JSON se puede volver a importar (historial, perfil y productos guardados; las fotos no se incluyen).</small>
+    <div class="row"><button class="btn sec sm" id="btnExpJson">💾 Respaldo JSON</button><button class="btn sec sm" id="btnExpCsv">📊 Tabla CSV</button></div>
+    <button class="btn sec sm" id="btnImp" style="margin-top:9px">📥 Importar un respaldo</button>
+    <input type="file" id="fileImp" accept=".json,application/json" class="hide">
+  </div>
   <button class="btn dgr" id="btnClrHist">🗑️ Borrar historial</button>
 </section>
 
@@ -502,12 +578,19 @@ details[open] summary{margin-bottom:11px}
       <div class="step"><span class="n">2</span><div>Si el producto no está en la base, la app cambia sola a <b>Tabla nutricional</b>: encuadra la etiqueta, ajusta el recuadro a la tabla y pulsa <b>Leer la tabla</b>. Recortar solo la tabla —sin el resto del envase— es lo que más sube el acierto de la lectura.</div></div>
       <div class="step"><span class="n">3</span><div>Cualquier valor del informe se puede corregir a mano: escribe encima y pulsa <b>Recalcular</b>. El puntaje, los sellos y todo lo demás se rehacen con tu corrección.</div></div>
       <div class="step"><span class="n">4</span><div>Lo que leas o corrijas queda guardado en el teléfono junto a su código de barras: la próxima vez ese producto se reconoce al instante y <b>sin conexión</b>. Revísalo o bórralo en «Ver y editar productos guardados», más abajo.</div></div>
+      <div class="step"><span class="n">5</span><div>Analizar un producto <b>no</b> lo suma a tu día. En el informe, en <b>Cantidad que consumirás</b>, elige cuánto comerás y toca <b>Registrar</b>: eso alimenta el «Consumo de hoy» del Historial. Marca con ★ lo que repites para encontrarlo al instante.</div></div>
     </div>
 
     <div class="sep"></div>
     <h3>Precisión de la lectura</h3>
     <p class="mut">Con internet, la tabla nutricional se lee primero con un motor de reconocimiento en la nube (más preciso que el del teléfono, en especial con letra pequeña o envases curvos); si falla o no hay red, se usa en silencio el lector local, que funciona sin conexión. El informe siempre dice cuál de los dos leyó tu etiqueta.</p>
     <div class="note"><b>La clave gratuita de fábrica se satura</b>La usan todos los que prueban esta app en internet, así que a menudo está saturada y la app cae al lector local sin avisar demora. Con tu propia clave —gratis, sin tarjeta, dos minutos en <b>ocr.space/ocrapi</b>— la lectura en línea funciona siempre. Se pide una sola vez: queda guardada en este teléfono para siempre.</div>
+    <label class="f"><span>Motor para leer la tabla nutricional</span>
+      <select id="inOcrModo">
+        <option value="linea">En línea, con respaldo local (más preciso)</option>
+        <option value="local">Solo local, sin enviar la foto a nadie</option>
+      </select></label>
+    <small class="mut" style="margin-bottom:11px">En línea, la foto del recorte se envía a <b>OCR.space</b> (un tercero) y se descarta al terminar; si falla o no hay red, se usa el lector local. En «solo local» nada sale del teléfono.</small>
     <label class="f"><span>Tu clave de OCR.space (opcional)</span>
       <input type="text" id="inOcrKey" autocapitalize="off" autocorrect="off" placeholder="Pégala aquí, ej: K8123456789"></label>
     <button class="btn sec sm" id="btnGuardarOcrKey">💾 Guardar mi clave</button>
@@ -523,6 +606,11 @@ details[open] summary{margin-bottom:11px}
     <div class="sep"></div>
     <h3>Fotos del producto</h3>
     <p class="mut">Cada análisis puede llevar dos fotos: el <b>envase</b> y el <b>contenido</b>. Se guardan en el teléfono aparte del resto (en un almacén más grande, para que no desplacen tu historial) y aparecen en el informe. Al quitar un producto del historial, sus fotos se van con él.</p>
+
+    <div class="sep"></div>
+    <h3>Lectura sin internet</h3>
+    <p class="mut" id="offEstado"></p>
+    <button class="btn sec sm" id="btnOffline">📦 Preparar lectura sin internet</button>
 
     <div class="sep"></div>
     <h3>Memoria de productos</h3>
@@ -555,10 +643,21 @@ details[open] summary{margin-bottom:11px}
 <!-- Buscador base local -->
 <div class="ovl hide" id="baseOvl">
   <div class="card" style="width:100%;max-width:460px;margin:0">
-    <h2>Base local de alimentos (321)</h2>
-    <div class="srch"><input type="text" id="baseQ" placeholder="Buscar: pan, leche, palta, bebida…" autocomplete="off"></div>
+    <h2>Buscar un alimento</h2>
+    <div class="tabs"><button class="on" data-t="local">📚 Base local (321)</button><button data-t="off">🌐 En línea · productos envasados</button></div>
+    <div class="srch"><input type="text" id="baseQ" placeholder="Buscar: pan, leche, palta, bebida…" autocomplete="off" enterkeyhint="search"></div>
+    <button class="btn sm hide" id="baseGo" style="margin-top:9px">🌐 Buscar en línea</button>
+    <small class="mut hide" id="baseAyuda">Busca por nombre o marca en Open Food Facts (gratis, sin cuenta). Primero muestra lo cargado en Chile; si no hay, busca en todo el mundo. El servicio admite pocas búsquedas por minuto: escribe el nombre completo y pulsa Buscar.</small>
     <div class="res" id="baseRes"></div>
     <button class="btn sec" id="baseClose" style="margin-top:11px">Cerrar</button>
+  </div>
+</div>
+
+<div class="ovl hide" id="cmpOvl">
+  <div class="card" style="width:100%;max-width:520px;margin:0">
+    <h2>Comparación por 100 g / ml</h2>
+    <div id="cmpBox"></div>
+    <button class="btn sec" id="cmpClose" style="margin-top:11px">Cerrar</button>
   </div>
 </div>
 
@@ -573,13 +672,20 @@ details[open] summary{margin-bottom:11px}
 
 const $  = id => document.getElementById(id);
 const esc = s => String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const K = { perf:'ns_perfil', hist:'ns_hist', last:'ns_last' };
+const K = { perf:'ns_perfil', hist:'ns_hist', last:'ns_last', diario:'ns_diario' };
 const ls = { g:(k,d)=>{try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},
-             s:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}} };
+             /* devuelve si se guardo: un fallo silencioso haria creer que algo quedo guardado */
+             s:(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){
+               setTimeout(()=>toast('No se pudo guardar en este teléfono (¿almacenamiento lleno o modo privado?). Exporta un respaldo.',true),50);return false}} };
 let toastT;
 function toast(m,err){ clearTimeout(toastT); const t=$('toastEl');
   t.className='toast'+(err?' err':''); t.textContent=m; t.style.display='block';
   toastT=setTimeout(()=>t.style.display='none', err?5000:2400); }
+/* aviso con un boton (p. ej. «Deshacer») */
+function toastAccion(m,etq,fn){ clearTimeout(toastT); const t=$('toastEl');
+  t.className='toast'; t.textContent=m; const b=document.createElement('button'); b.textContent=etq;
+  b.addEventListener('click',()=>{ t.style.display='none'; fn(); }); t.appendChild(b); t.style.display='block';
+  toastT=setTimeout(()=>t.style.display='none', 6000); }
 
 document.querySelectorAll('nav button').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('nav button').forEach(x=>x.classList.remove('on'));
@@ -1746,7 +1852,43 @@ function verFoto(src){
 }
 $('lupaCerrar').addEventListener('click',()=>{ $('lupaOvl').className='hide'; $('lupaImg').src=''; });
 $('lupaOvl').addEventListener('click',e=>{ if(e.target.id==='lupaOvl'){ $('lupaOvl').className='hide'; $('lupaImg').src=''; } });
-const APP_V = '20';
+const APP_V = '22';
+$('inOcrModo').addEventListener('change',e=>{ ls.s('ns_ocrmodo',e.target.value); toast(e.target.value==='local'?'Lector local: la foto no sale del teléfono':'Lector en línea con respaldo local'); });
+
+/* ── Lectura sin internet: deja en cache los motores de OCR y codigos ──
+   El service worker guarda lo que se pide; aqui se pide todo de una vez,
+   con progreso, y solo se declara listo cuando cada archivo esta guardado. */
+const ARCH_OFF = ['./bc/zxing.min.js','./ocr/tesseract.min.js','./ocr/worker.min.js','./ocr/spa.traineddata.gz',
+  './ocr/tesseract-core-simd-lstm.wasm.js','./ocr/tesseract-core-lstm.wasm.js','./ocr/tesseract-core-simd.wasm.js','./ocr/tesseract-core.wasm.js'];
+async function cacheApp(){ const ks=(await caches.keys()).filter(k=>/^nutriscan-/.test(k)); return ks.length ? caches.open(ks.sort().pop()) : null; }
+async function offListo(){
+  try{ if(!window.caches) return false; const c=await cacheApp(); if(!c) return false;
+    for(const a of ARCH_OFF){ if(!(await c.match(a,{ignoreSearch:true}))) return false; } return true; }catch(e){ return false; }
+}
+async function pintarOffEstado(){
+  const ok=await offListo();
+  $('offEstado').innerHTML = ok
+    ? '<b style="color:var(--okt)">✓ Disponible sin conexión.</b> Los lectores de códigos y de etiquetas (≈12 MB) están guardados en este teléfono.'
+    : 'Los lectores de códigos y de etiquetas se descargan la primera vez que se usan (≈12 MB). Prepáralos ahora, con wifi, para que funcionen en modo avión o sin señal.';
+  $('btnOffline').textContent = ok ? '🔄 Volver a comprobar / actualizar' : '📦 Preparar lectura sin internet';
+}
+$('btnOffline').addEventListener('click', async ()=>{
+  if(!window.caches) return toast('Este navegador no permite guardar archivos sin conexión.',true);
+  const b=$('btnOffline'); b.disabled=true;
+  try{
+    const c=await cacheApp() || await caches.open('nutriscan-extra');
+    let n=0;
+    for(const a of ARCH_OFF){
+      b.textContent=`Descargando ${++n} de ${ARCH_OFF.length}…`;
+      if(await c.match(a,{ignoreSearch:true})) continue;
+      const r=await fetch(a,{cache:'no-cache'}); if(!r.ok) throw new Error(a);
+      await c.put(a,r);
+    }
+    toast('Listo: la lectura funciona sin internet ✓');
+  }catch(e){ toast('No se pudo descargar todo. Revisa la conexión y vuelve a intentarlo.',true); }
+  b.disabled=false; pintarOffEstado();
+});
+
 $('btnUpd').addEventListener('click', async ()=>{
   toast('Buscando la versión más reciente…');
   try{
@@ -1760,6 +1902,8 @@ $('setupClose').addEventListener('click',()=>$('setupOvl').className='ovl hide')
 $('btnSetup').addEventListener('click',()=>{
   $('appVer').textContent=APP_V;
   $('inOcrKey').value = ls.g('ns_ocrkey','');
+  $('inOcrModo').value = ocrModo();
+  pintarOffEstado();
   const k=Object.keys(PRODS).length;
   $('prodCount').textContent = k
     ? k+' producto'+(k===1?'':'s')+' guardado'+(k===1?'':'s')+' en este teléfono: se reconocen al instante y sin conexión.'
@@ -1967,11 +2111,12 @@ async function ocrEnLinea(canvas, prog){
 /* Prueba primero la nube con la imagen natural; si no responde, realza el
    contraste —que es lo que necesita el lector local— y lee sin conexion. */
 let ultimoMotorOCR = null, ultimoAvisoOCR = null;
+const ocrModo = () => ls.g('ns_ocrmodo','linea');
 async function leerTabla(canvas, prog){
   ultimoAvisoOCR = null;
-  const enLinea = await ocrEnLinea(canvas, prog);
+  const enLinea = ocrModo()==='local' ? null : await ocrEnLinea(canvas, prog);
   if(enLinea){ ultimoMotorOCR='linea'; return enLinea; }
-  ultimoAvisoOCR = ocrNubeError;
+  ultimoAvisoOCR = ocrModo()==='local' ? null : ocrNubeError;
   prog && prog((ocrNubeError||'')+' Uso el lector local…', 30);
   const w = await motorOCR(prog);
   const { data } = await w.recognize(realzar(ampliar(canvas, 1600)));
@@ -2180,9 +2325,76 @@ INGREDIENTES: harina de trigo, azúcar, aceite vegetal de palma, jarabe de gluco
 });
 
 /* Base local */
-$('btnBase').addEventListener('click',()=>{ $('baseOvl').className='ovl'; $('baseQ').value=''; renderBase(''); setTimeout(()=>$('baseQ').focus(),150); });
+$('btnBase').addEventListener('click',()=>{ $('baseOvl').className='ovl'; $('baseQ').value=''; if(baseTab==='off') $('baseRes').innerHTML='<div style="color:var(--tx3)">Escribe el nombre o la marca y pulsa Buscar.</div>'; else renderBase(''); setTimeout(()=>$('baseQ').focus(),150); });
 $('baseClose').addEventListener('click',()=>$('baseOvl').className='ovl hide');
-$('baseQ').addEventListener('input',e=>renderBase(e.target.value));
+let baseTab='local', offTimer=null, offCtl=null;
+/* Las busquedas se guardan un dia: el servicio admite pocas por minuto y
+   repetir la misma consulta no deberia gastar una. */
+const offCache = ls.g('ns_offq', {});
+function offCacheSet(k,v){ offCache[k]={t:Date.now(),v}; const ks=Object.keys(offCache);
+  if(ks.length>40) ks.sort((a,b)=>offCache[a].t-offCache[b].t).slice(0,ks.length-40).forEach(x=>delete offCache[x]);
+  ls.s('ns_offq',offCache); }
+const CAMPOS_BUSQ = 'code,product_name,product_name_es,generic_name_es,brands,quantity,image_small_url,nutriments,serving_size,categories_tags,nova_group,nutriscore_grade,additives_tags,ingredients_text,ingredients_text_es';
+async function buscarOFFPorNombre(q, chile){
+  const base='https://world.openfoodfacts.org/cgi/search.pl?search_simple=1&action=process&json=1&page_size=12&fields='+CAMPOS_BUSQ
+    +'&search_terms='+encodeURIComponent(q)+(chile?'&tagtype_0=countries&tag_contains_0=contains&tag_0=chile':'');
+  const c=offCache[base]; if(c && Date.now()-c.t<864e5) return c.v;
+  const r=await fetch(base,{signal:offCtl.signal});
+  if(!r.ok) throw new Error(r.status);
+  const j=await r.json();
+  const v=(j.products||[]).filter(p=>p.code); offCacheSet(base,v); return v;
+}
+function renderEnLinea(q){
+  const n=q.trim();
+  clearTimeout(offTimer);
+  if(n.length<3){ $('baseRes').innerHTML='<div style="color:var(--tx3)">Escribe al menos 3 letras (nombre o marca).</div>'; return; }
+  $('baseRes').innerHTML='<div style="color:var(--tx3)">Buscando en línea…</div>';
+  offTimer=setTimeout(async()=>{ /* pequeño margen por si Enter y el botón llegan juntos */
+    if(offCtl) offCtl.abort();
+    offCtl=new AbortController();
+    try{
+      let lista=await buscarOFFPorNombre(n,true), ambito='Chile';
+      if(lista.length<3){
+        /* la busqueda mundial es la segunda peticion: si falla (limite de 10 por
+           minuto del servicio), lo de Chile se muestra igual */
+        try{ const mundo=await buscarOFFPorNombre(n,false); ambito=lista.length?'Chile y el mundo':'el mundo';
+          const vistos=new Set(lista.map(p=>p.code)); mundo.forEach(p=>{ if(!vistos.has(p.code)) lista.push(p); }); }
+        catch(e){ if(e.name==='AbortError') throw e; if(!lista.length) throw e; }
+      }
+      pintarRed('ok');
+      if(baseTab!=='off') return;
+      if(!lista.length){ $('baseRes').innerHTML='<div style="color:var(--tx3)">Nada con ese nombre en Open Food Facts. Prueba con la marca, o escanea el código y aporta el producto.</div>'; return; }
+      $('baseRes').innerHTML = `<div style="color:var(--tx3);font-size:11.5px;min-height:0;padding:6px 11px">${lista.length} resultado${lista.length===1?'':'s'} en ${ambito}</div>`+lista.map((p,i)=>{
+        const nm=(p.product_name_es||p.product_name||p.generic_name_es||'Sin nombre').trim();
+        const nu=p.nutriments||{}, kc=nu['energy-kcal_100g'], conTabla=kc!=null||nu.fat_100g!=null||nu.carbohydrates_100g!=null;
+        return `<div class="offr" data-i="${i}">${p.image_small_url?`<img src="${esc(p.image_small_url)}" alt="" loading="lazy">`:'<div class="ph" style="width:40px;height:40px;border-radius:8px;background:var(--card2);display:flex;align-items:center;justify-content:center;flex:none">🥫</div>'}
+          <div class="m"><b>${esc(nm)}</b><small>${esc([p.brands,p.quantity].filter(Boolean).join(' · '))}${conTabla?` · ${kc!=null?kc+' kcal':'con tabla'}`:' · <span style="color:var(--wnt)">sin tabla nutricional</span>'}</small></div></div>`;
+      }).join('');
+      $('baseRes').querySelectorAll('[data-i]').forEach(d=>d.addEventListener('click',()=>{
+        const p=lista[+d.dataset.i], prod=deOFF(p.code,p);
+        $('baseOvl').className='ovl hide';
+        if(prod.nut.kcal==null && prod.nut.grasa_g==null && prod.nut.carb_g==null){
+          codPend=p.code; $('inNombre').value=[prod.nombre,prod.marca].filter(Boolean).join(' · ');
+          toast('Ese producto existe pero nadie cargó su tabla: llénala a mano o léela con la cámara.',true); return;
+        }
+        guardarProducto(prod); aplicarProducto(prod);
+      }));
+    }catch(e){ pintarRed('no'); if(e.name!=='AbortError' && baseTab==='off') $('baseRes').innerHTML='<div style="color:var(--tx3)">Open Food Facts no respondió. Si tienes internet, es su límite de <b>10 búsquedas por minuto</b>: espera un momento y vuelve a intentarlo.</div>'; }
+  },80);
+}
+$('baseQ').addEventListener('input',e=>{ if(baseTab!=='off') renderBase(e.target.value); });
+$('baseQ').addEventListener('keydown',e=>{ if(e.key==='Enter' && baseTab==='off'){ e.preventDefault(); $('baseQ').blur(); renderEnLinea($('baseQ').value); } });
+$('baseGo').addEventListener('click',()=>renderEnLinea($('baseQ').value));
+$('baseOvl').querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click',()=>{
+  $('baseOvl').querySelectorAll('.tabs button').forEach(x=>x.classList.remove('on')); b.classList.add('on');
+  baseTab=b.dataset.t;
+  $('baseAyuda').className='mut'+(baseTab==='off'?'':' hide');
+  $('baseGo').className='btn sm'+(baseTab==='off'?'':' hide');
+  $('baseQ').placeholder = baseTab==='off' ? 'Nombre o marca: mckay, soprole, nutella…' : 'Buscar: pan, leche, palta, bebida…';
+  if(baseTab==='off'){ const c=$('baseQ').value.trim(); $('baseRes').innerHTML = c.length>=3 ? '' : '<div style="color:var(--tx3)">Escribe el nombre o la marca y pulsa Buscar.</div>'; if(c.length>=3) renderEnLinea(c); }
+  else renderBase($('baseQ').value);
+  $('baseQ').focus();
+}));
 function renderBase(q){
   const n=norm(q);
   const r=BASE.filter(b=>!n||norm(b[0]).includes(n)).slice(0,40);
@@ -2680,7 +2892,10 @@ function generarInforme(auto){
 
   const ns  = nutriScore(x100,tipo);
   const nv  = nova(ings,x100);
-  let score = ns.score + (nv[0]===4?-12: nv[0]===3?-5: nv[0]===1?5:0);
+  /* Sin lista de ingredientes, NOVA no se puede afirmar: se muestra como
+     provisional y no bonifica el puntaje. */
+  const novaProv = ings.length===0;
+  let score = ns.score + (nv[0]===4?-12: nv[0]===3?-5: (nv[0]===1&&!novaProv)?5:0);
   if(x100.trans_g>0) score-=8;
   score=Math.max(0,Math.min(100,Math.round(score)));
 
@@ -2702,6 +2917,8 @@ function generarInforme(auto){
     cod: codPend, novaOFF, nsOFF, porcDecl,
     avisos: revisar(x100, tipo).concat(origenDato==='camara'? revisarColumnas(filasOCR, porcDecl?porcG:null) : []),
     origen: origenDato, motor: motorOrigen, avisoMotor: motorOrigen==='local'?ultimoAvisoOCR:null,
+    /* lo que el envase no declara se conserva como desconocido y se dice */
+    faltan: faltantes(x100), novaProv, sellosEnvase:null, motorV: MOTOR_V,
     textoOCR: $('inTexto').value.trim().slice(0,1200),
     ingTexto: $('inIng').value.trim(),
     ts: Date.now() };
@@ -2715,7 +2932,8 @@ function generarInforme(auto){
     ing:$('inIng').value.trim(), porcG:d.porcG, porcN:d.porcN, tipo,
     nut:x100, nova:novaOFF, nsOFF });
 
-  ls.s(K.last,d); pushHist(d); renderRes(d); goto('res');
+  const ok1=ls.s(K.last,d), ok2=pushHist(d); renderRes(d); goto('res');
+  if(!(ok1&&ok2)) return;
   igBaseSel=null; codPend=null; novaOFF=null; nsOFF=null; motorOrigen=null;
   if(auto) toast('Etiqueta leída y analizada ✓');
 
@@ -2908,24 +3126,27 @@ function renderRes(d){
           stroke-dasharray="${circ}" stroke-dashoffset="${circ*(1-d.score/100)}"/></svg>
         <div class="val"><b style="color:${C}">${d.score}</b><i>DE 100</i></div></div>
       <div style="flex:1;min-width:0">
-        <div style="font-size:12.5px;color:var(--tx2);font-weight:700">Calidad nutricional global</div>
+        <div style="font-size:12.5px;color:var(--tx2);font-weight:700">Puntaje orientativo NutriScan</div>
         <div class="gradebox" data-ir="cd-balance" title="Ver el balance del producto">${['A','B','C','D','E'].map(g=>
           `<div class="${g===d.grade?'on':''}" style="${g===d.grade?'background:'+GC[g]+';color:#0b1017':''}">${g}</div>`).join('')}</div>
-        <small class="mut" style="margin-top:6px">Nutri-Score <b>${d.grade}</b> ajustado por procesamiento NOVA y grasas trans.</small>
+        <small class="mut" style="margin-top:6px">Nutri-Score <b>${d.grade}</b> ajustado por procesamiento NOVA y grasas trans. No es una escala clínica.</small>
       </div></div>
     <div class="badges">
-      <span class="badge ${d.nova>=4?'b-bd':d.nova===3?'b-wn':'b-ok'}" data-ir="cd-nova" title="Ver el nivel de procesamiento">NOVA ${d.nova}</span>
+      <span class="badge ${d.novaProv?'b-nt':d.nova>=4?'b-bd':d.nova===3?'b-wn':'b-ok'}" data-ir="cd-nova" title="Ver el nivel de procesamiento">NOVA ${d.nova}${d.novaProv?' ?':''}</span>
       ${d.ig!=null?`<span class="badge ${d.ig>=70?'b-bd':d.ig>=56?'b-wn':'b-ok'}" data-ir="cd-glicemia" title="Ver el impacto sobre la glicemia">IG ${d.ig}</span>`:''}
       ${d.cg!=null?`<span class="badge ${d.cg>=20?'b-bd':d.cg>=11?'b-wn':'b-ok'}" data-ir="cd-glicemia" title="Ver el impacto sobre la glicemia">CG ${d.cg}</span>`:''}
       <span class="badge ${d.sellos.length>=3?'b-bd':d.sellos.length?'b-wn':'b-ok'}" data-ir="cd-sellos" title="Ver los sellos de advertencia">${d.sellos.length} sello${d.sellos.length===1?'':'s'}</span>
       ${d.alergs.length?`<span class="badge b-wn" data-ir="cd-ings" title="Ver los ingredientes">⚠ ${d.alergs.join(', ')}</span>`:''}
     </div>
+    ${(d.faltan||[]).length?`<div class="note" style="margin-top:11px"><b>Sin dato en el envase: ${d.faltan.map(k=>(NUTS.find(n=>n[0]===k)||[k,k])[1].toLowerCase()).join(', ')}</b>
+      El puntaje, el Nutri-Score y la comparación con los límites de sellos se calcularon tratándolos como 0. Si la etiqueta sí los declara, escríbelos en la tabla de abajo.</div>`:''}
     ${d.cod?`<small class="mut" style="margin-top:9px;display:block">Código de barras <b>${esc(d.cod)}</b>${
       d.novaOFF||d.nsOFF ? ` · la base mundial lo clasifica como NOVA <b>${d.novaOFF||'—'}</b> y Nutri-Score <b>${(d.nsOFF||'—').toUpperCase()}</b>${
         (d.novaOFF&&d.novaOFF!==d.nova)||(d.nsOFF&&d.nsOFF.toUpperCase()!==d.grade)
           ? ', algo distinto de lo calculado aquí porque cada versión del producto declara valores propios' : ', coincide con lo calculado aquí'}` : ''}</small>`:''}
     ${d.motor?`<small class="mut" style="margin-top:5px;display:block">Etiqueta leída ${d.motor==='linea'?'en línea (motor de nube, más preciso)':'con el lector local del teléfono'}.${
-      d.avisoMotor?' '+esc(d.avisoMotor)+' Por eso la lectura puede ser menos exacta: revisa los valores abajo.':''}</small>`:''}
+      d.avisoMotor?' '+esc(d.avisoMotor)+' Por eso la lectura puede ser menos exacta: revisa los valores abajo.':''}</small>
+      ${d.motor==='local' && ocrKey()==='helloworld' ? `<button class="btn sec sm" id="btnClaveOCR" style="margin-top:9px">🔑 Activar el lector en línea (clave gratis, 2 min)</button>`:''}`:''}
     </div>
     <div id="cmpOFF"></div>
     <div id="fotosRes"></div>`;
@@ -2938,7 +3159,7 @@ function renderRes(d){
         ? 'Estos datos vienen de la base mundial, que cualquiera puede editar y a veces trae errores.'
         : d.origen==='camara' ? 'Estos datos los leyó la cámara y pueden estar mal reconocidos.'
         : 'Estos valores no son coherentes entre sí.'} Corrígelos en la tabla de abajo y el informe se rehace entero.</small>
-      ${d.avisos.map(a=>`<div class="note bad">${esc(a.m)}</div>`).join('')}</div>`;
+      ${d.avisos.map(a=>`<div class="note bad"${a.k?` data-k="${a.k}"`:''}>${esc(a.m)}</div>`).join('')}</div>`;
   }
 
   /* Advertencias personalizadas */
@@ -2998,22 +3219,38 @@ function renderRes(d){
     h+=`<small class="mut" style="margin-top:10px">Relaciones derivadas de la composición declarada y de la evidencia nutricional general. El efecto real depende de la cantidad y de la frecuencia con que consumas el producto, no de una porción aislada.</small></div>`;
   }
 
+  /* CANTIDAD QUE CONSUMIRÁS — independiente de la porción del envase */
+  h+=`<div class="card" id="cd-cant"><h2>Cantidad que consumirás</h2>
+    <small class="mut">La porción del envase es una referencia; aquí calculas lo que de verdad comes o bebes. Registrarlo lleva el aporte a tu <b>consumo de hoy</b> (analizar un producto no lo suma).</small>
+    <div class="cant" id="cantBtns">
+      <button data-f="0.5">½ porción</button><button data-f="1" class="on">1 porción</button><button data-f="2">2 porciones</button><button data-f="100g">100 ${U}</button></div>
+    <label class="f" style="margin-bottom:0"><span>Cantidad (${U})</span><input type="number" inputmode="decimal" step="any" id="cantG" value="${d.porcDecl===false?100:d.porcG}"></label>
+    <div class="mini" id="cantMini"></div>
+    <button class="btn sm" id="btnDiario" style="margin-top:11px">➕ Registrar en mi consumo de hoy</button></div>`;
+
   /* SELLOS */
-  h+=`<div class="card" id="cd-sellos"><h2>Sellos de advertencia · Ley 20.606 (Chile)</h2>`;
+  const faltaSello=(d.faltan||[]).filter(k=>['kcal','sodio_mg','azucar_g','sat_g'].includes(k));
+  h+=`<div class="card" id="cd-sellos"><h2>Sellos «Alto en» · comparación con los límites de la Ley 20.606</h2>`;
   h+= d.sellos.length
     ? `<div style="display:flex;gap:9px;flex-wrap:wrap">${d.sellos.map(s=>`<div class="sello">Alto en<b>${s[0]}</b></div>`).join('')}</div>
        <table style="margin-top:13px"><tr><th>Nutriente</th><th class="num">Producto</th><th class="num">Límite</th></tr>
        ${d.sellos.map(s=>`<tr><td>${s[0]}</td><td class="num">${s[1]}</td><td class="num">${s[2]}</td></tr>`).join('')}</table>`
-    : `<div class="note ok"><b>Sin sellos</b>No supera ningún límite chileno por 100 ${U}.</div>`;
-  h+=`<small class="mut" style="margin-top:9px">Límites vigentes desde junio de 2019, por 100 ${U}. Con uno o más sellos el producto no puede venderse ni publicitarse en establecimientos escolares.</small></div>`;
+    : `<div class="note ok"><b>Bajo los límites</b>Ningún valor declarado supera los límites por 100 ${U}.</div>`;
+  h+=`<small class="mut" style="margin-top:9px">Comparación numérica con los límites vigentes desde junio de 2019, por 100 ${U}. La norma tiene excepciones (alimentos sin azúcares, sodio o grasas <b>añadidos</b> —como una fruta— no llevan sello, y hay productos exentos): el sello que vale es el que está impreso en el envase.${faltaSello.length?' <b>Faltan datos para comparar '+faltaSello.map(k=>(NUTS.find(n=>n[0]===k)||[k,k])[1].toLowerCase()).join(', ')+'.</b>':''}</small>
+    <div class="sep"></div>
+    <h3 style="font-size:14px">Sellos que ves en el envase</h3>
+    <small class="mut" style="margin-bottom:8px" id="selloEst">${d.sellosEnvase==null?'No revisado todavía: toca los que aparezcan impresos (o «Ninguno»).':d.sellosEnvase.length?'Confirmado por ti.':'Confirmado por ti: el envase no lleva sellos.'}</small>
+    <div class="chips" id="sellosEnv">${[['CALORÍAS','Calorías'],['SODIO','Sodio'],['AZÚCARES','Azúcares'],['GRASAS SAT.','Grasas sat.']].map(([k,l])=>
+      `<div class="chip${(d.sellosEnvase||[]).includes(k)?' on':''}" data-s="${k}">${l}</div>`).join('')}<div class="chip${d.sellosEnvase&&!d.sellosEnvase.length?' on':''}" data-s="">Ninguno</div></div>
+    <div id="selloDif"></div></div>`;
 
   /* IMPACTO GLUCÉMICO */
   if(d.ig!=null){
     const c1=d.ig>=70?['Alto','bad']:d.ig>=56?['Medio','']:['Bajo','ok'];
     const c2=d.cg==null?null:(d.cg>=20?['Alta','bad']:d.cg>=11?['Media','']:['Baja','ok']);
     h+=`<div class="card" id="cd-glicemia"><h2>Impacto sobre la glicemia</h2>
-      <div class="note ${c1[1]}"><b>Índice glucémico ≈ ${d.ig} — ${c1[0]}</b>
-        Rapidez con que eleva el azúcar en sangre comparado con la glucosa pura (100). ${esc(d.igTxt)}</div>
+      <div class="note ${c1[1]}"><b>Índice glucémico ${/base local/.test(d.igTxt||'')?'':'estimado '}≈ ${d.ig} — ${c1[0]}</b>
+        Rapidez con que eleva el azúcar en sangre comparado con la glucosa pura (100). ${esc(d.igTxt)}${/base local/.test(d.igTxt||'')?'':' <b>Estimación orientativa</b> a partir de los macronutrientes y los ingredientes: no es un valor medido y no sirve para decisiones clínicas.'}</div>
       ${c2?`<div class="note ${c2[1]}"><b>Carga glucémica de la porción: ${d.cg} — ${c2[0]}</b>
         Combina el índice glucémico con los carbohidratos netos que realmente comes. Es el dato más útil en la práctica.</div>`:''}
       <small class="mut">Referencias — IG: bajo ≤55, medio 56-69, alto ≥70. Carga glucémica: baja ≤10, media 11-19, alta ≥20. Varía con la cocción, la madurez y la combinación con otros alimentos de la comida.</small></div>`;
@@ -3024,8 +3261,8 @@ function renderRes(d){
   h+=`<div class="card" id="cd-nova"><h2>Nivel de procesamiento</h2>
     <div style="display:flex;gap:5px;margin-bottom:12px">${[1,2,3,4].map(i=>
       `<div style="flex:1;height:8px;border-radius:4px;background:${d.nova>=i?(d.nova===4?'#ef4444':d.nova===3?'#f59e0b':d.nova===2?'#eab308':'#22c55e'):'var(--line)'}"></div>`).join('')}</div>
-    <h3>NOVA ${d.nova} — ${nt[0]}</h3><p class="mut">${nt[1]}</p>
-    <div class="note inf"><b>En este producto</b>${esc(d.novaTxt)}</div></div>`;
+    <h3>NOVA ${d.nova} — ${nt[0]}${d.novaProv?' <span class="badge b-nt" style="font-size:10.5px;vertical-align:middle">provisional</span>':''}</h3><p class="mut">${nt[1]}</p>
+    ${d.novaProv?`<div class="note"><b>Sin lista de ingredientes</b>No se puede determinar el nivel de procesamiento sin ella: este NOVA es provisional y no suma al puntaje. Agrega los ingredientes en «Corregir lo leído» para afinarlo.</div>`:`<div class="note inf"><b>En este producto</b>${esc(d.novaTxt)}</div>`}</div>`;
 
   /* INGREDIENTES */
   if(d.ings.length){
@@ -3111,7 +3348,12 @@ function renderRes(d){
 
   /* ENLACES ACOTADOS */
   const q=encodeURIComponent(d.nombre);
+  /* Si el codigo no estaba en la base mundial, el usuario ya tiene todo lo
+     necesario para aportarlo: asi la proxima persona (o el mismo) lo encuentra. */
+  const faltaEnOFF = d.cod && !d.novaOFF && !d.nsOFF && d.origen!=='barras';
   h+=`<div class="card"><h2>Ampliar información (requiere internet)</h2>
+    ${faltaEnOFF?`<a class="lnk" style="border-color:rgba(34,197,94,.45)" href="https://cl.openfoodfacts.org/cgi/product.pl?type=add&code=${esc(d.cod)}" target="_blank" rel="noopener">
+      <span class="ic">➕</span><span>Aportar este producto a Open Food Facts<small>El código ${esc(d.cod)} no está (o está sin tabla). Sube una foto del envase y de la tabla: en minutos queda disponible para todos, gratis y sin anuncios.</small></span></a>`:''}
     <a class="lnk" href="https://cl.openfoodfacts.org/cgi/search.pl?search_terms=${q}&search_simple=1&action=process" target="_blank" rel="noopener">
       <span class="ic">🔎</span><span>Buscar este producto en Open Food Facts<small>Base abierta y colaborativa de productos envasados</small></span></a>
     <a class="lnk" href="https://www.minsal.cl/ley-de-alimentos-nuevo-etiquetado-de-alimentos/" target="_blank" rel="noopener">
@@ -3127,6 +3369,7 @@ function renderRes(d){
       <button class="btn sec" id="btnCopiar">📋 Copiar informe</button>
       <button class="btn sec" id="btnCompartir">📤 Compartir</button>
     </div>
+    <button class="btn sec sm" id="btnPrint" style="margin-bottom:9px">🖨️ Guardar como PDF / imprimir</button>
     <small class="mut" style="margin-bottom:9px;text-align:center">El informe se copia como texto: pégalo en la IA que quieras o envíalo por WhatsApp.</small>
     <button class="btn sec" id="btnNew">📷 Analizar otro producto</button>`;
 
@@ -3180,6 +3423,64 @@ function renderRes(d){
     const o=b.classList.toggle('open'); bd.className='bd'+(o?'':' hide');
   }));
   const bn=$('btnNew'); if(bn) bn.addEventListener('click',()=>goto('scan'));
+  const bp=$('btnPrint'); if(bp) bp.addEventListener('click',()=>window.print());
+
+  /* avisos → llevan al valor en la tabla */
+  $('resBox').querySelectorAll('.note[data-k]').forEach(nt=>nt.addEventListener('click',()=>{
+    const inp=$('resBox').querySelector('.edt:not(.edp)[data-k="'+nt.dataset.k+'"]'); if(!inp) return;
+    inp.scrollIntoView({behavior:'smooth',block:'center'}); inp.classList.add('foco');
+    setTimeout(()=>{ inp.focus(); inp.select&&inp.select(); },350); setTimeout(()=>inp.classList.remove('foco'),2500);
+  }));
+
+  /* sellos vistos en el envase */
+  const pintarDif=()=>{
+    const box=$('selloDif'); if(!box) return;
+    if(d.sellosEnvase==null){ box.innerHTML=''; return; }
+    const calc=d.sellos.map(s=>s[0]), vistos=d.sellosEnvase;
+    const soloCalc=calc.filter(x=>!vistos.includes(x)), soloEnv=vistos.filter(x=>!calc.includes(x));
+    box.innerHTML = (!soloCalc.length&&!soloEnv.length)
+      ? '<div class="note ok" style="margin-top:9px"><b>Coincide</b>Los sellos del envase son los mismos que sugiere la comparación numérica.</div>'
+      : `<div class="note" style="margin-top:9px"><b>Difieren</b>${soloCalc.length?'La comparación numérica sugiere «'+soloCalc.join('», «')+'» pero el envase no lo lleva: puede ser una excepción de la norma o un valor mal leído. ':''}${soloEnv.length?'El envase lleva «'+soloEnv.join('», «')+'» y la comparación no lo sugiere: revisa el valor leído. ':''}</div>`;
+  };
+  pintarDif();
+  $('resBox').querySelectorAll('#sellosEnv .chip').forEach(c=>c.addEventListener('click',()=>{
+    const k=c.dataset.s; let v=d.sellosEnvase||[];
+    if(k==='') v=[]; else v = v.includes(k) ? v.filter(x=>x!==k) : [...v,k];
+    d.sellosEnvase=v;
+    $('resBox').querySelectorAll('#sellosEnv .chip').forEach(x=>x.classList.toggle('on', x.dataset.s==='' ? !v.length : v.includes(x.dataset.s)));
+    $('selloEst').textContent = v.length?'Confirmado por ti.':'Confirmado por ti: el envase no lleva sellos.';
+    pintarDif(); guardarInformeActual(d);
+  }));
+
+  /* cantidad que consumiras */
+  const cantG=$('cantG');
+  const pintarCant=()=>{
+    const g=parseFloat(cantG.value); const box=$('cantMini'); if(!box) return;
+    if(!(g>0)){ box.innerHTML=''; return; }
+    const q=porCantidad(d.x100,g), n=d.needs;
+    const meta={kcal:n.kcal,proteina_g:n.prot,carb_g:n.carb,azucar_g:n.azucar,grasa_g:n.grasa,sat_g:n.sat,sodio_mg:n.sodio,fibra_g:n.fibra};
+    box.innerHTML=[['kcal','Energía','kcal'],['proteina_g','Proteínas','g'],['carb_g','Carbohid.','g'],['azucar_g','Azúcares','g'],
+      ['grasa_g','Grasas','g'],['sat_g','Saturadas','g'],['fibra_g','Fibra','g'],['sodio_mg','Sodio','mg']].map(([k,l,u])=>
+      `<div><span>${l}</span><b>${q[k]!=null?q[k]:'—'}</b><i>${q[k]!=null?(meta[k]?Math.round(q[k]/meta[k]*100)+' % día':u):'sin dato'}</i></div>`).join('');
+  };
+  if(cantG){
+    cantG.addEventListener('input',()=>{ $('resBox').querySelectorAll('#cantBtns button').forEach(b=>b.classList.remove('on')); pintarCant(); });
+    $('resBox').querySelectorAll('#cantBtns button').forEach(b=>b.addEventListener('click',()=>{
+      const base=d.porcDecl===false?100:d.porcG;
+      cantG.value = b.dataset.f==='100g' ? 100 : +(base*parseFloat(b.dataset.f)).toFixed(1);
+      $('resBox').querySelectorAll('#cantBtns button').forEach(x=>x.classList.remove('on')); b.classList.add('on'); pintarCant();
+    }));
+    pintarCant();
+    $('btnDiario').addEventListener('click',()=>{
+      const g=parseFloat(cantG.value); if(!(g>0)) return toast('Escribe una cantidad mayor que 0',true);
+      const q=porCantidad(d.x100,g);
+      const lista=ls.g(K.diario,[]);
+      lista.unshift({ts:Date.now(),nombre:d.nombre,cant:g,u:U,kcal:q.kcal||0,azucar:q.azucar_g||0,sodio:q.sodio_mg||0,
+        sat:q.sat_g||0,prot:q.proteina_g||0,carb:q.carb_g||0,fibra:q.fibra_g||0,ref:d.ts});
+      if(ls.s(K.diario,lista.slice(0,400))) toast(`Registrado: ${g} ${U} de ${d.nombre} ✓ (${q.kcal!=null?q.kcal+' kcal':'sin energía declarada'})`);
+    });
+  }
+  const bk=$('btnClaveOCR'); if(bk) bk.addEventListener('click',()=>{ $('btnSetup').click(); setTimeout(()=>{ const i=$('inOcrKey'); i.scrollIntoView({block:'center'}); i.focus(); },200); });
   const copiarTexto=async t=>{
     try{ await navigator.clipboard.writeText(t); return true; }
     catch(e){ const ta=document.createElement('textarea'); ta.value=t; ta.style.position='fixed'; ta.style.opacity='0';
@@ -3219,48 +3520,179 @@ function pushHist(d){
   h.unshift({ts:d.ts,nombre:d.nombre,score:d.score,grade:d.grade,nova:d.nova,fotoId:d.fotoId,
     sellos:d.sellos.length,foto:d.foto,kcal:d.pPorc.kcal||0,azucar:d.pPorc.azucar_g||0,
     sodio:d.pPorc.sodio_mg||0,sat:d.pPorc.sat_g||0,full:d});
-  ls.s(K.hist,h.slice(0,50));
+  /* los favoritos no se caen del tope de 50 */
+  const fav=h.filter(x=>x.fav), resto=h.filter(x=>!x.fav);
+  return ls.s(K.hist,[...fav,...resto.slice(0,Math.max(0,50-fav.length))].sort((a,b)=>b.ts-a.ts));
 }
+/* Cambios hechos sobre un informe ya generado (sellos vistos, etc.) */
+function guardarInformeActual(d){
+  const u=ls.g(K.last,null); if(u && u.ts===d.ts) ls.s(K.last,d);
+  const h=ls.g(K.hist,[]); const i=h.findIndex(x=>x.ts===d.ts); if(i>=0){ h[i].full=d; ls.s(K.hist,h); }
+}
+/* Version de las reglas de calculo, para saber con que se hizo cada informe */
+const MOTOR_V = '2026-09-19';
+const NUT_CLAVE = ['kcal','proteina_g','carb_g','azucar_g','grasa_g','sat_g','sodio_mg'];
+const faltantes = x => NUT_CLAVE.filter(k=>x[k]==null);
+/* Aportes para una cantidad concreta (g o ml), a partir de los valores por 100 */
+function porCantidad(x100, g){ const o={}; Object.keys(x100).forEach(k=>{ if(k!=='fv'&&x100[k]!=null) o[k]=+(x100[k]*g/100).toFixed(1); }); return o; }
+/* Suma del diario para un dia: solo lo que se registro como consumido */
+function sumarDia(entradas, dia){
+  const d=entradas.filter(e=>new Date(e.ts).toDateString()===dia);
+  return d.reduce((a,e)=>({n:a.n+1,kcal:a.kcal+(e.kcal||0),azucar:a.azucar+(e.azucar||0),sodio:a.sodio+(e.sodio||0),
+    sat:a.sat+(e.sat||0),prot:a.prot+(e.prot||0),carb:a.carb+(e.carb||0),fibra:a.fibra+(e.fibra||0)}),
+    {n:0,kcal:0,azucar:0,sodio:0,sat:0,prot:0,carb:0,fibra:0});
+}
+let cmpModo=false, cmpSel=[];
+function renderComparar(a,b){
+  const U=x=>x.tipo==='bebida'?'ml':'g';
+  const filas=[['kcal','Energía','kcal',true],['proteina_g','Proteínas','g',false],['carb_g','Carbohidratos','g',true],
+    ['azucar_g','Azúcares','g',true],['fibra_g','Fibra','g',false],['grasa_g','Grasas totales','g',true],
+    ['sat_g','Saturadas','g',true],['trans_g','Trans','g',true],['sodio_mg','Sodio','mg',true],['colesterol_mg','Colesterol','mg',true]];
+  const celda=(v,u)=>v==null?'—':(Math.round(v*10)/10)+' <i>'+u+'</i>';
+  const cab=x=>`<th class="num"><span class="s" style="background:${sc(x.score)}">${x.score}</span><br>${esc(x.nombre)}<br><small style="color:var(--tx3)">por 100 ${U(x)}</small></th>`;
+  let h=`<div class="tablewrap"><table class="cmp"><tr><th></th>${cab(a)}${cab(b)}</tr>`;
+  const resumen=[['Nutri-Score',a.grade,b.grade,(x,y)=>x<y?1:x>y?-1:0],['NOVA',a.nova,b.nova,(x,y)=>x<y?1:x>y?-1:0],
+    ['Sellos',a.sellos.length,b.sellos.length,(x,y)=>x<y?1:x>y?-1:0]];
+  resumen.forEach(([l,x,y,f])=>{ const r=f(x,y);
+    h+=`<tr><td>${l}</td><td class="num ${r>0?'mejor':r<0?'peor':''}">${x}</td><td class="num ${r<0?'mejor':r>0?'peor':''}">${y}</td></tr>`; });
+  filas.forEach(([k,l,u,menosEsMejor])=>{
+    const x=a.x100[k], y=b.x100[k]; if(x==null&&y==null) return;
+    let r=0; if(x!=null&&y!=null&&Math.abs(x-y)>Math.max(0.05,Math.abs(Math.max(x,y))*0.08)) r=(menosEsMejor?x<y:x>y)?1:-1;
+    h+=`<tr><td>${l}</td><td class="num ${r>0?'mejor':r<0?'peor':''}">${celda(x,u)}</td><td class="num ${r<0?'mejor':r>0?'peor':''}">${celda(y,u)}</td></tr>`;
+  });
+  h+=`</table></div><small class="mut" style="margin-top:8px">En verde, el valor más favorable de cada fila (menos energía, azúcar, grasa, saturadas, trans, sodio y colesterol; más proteína y fibra). Diferencias menores al 8 % no se marcan.</small>`;
+  $('cmpBox').innerHTML=h; $('cmpOvl').className='ovl'; $('cmpOvl').scrollTop=0;
+}
+$('cmpClose').addEventListener('click',()=>$('cmpOvl').className='ovl hide');
+$('btnCmp').addEventListener('click',()=>{
+  const h=ls.g(K.hist,[]);
+  if(h.length<2) return toast('Necesitas al menos dos productos en el historial.',true);
+  cmpModo=!cmpModo; cmpSel=[];
+  $('btnCmp').textContent = cmpModo ? '✕ Cancelar comparación' : '⚖️ Comparar dos productos';
+  $('cmpHint').className='mut'+(cmpModo?'':' hide');
+  renderHist();
+});
+let soloFav=false;
+$('fltFav').addEventListener('click',()=>{ soloFav=!soloFav; $('fltFav').classList.toggle('on',soloFav); renderHist(); });
 function renderHist(){
   const h=ls.g(K.hist,[]), q=norm(($('histQ')||{}).value||'');
-  const vis=h.map((it,i)=>[it,i]).filter(([it])=>!q||norm(it.nombre).includes(q));
+  $('histList').className = cmpModo?'comparando':'';
+  const vis=h.map((it,i)=>[it,i]).filter(([it])=>(!q||norm(it.nombre).includes(q))&&(!soloFav||it.fav));
   $('histList').innerHTML = vis.length ? vis.map(([it,i])=>`
     <div class="hitem" data-h="${i}">
       ${it.foto?`<img src="${it.foto}">`:'<div class="ph">🥫</div>'}
       <div class="m"><b>${esc(it.nombre)}</b>
         <span>NOVA ${it.nova} · ${it.sellos} sello${it.sellos===1?'':'s'} · ${new Date(it.ts).toLocaleDateString('es-CL')} ${new Date(it.ts).toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'})}</span></div>
       <div class="s" style="background:${sc(it.score)}">${it.score}</div>
-      <button class="hdel" data-del="${i}" title="Quitar del historial">✕</button></div>`).join('')
-    : h.length ? '<p class="mut">Nada coincide con «'+esc(q)+'».</p>' : '<p class="mut">Todavía no has analizado ningún producto.</p>';
+      <button class="fav${it.fav?' on':''}" data-fav="${i}" title="Favorito" aria-label="Marcar favorito">${it.fav?'★':'☆'}</button>
+      <button class="hdel" data-del="${i}" title="Quitar del historial" aria-label="Quitar del historial">✕</button></div>`).join('')
+    : h.length ? (soloFav&&!q ? '<p class="mut">Aún no marcaste favoritos: toca ☆ en un producto.</p>' : '<p class="mut">Nada coincide con «'+esc(q)+'».</p>') : '<p class="mut">Todavía no has analizado ningún producto.</p>';
+  $('histList').querySelectorAll('[data-fav]').forEach(b=>b.addEventListener('click',ev=>{
+    ev.stopPropagation(); const i=+b.dataset.fav, lista=ls.g(K.hist,[]);
+    lista[i].fav=!lista[i].fav; ls.s(K.hist,lista); renderHist();
+  }));
   $('histList').querySelectorAll('.hitem').forEach(e=>e.addEventListener('click',()=>{
-    renderRes(h[+e.dataset.h].full); goto('res');
+    const i=+e.dataset.h;
+    if(cmpModo){
+      if(cmpSel.includes(i)){ cmpSel=cmpSel.filter(x=>x!==i); e.classList.remove('sel'); return; }
+      cmpSel.push(i); e.classList.add('sel');
+      if(cmpSel.length===2){
+        const [a,b]=cmpSel.map(j=>h[j].full);
+        cmpModo=false; cmpSel=[]; $('btnCmp').textContent='⚖️ Comparar dos productos'; $('cmpHint').className='mut hide';
+        renderHist(); renderComparar(a,b);
+      }
+      return;
+    }
+    renderRes(h[i].full); goto('res');
   }));
   /* Borrar uno solo: el balance del día se recalcula sin ese producto. */
   $('histList').querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',ev=>{
     ev.stopPropagation();
     const i=+b.dataset.del, lista=ls.g(K.hist,[]), quitado=lista[i];
     lista.splice(i,1); ls.s(K.hist,lista);
-    /* sus fotos se van con el, salvo que otro registro las comparta */
-    if(quitado && quitado.fotoId && !lista.some(x=>x.fotoId===quitado.fotoId))
-      FOTODB.del(quitado.fotoId);
-    renderHist(); renderDia();
-    toast('«'+(quitado&&quitado.nombre||'Producto')+'» quitado del historial');
+    renderHist();
+    /* las fotos se borran solo si no se deshace; mientras tanto siguen ahi */
+    let deshecho=false;
+    toastAccion('«'+(quitado&&quitado.nombre||'Producto')+'» quitado del historial','Deshacer',()=>{
+      deshecho=true; const l2=ls.g(K.hist,[]); l2.push(quitado); l2.sort((a,b)=>b.ts-a.ts); ls.s(K.hist,l2); renderHist();
+    });
+    setTimeout(()=>{ if(!deshecho && quitado && quitado.fotoId && !ls.g(K.hist,[]).some(x=>x.fotoId===quitado.fotoId)) FOTODB.del(quitado.fotoId); },6500);
   }));
 }
 function renderDia(){
-  const h=ls.g(K.hist,[]), hoy=new Date().toDateString();
-  const d=h.filter(i=>new Date(i.ts).toDateString()===hoy);
-  if(!d.length){ $('diaBox').innerHTML='<h2>Balance de hoy</h2><p class="mut">Sin productos analizados hoy.</p>'; return; }
-  const n=needs(perfil);
-  const t=d.reduce((a,i)=>({kcal:a.kcal+i.kcal,azucar:a.azucar+i.azucar,sodio:a.sodio+i.sodio,sat:a.sat+i.sat}),
-    {kcal:0,azucar:0,sodio:0,sat:0});
-  $('diaBox').innerHTML=`<h2>Balance de hoy (${d.length} producto${d.length===1?'':'s'})</h2>
-    <small class="mut" style="margin-bottom:12px">Suma de una porción de cada producto analizado hoy.</small>
+  const lista=ls.g(K.diario,[]), hoy=new Date().toDateString();
+  const hoyL=lista.filter(e=>new Date(e.ts).toDateString()===hoy);
+  if(!hoyL.length){ $('diaBox').innerHTML='<h2>Consumo de hoy</h2><p class="mut">Nada registrado hoy. Analizar un producto no lo suma: en el informe, en «Cantidad que consumirás», toca <b>Registrar</b>.</p>'; return; }
+  const n=needs(perfil), t=sumarDia(lista,hoy);
+  $('diaBox').innerHTML=`<h2>Consumo de hoy (${t.n} registro${t.n===1?'':'s'})</h2>
+    <small class="mut" style="margin-bottom:12px">Suma de lo que registraste como consumido, en las cantidades que indicaste. Es lo registrado, no toda tu dieta.</small>
     ${bar('Energía',Math.round(t.kcal),'kcal',n.kcal,true)}
+    ${bar('Proteínas',+t.prot.toFixed(1),'g',n.prot,false)}
+    ${bar('Carbohidratos',+t.carb.toFixed(1),'g',n.carb,true)}
     ${bar('Azúcares',+t.azucar.toFixed(1),'g',n.azucar,true)}
+    ${bar('Fibra',+t.fibra.toFixed(1),'g',n.fibra,false)}
     ${bar('Grasas saturadas',+t.sat.toFixed(1),'g',n.sat,true)}
-    ${bar('Sodio',Math.round(t.sodio),'mg',n.sodio,true)}`;
+    ${bar('Sodio',Math.round(t.sodio),'mg',n.sodio,true)}
+    <div class="sep"></div>
+    ${hoyL.map(e=>`<div class="ditem"><div class="m"><b>${esc(e.nombre)}</b><span>${e.cant} ${e.u} · ${Math.round(e.kcal)} kcal · ${new Date(e.ts).toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'})}</span></div>
+      <button class="ddel" data-dts="${e.ts}" aria-label="Quitar este consumo">✕</button></div>`).join('')}`;
+  $('diaBox').querySelectorAll('[data-dts]').forEach(b=>b.addEventListener('click',()=>{
+    const ts=+b.dataset.dts, l=ls.g(K.diario,[]), q=l.find(e=>e.ts===ts);
+    ls.s(K.diario,l.filter(e=>e.ts!==ts)); renderDia();
+    toastAccion('Consumo quitado','Deshacer',()=>{ const l2=ls.g(K.diario,[]); l2.push(q); l2.sort((a,b)=>b.ts-a.ts); ls.s(K.diario,l2); renderDia(); });
+  }));
 }
+/* ── Respaldo: exportar e importar ── */
+async function entregarArchivo(nombre, contenido, tipo){
+  const blob=new Blob([contenido],{type:tipo});
+  const file=new File([blob],nombre,{type:tipo});
+  if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
+    try{ await navigator.share({files:[file],title:nombre}); return; }catch(e){ if(e.name==='AbortError') return; }
+  }
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=nombre;
+  document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },1500);
+  toast('Archivo generado: '+nombre);
+}
+const fechaArchivo=()=>new Date().toISOString().slice(0,10);
+$('btnExpJson').addEventListener('click',async()=>{
+  const hist=ls.g(K.hist,[]).map(it=>{ const c={...it}; delete c.foto; if(c.full){ c.full={...c.full}; delete c.full.foto; } return c; });
+  const j={app:'NutriScan',version:APP_V,esquema:2,fecha:new Date().toISOString(),perfil:perfil||null,historial:hist,productos:PRODS,diario:ls.g(K.diario,[])};
+  const ids=await FOTODB.ids();
+  if(ids.length && confirm(`¿Incluir las fotos de los productos (${ids.length} producto${ids.length===1?'':'s'} con foto)? El archivo será más grande.`)){
+    j.fotos={}; for(const id of ids){ const f=await FOTODB.get(id); if(f) j.fotos[id]=f; }
+  }
+  entregarArchivo('nutriscan-respaldo-'+fechaArchivo()+'.json', JSON.stringify(j), 'application/json');
+});
+$('btnExpCsv').addEventListener('click',()=>{
+  const h=ls.g(K.hist,[]);
+  if(!h.length) return toast('El historial está vacío.',true);
+  const cols=[['fecha',it=>new Date(it.ts).toLocaleString('es-CL')],['producto',it=>it.nombre],['codigo',it=>(it.full&&it.full.cod)||''],
+    ['origen',it=>(it.full&&it.full.origen)||''],['puntaje',it=>it.score],['nutriscore',it=>it.grade],['nova',it=>it.nova],['sellos',it=>it.sellos],
+    ['porcion_g',it=>(it.full&&it.full.porcG)||''],...NUTS.map(([k,l,u])=>[l.toLowerCase().replace(/ /g,'_')+'_'+u+'_por_100',it=>it.full&&it.full.x100&&it.full.x100[k]!=null?it.full.x100[k]:''])];
+  const q=v=>{ v=String(v==null?'':v); return /[";\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; };
+  const csv='\ufeff'+cols.map(c=>c[0]).join(';')+'\n'+h.map(it=>cols.map(c=>q(c[1](it))).join(';')).join('\n');
+  entregarArchivo('nutriscan-historial-'+fechaArchivo()+'.csv', csv, 'text/csv');
+});
+$('btnImp').addEventListener('click',()=>$('fileImp').click());
+$('fileImp').addEventListener('change',async e=>{
+  const f=e.target.files[0]; e.target.value=''; if(!f) return;
+  try{
+    const j=JSON.parse(await f.text());
+    if(j.app!=='NutriScan' || !Array.isArray(j.historial)) throw new Error('formato');
+    const nFotos=Object.keys(j.fotos||{}).length, nDiario=(j.diario||[]).length;
+    if(!confirm(`Respaldo del ${new Date(j.fecha).toLocaleDateString('es-CL')} (v${j.version||'?'}): ${j.historial.length} producto(s), ${Object.keys(j.productos||{}).length} en memoria, ${nDiario} consumo(s), ${nFotos} con foto.\n\nSe combinará con lo que ya tienes (nada se borra). ¿Continuar?`)) return;
+    const actual=ls.g(K.hist,[]), ts=new Set(actual.map(x=>x.ts));
+    const nuevos=j.historial.filter(x=>x&&x.ts&&!ts.has(x.ts));
+    const total=[...actual,...nuevos].sort((a,b)=>b.ts-a.ts).slice(0,50);
+    if(!ls.s(K.hist,total)) throw new Error('guardar');
+    let np=0; Object.keys(j.productos||{}).forEach(c=>{ if(!PRODS[c]){ PRODS[c]=j.productos[c]; np++; } }); ls.s('ns_prod',PRODS);
+    if(nDiario){ const dl=ls.g(K.diario,[]), dts=new Set(dl.map(e=>e.ts)); ls.s(K.diario,[...dl,...j.diario.filter(e=>e&&e.ts&&!dts.has(e.ts))].sort((a,b)=>b.ts-a.ts).slice(0,400)); }
+    let nf=0; for(const id of Object.keys(j.fotos||{})){ if(!(await FOTODB.get(id))){ await FOTODB.put(id,j.fotos[id]); nf++; } }
+    if(j.perfil && !perfil){ perfil=j.perfil; ls.s(K.perf,perfil); loadPerf(); renderNeeds(); }
+    renderHist(); renderDia();
+    toast(`Respaldo importado ✓ ${nuevos.length} al historial, ${np} a la memoria${nf?', '+nf+' con fotos':''}`);
+  }catch(err){ toast('Ese archivo no es un respaldo de NutriScan.',true); }
+});
 $('btnClrHist').addEventListener('click',async()=>{
   for(const it of ls.g(K.hist,[])) if(it.fotoId) await FOTODB.del(it.fotoId);
   ls.s(K.hist,[]); renderHist(); renderDia(); toast('Historial borrado');
@@ -3461,6 +3893,18 @@ if(location.search.includes('test')){
   R.push('Filas de la etiqueta');
 
   R.push('Verosimilitud');
+
+  /* Cantidad consumida, diario y datos ausentes */
+  (function(){
+    const q=porCantidad({kcal:480,azucar_g:34,sodio_mg:380,fv:10},60);
+    A(q.kcal===288 && q.azucar_g===20.4 && q.sodio_mg===228 && q.fv===undefined,'aportes proporcionales a la cantidad');
+    const hoy=new Date().toDateString(), ayer=Date.now()-864e5;
+    const t=sumarDia([{ts:Date.now(),kcal:100,azucar:5},{ts:Date.now()-1000,kcal:50,azucar:2,sodio:300},{ts:ayer,kcal:999}],hoy);
+    A(t.n===2 && t.kcal===150 && t.azucar===7 && t.sodio===300,'el diario suma solo lo registrado hoy');
+    A(faltantes({kcal:100,carb_g:5}).join(',')==='proteina_g,azucar_g,grasa_g,sat_g,sodio_mg','los nutrientes no declarados se listan, no se vuelven cero');
+    A(faltantes({kcal:100,proteina_g:0,carb_g:0,azucar_g:0,grasa_g:0,sat_g:0,sodio_mg:0}).length===0,'un cero explícito sí es un dato');
+  })();
+  R.push('Cantidad y diario');
   setTimeout(()=>toast('✅ TODOS LOS TESTS OK — '+R.join(' · ')),400);
 }
 </script>
