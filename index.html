@@ -455,8 +455,8 @@ details[open] summary{margin-bottom:11px}
         <option value="porc">Una porción</option>
       </select></label>
     <div class="g2">
-      <label class="f"><span>Tamaño de porción (g o ml)</span><input type="number" id="inPorcG" inputmode="decimal" placeholder="30"></label>
-      <label class="f"><span>Porciones por envase</span><input type="number" id="inPorcN" inputmode="decimal" placeholder="10"></label>
+      <label class="f"><span>Tamaño de porción (g o ml)</span><input type="text" id="inPorcG" inputmode="decimal" placeholder="30"></label>
+      <label class="f"><span>Porciones por envase</span><input type="text" id="inPorcN" inputmode="decimal" placeholder="10"></label>
     </div>
     <label class="f"><span>Tipo de producto</span>
       <select id="inTipo">
@@ -486,10 +486,10 @@ details[open] summary{margin-bottom:11px}
   <div class="card">
     <h2>Datos personales</h2>
     <div class="g2">
-      <label class="f"><span>Edad (años)</span><input type="number" id="p_edad" inputmode="decimal" min="0" max="120"></label>
+      <label class="f"><span>Edad (años)</span><input type="text" id="p_edad" inputmode="decimal" min="0" max="120"></label>
       <label class="f"><span>Sexo</span><select id="p_sexo"><option value="m">Masculino</option><option value="f">Femenino</option></select></label>
-      <label class="f"><span>Peso (kg)</span><input type="number" id="p_peso" inputmode="decimal" step="0.1"></label>
-      <label class="f"><span>Talla (cm)</span><input type="number" id="p_talla" inputmode="decimal" step="0.5"></label>
+      <label class="f"><span>Peso (kg)</span><input type="text" id="p_peso" inputmode="decimal" step="0.1"></label>
+      <label class="f"><span>Talla (cm)</span><input type="text" id="p_talla" inputmode="decimal" step="0.5"></label>
     </div>
     <label class="f"><span>Actividad física</span>
       <select id="p_act">
@@ -681,6 +681,8 @@ details[open] summary{margin-bottom:11px}
    ══════════════════════════════════════════════════════════════ */
 
 const $  = id => document.getElementById(id);
+/* Número desde un campo: acepta coma o punto decimal (teclado iOS en español escribe ',') */
+const num = v => parseFloat(String(v==null?'':v).trim().replace(/\s/g,'').replace(',','.'));
 const esc = s => String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const K = { perf:'ns_perfil', hist:'ns_hist', last:'ns_last', diario:'ns_diario' };
 const ls = { g:(k,d)=>{try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},
@@ -737,7 +739,7 @@ function hint(){
     : '⚠️ Sin perfil: se usará un adulto de referencia (2000 kcal). Configura tu <b>Perfil</b> para porcentajes reales.';
 }
 $('btnSavePerf').addEventListener('click',()=>{
-  const edad=parseFloat($('p_edad').value), peso=parseFloat($('p_peso').value), talla=parseFloat($('p_talla').value);
+  const edad=num($('p_edad').value), peso=num($('p_peso').value), talla=num($('p_talla').value);
   if(!(edad>=0&&edad<=120)) return toast('Edad inválida',true);
   if(!(peso>0&&peso<400))   return toast('Peso inválido',true);
   if(!(talla>0&&talla<260)) return toast('Talla inválida',true);
@@ -1782,7 +1784,7 @@ const NUTS = [
   ['cafeina_mg','Cafeína','mg'],['omega3_g','Omega-3','g']
 ];
 $('nutGrid').innerHTML = NUTS.map(([k,l,u])=>
-  `<label class="f"><span>${l} (${u})</span><input type="number" inputmode="decimal" step="0.1" id="n_${k}"></label>`).join('');
+  `<label class="f"><span>${l} (${u})</span><input type="text" inputmode="decimal" step="0.1" id="n_${k}"></label>`).join('');
 
 let foto = null;
 function renderShot(){
@@ -1878,7 +1880,7 @@ function verFoto(src){
 }
 $('lupaCerrar').addEventListener('click',()=>{ $('lupaOvl').className='hide'; $('lupaImg').src=''; });
 $('lupaOvl').addEventListener('click',e=>{ if(e.target.id==='lupaOvl'){ $('lupaOvl').className='hide'; $('lupaImg').src=''; } });
-const APP_V = '24';
+const APP_V = '25';
 $('inOcrModo').addEventListener('change',e=>{ ls.s('ns_ocrmodo',e.target.value); toast(e.target.value==='local'?'Lector local: la foto no sale del teléfono':'Lector en línea con respaldo local'); });
 
 /* ── Lectura sin internet: deja en cache los motores de OCR y codigos ──
@@ -2902,14 +2904,14 @@ pintarRed();
 /* ══════════ H. GENERAR INFORME ══════════ */
 function generarInforme(auto){
   const x={};
-  NUTS.forEach(([k])=>{ const v=parseFloat($('n_'+k).value); if(!isNaN(v)) x[k]=v; });
+  NUTS.forEach(([k])=>{ const v=num($('n_'+k).value); if(!isNaN(v)) x[k]=v; });
   if(x.kcal==null && x.carb_g==null && x.grasa_g==null){
     toast('Ingresa al menos la energía o los macronutrientes',true); return; }
 
   const tipo=$('inTipo').value;
-  const porcDecl=parseFloat($('inPorcG').value)>0;   // ¿el envase declara porción o la suponemos?
-  const porcG=porcDecl? parseFloat($('inPorcG').value) : 100;
-  const porcN=parseFloat($('inPorcN').value)||null;
+  const porcDecl=num($('inPorcG').value)>0;   // ¿el envase declara porción o la suponemos?
+  const porcG=porcDecl? num($('inPorcG').value) : 100;
+  const porcN=num($('inPorcN').value)||null;
 
   // Normalizar todo a 100 g/ml
   let x100={};
@@ -3263,7 +3265,7 @@ function renderRes(d){
     <small class="mut">La porción del envase es una referencia; aquí calculas lo que de verdad comes o bebes. Registrarlo lleva el aporte a tu <b>consumo de hoy</b> (analizar un producto no lo suma).</small>
     <div class="cant" id="cantBtns">
       <button data-f="0.5">½ porción</button><button data-f="1" class="on">1 porción</button><button data-f="2">2 porciones</button><button data-f="100g">100 ${U}</button></div>
-    <label class="f" style="margin-bottom:0"><span>Cantidad (${U})</span><input type="number" inputmode="decimal" step="any" id="cantG" value="${d.porcDecl===false?100:d.porcG}"></label>
+    <label class="f" style="margin-bottom:0"><span>Cantidad (${U})</span><input type="text" inputmode="decimal" step="any" id="cantG" value="${d.porcDecl===false?100:d.porcG}"></label>
     <div class="mini" id="cantMini"></div>
     <button class="btn sm" id="btnDiario" style="margin-top:11px">➕ Registrar en mi consumo de hoy</button></div>`;
 
@@ -3362,8 +3364,8 @@ function renderRes(d){
          una y mal en la otra, y obligar a convertir a mano es justo el trabajo
          que la app deberia hacer sola. */
       return `<tr><td>${l}</td>
-        <td class="num"><input class="edt${malo?' malo':''}" data-k="${k}" type="number" inputmode="decimal" step="any" value="${x[k]}"><i>${u}</i></td>
-        <td class="num"><input class="edt edp" data-k="${k}" type="number" inputmode="decimal" step="any" value="${p[k]}"><i>${u}</i></td>
+        <td class="num"><input class="edt${malo?' malo':''}" data-k="${k}" type="text" inputmode="decimal" step="any" value="${x[k]}"><i>${u}</i></td>
+        <td class="num"><input class="edt edp" data-k="${k}" type="text" inputmode="decimal" step="any" value="${p[k]}"><i>${u}</i></td>
         <td class="num">${pc}</td></tr>`;
     }).join('')}</table></div>
     <small class="mut" style="margin-top:8px">La columna «% día» usa <b>tus</b> requerimientos, no los del 2000 kcal genérico de la etiqueta.</small>
@@ -3371,8 +3373,8 @@ function renderRes(d){
     <h3>Corregir lo leído</h3>
     <small class="mut">Escribe encima de <b>cualquier</b> valor de la tabla y pulsa recalcular. Puedes corregir <b>tanto la columna «100 ${U}» como la de la porción</b>: si escribes en la de la porción, la de 100 ${U} se ajusta sola${d.porcDecl===false?' (usando la porción que declares abajo)':''}. Se rehacen el puntaje, los sellos, el índice glucémico, los órganos, las advertencias y todos los porcentajes.</small>
     <div class="g2" style="margin-top:11px">
-      <label class="f"><span>Porción (${U})</span><input type="number" inputmode="decimal" step="any" id="edtPorcG" value="${d.porcDecl===false?'':d.porcG}" placeholder="100"></label>
-      <label class="f"><span>Porciones por envase</span><input type="number" inputmode="decimal" step="any" id="edtPorcN" value="${d.porcN||''}" placeholder="1"></label>
+      <label class="f"><span>Porción (${U})</span><input type="text" inputmode="decimal" step="any" id="edtPorcG" value="${d.porcDecl===false?'':d.porcG}" placeholder="100"></label>
+      <label class="f"><span>Porciones por envase</span><input type="text" inputmode="decimal" step="any" id="edtPorcN" value="${d.porcN||''}" placeholder="1"></label>
     </div>
     <label class="f"><span>Ingredientes</span><textarea id="edtIng" style="min-height:74px">${esc(d.ingTexto||d.ings.map(i=>i.nombre).join(', '))}</textarea></label>
     <button class="btn" id="btnRecalc">🔄 Recalcular el informe</button>
@@ -3420,7 +3422,7 @@ function renderRes(d){
   (function(){
     const caja=$('resBox');
     const porcion = () => {
-      const v=parseFloat(($('edtPorcG')||{}).value);
+      const v=num(($('edtPorcG')||{}).value);
       return v>0 ? v : (d.porcG>0 ? d.porcG : 100);
     };
     const redondear = v => Math.abs(v)>=100 ? Math.round(v) : Math.round(v*100)/100;
@@ -3428,7 +3430,7 @@ function renderRes(d){
     caja.querySelectorAll('.edt').forEach(inp=>inp.addEventListener('input',()=>{
       const k=inp.dataset.k, esPorc=inp.classList.contains('edp'), otro=par(k, esPorc?'cien':'porc');
       if(!otro) return;
-      const v=parseFloat(inp.value);
+      const v=num(inp.value);
       if(inp.value.trim()==='' ){ otro.value=''; return; }
       if(isNaN(v)) return;
       const f=porcion()/100;
@@ -3441,7 +3443,7 @@ function renderRes(d){
     if(ep) ep.addEventListener('input',()=>{
       const f=porcion()/100;
       caja.querySelectorAll('.edt:not(.edp)').forEach(i=>{
-        const v=parseFloat(i.value), o=par(i.dataset.k,'porc');
+        const v=num(i.value), o=par(i.dataset.k,'porc');
         if(o && !isNaN(v)) o.value=redondear(v*f);
       });
     });
@@ -3495,7 +3497,7 @@ function renderRes(d){
   /* cantidad que consumiras */
   const cantG=$('cantG');
   const pintarCant=()=>{
-    const g=parseFloat(cantG.value); const box=$('cantMini'); if(!box) return;
+    const g=num(cantG.value); const box=$('cantMini'); if(!box) return;
     if(!(g>0)){ box.innerHTML=''; return; }
     const q=porCantidad(d.x100,g), n=d.needs;
     const meta={kcal:n.kcal,proteina_g:n.prot,carb_g:n.carb,azucar_g:n.azucar,grasa_g:n.grasa,sat_g:n.sat,sodio_mg:n.sodio,fibra_g:n.fibra};
@@ -3512,7 +3514,7 @@ function renderRes(d){
     }));
     pintarCant();
     $('btnDiario').addEventListener('click',()=>{
-      const g=parseFloat(cantG.value); if(!(g>0)) return toast('Escribe una cantidad mayor que 0',true);
+      const g=num(cantG.value); if(!(g>0)) return toast('Escribe una cantidad mayor que 0',true);
       const q=porCantidad(d.x100,g);
       const lista=ls.g(K.diario,[]);
       lista.unshift({ts:Date.now(),nombre:d.nombre,cant:g,u:U,kcal:q.kcal||0,azucar:q.azucar_g||0,sodio:q.sodio_mg||0,
@@ -3990,6 +3992,11 @@ if(location.search.includes('test')){
     perfil=p0;
   })();
   R.push('Trazas');
+  // ── Decimales con coma (teclado iOS en español)
+  A(num('12,5')===12.5 && num('12.5')===12.5 && num(' 0,3 ')===0.3,'acepta coma y punto');
+  A(isNaN(num('')) && isNaN(num(null)) && num('7')===7,'vacío → NaN, entero → número');
+  A(document.querySelectorAll('input[type=number]').length===0,'ningún campo type=number (rechazaría la coma)');
+  R.push('Coma decimal');
   setTimeout(()=>toast('✅ TODOS LOS TESTS OK — '+R.join(' · ')),400);
 }
 </script>
